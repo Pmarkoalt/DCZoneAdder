@@ -6,6 +6,7 @@ import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
 
 import { convertCsv } from '../../create_csv_api';
+import './section_one.scss';
 
 
 
@@ -39,7 +40,6 @@ class SectionOneContainer extends Component{
         this.setState({
           ...this.state,
           chips: chips,
-          valid: true
         });
     }
     handleDeleteChip(chip) {

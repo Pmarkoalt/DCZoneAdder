@@ -10,3 +10,13 @@ export function convertCsv(csv_array){
         return err;
     });
 }
+export function processCsv(csv_array){
+    return axios.post('http://localhost:5000/api/processCsv', csv_array)
+    .then((response)=> {
+        return response.data;
+    })
+    .catch((err) => {
+        console.log(err);
+        return err;
+    });
+}

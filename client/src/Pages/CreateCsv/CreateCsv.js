@@ -5,8 +5,10 @@ import Dropzone from 'react-dropzone'
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import { convertCsv } from './create_csv_api';
+import { convertCsv, processCsv } from './create_csv_api';
 import SectionOneContainer from './Components/SectionOne/SectionOneContainer';
+import TableContainer from './Components/Table/TableContainer';
+
 import './create_csv.scss';
 
 const styles = { border: '1px solid black', width: 600, color: 'black', padding: 20 };
@@ -24,6 +26,8 @@ class CreateCsv extends Component{
       section: 1
     }
     this.submitCSV = this.submitCSV.bind(this);
+    this.processCSV = this.processCSV.bind(this);
+
     this.changeSection = this.changeSection.bind(this);
   }
   componentDidMount(){
@@ -35,11 +39,26 @@ class CreateCsv extends Component{
       loading: true
     });
     convertCsv(files)
-    .then((data) => {
+    .then((response) => {
       this.setState({
         ...this.state,
-        data,
+        data: response.data,
         section: 2,
+        loading: false
+      });
+    });
+  }
+  processCSV() {
+    this.setState({
+      ...this.state,
+      loading: true
+    });
+    processCsv(this.state.data)
+    .then((response) => {
+      this.setState({
+        ...this.state,
+        data: response.data,
+        section: 3,
         loading: false
       });
     });
@@ -51,13 +70,6 @@ class CreateCsv extends Component{
     });
   }
 
-  sectionTwo() {
-    return (
-      <div id="section-two">
-        Section Two
-      </div>
-    )
-  }
   sectionThree() {
     return (
       <div id="section-three">
@@ -70,10 +82,15 @@ class CreateCsv extends Component{
     const handleDelete = index => () => {this.handleDeleteChip(index)};
     return(
       <div id="create-csv">
-        {this.state.loading ? <CircularProgress /> : ''}
+        {this.state.loading ? 
+        <div>
+          <h4>Processing...</h4>
+          <CircularProgress /> 
+        </div>
+        : ''}
         {this.state.section === 1 && !this.state.loading ? <SectionOneContainer submitCSV={this.submitCSV} /> : ''}
-        {this.state.section === 2 && !this.state.loading ? this.sectionTwo() : ''}
-        {this.state.section === 3 && !this.state.loading ? this.sectionThree() : ''}
+        {this.state.section === 2 && !this.state.loading ? <TableContainer data={this.state.data} processCSV={this.processCSV}  /> : ''}
+        {this.state.section === 3 && !this.state.loading ? <TableContainer data={this.state.data} finalTable={true} /> : ''}
       </div>
     )
   }
