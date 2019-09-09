@@ -29,14 +29,16 @@ class VerifyTable extends Component{
   }
   componentWillMount() {
     const key_set = new Set();
-    this.props.data.map((event) => {
-      const keys = Object.keys(event);
-      keys.map(key => {
-        if (!key_set.has(key)){
-          key_set.add(key);
-        }
+    if (this.props.data) {
+      this.props.data.map((event) => {
+        const keys = Object.keys(event);
+        keys.map(key => {
+          if (!key_set.has(key)){
+            key_set.add(key);
+          }
+        });
       });
-    });
+    }
     const key_array = Array.from(key_set);
     this.setState({
       ...this.state,
@@ -52,7 +54,6 @@ class VerifyTable extends Component{
     return final.join(' ')
   }
   createRow(row, index) {
-    console.log(row);
     return (
       <TableRow key={index}>
         <TableCell component="th" scope="row">

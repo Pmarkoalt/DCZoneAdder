@@ -26,10 +26,10 @@ class TableContainer extends Component{
 
               {this.props.finalTable ? 
                 <div>
-                  <Button id="section-two-download" variant="contained" color="accent" onClick={() => {this.props.processCSV()}}>
+                  <Button id="section-two-download" variant="contained" color="secondary" onClick={() => {this.props.downloadCSV()}}>
                     Download
                   </Button>
-                  <Button id="section-two-submit" variant="contained" color="primary" onClick={() => {this.props.processCSV()}}>
+                  <Button id="section-two-submit" variant="contained" color="primary" onClick={() => {this.props.saveCSV()}}>
                     Save
                   </Button>
                 </div>
