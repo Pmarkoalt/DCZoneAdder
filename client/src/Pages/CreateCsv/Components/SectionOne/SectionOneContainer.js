@@ -1,11 +1,9 @@
-import React, { Component, useCallback } from 'react';
+import React, { Component } from 'react';
 import FileDrop from './FileDrop';
 import ChipFilter from './ChipFilter';
 
 import Button from '@material-ui/core/Button';
-import Chip from '@material-ui/core/Chip';
 
-import { convertCsv } from '../../create_csv_api';
 import './section_one.scss';
 
 
@@ -55,11 +53,12 @@ class SectionOneContainer extends Component{
     render(){
         return(
             <div id="section-one">
+              <h2>Please Ensure your csv data either includes a 'Address' or 'Street' value</h2>
               <FileDrop createFile={this.createFile} files={this.state.files} />
               <ChipFilter handleToggleChip={this.handleToggleChip} handleDeleteChip={this.handleDeleteChip} chips={this.state.chips}/>
               <div id="submit-file-container">
                 {this.state.valid ? 
-                  <Button className="section-one-button" variant="contained" color="primary" onClick={() => {this.props.submitCSV(this.state.files)}}>
+                  <Button className="section-one-button" variant="contained" color="primary" onClick={() => {this.props.submitCSV(this.state.files, this.state.chips)}}>
                     Submit
                   </Button>
                   :

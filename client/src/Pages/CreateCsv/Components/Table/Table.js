@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { withStyles, mergeClasses } from '@material-ui/styles';
+import { withStyles } from '@material-ui/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -30,9 +30,9 @@ class VerifyTable extends Component{
   componentWillMount() {
     const key_set = new Set();
     if (this.props.data) {
-      this.props.data.map((event) => {
+      this.props.data.forEach((event) => {
         const keys = Object.keys(event);
-        keys.map(key => {
+        keys.forEach(key => {
           if (!key_set.has(key)){
             key_set.add(key);
           }
@@ -61,7 +61,7 @@ class VerifyTable extends Component{
         </TableCell>
         {this.state.keys.map((key, i) => {
           return (
-            <TableCell key={i} align="right">{row[key] ? row[key] : ''}</TableCell>
+            <TableCell key={i} align="right">{row[key] ? row[key] : 'Unavailable'}</TableCell>
           )
         })}
       </TableRow>

@@ -1,8 +1,7 @@
-import React, { Component, useCallback } from 'react';
+import React, { Component } from 'react';
 import Chip from '@material-ui/core/Chip';
 import Button from '@material-ui/core/Button';
 import Modal from '@material-ui/core/Modal';
-import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';

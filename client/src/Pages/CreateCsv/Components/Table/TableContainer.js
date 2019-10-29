@@ -1,10 +1,8 @@
-import React, { Component, useCallback } from 'react';
+import React, { Component } from 'react';
 import Table from './Table';
 
 import Button from '@material-ui/core/Button';
-import Chip from '@material-ui/core/Chip';
 
-import { convertCsv } from '../../create_csv_api';
 import './section_two.scss';
 
 
@@ -21,7 +19,7 @@ class TableContainer extends Component{
     render(){
         return(
             <div id="section-two">
-              <h2>Please Verify This Data is Correct and Then Submit</h2>
+              <h2>{this.props.finalTable ? 'Processed Data' : 'Please Verify This Data is Correct and Then Submit'}</h2>
               <Table data={this.props.data} />
 
               {this.props.finalTable ? 

@@ -1,10 +1,7 @@
-import React, { Component, useCallback } from 'react';
-import { makeStyles } from '@material-ui/styles';
-import Dropzone from 'react-dropzone'
+import React, { Component } from 'react';
 import csvparse from 'csv-parse/lib/sync';
 
 
-import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { processCsv, saveCsv, downloadCurrentCsv } from './create_csv_api';
@@ -13,16 +10,13 @@ import TableContainer from './Components/Table/TableContainer';
 
 import './create_csv.scss';
 
-const styles = { border: '1px solid black', width: 600, color: 'black', padding: 20 };
-
-
-
 class CreateCsv extends Component{
   constructor(props) {
     super(props)
     this.state = {
       date: new Date(),
       data: [],
+      chips: [],
       valid: false,
       loading: false,
       section: 1
@@ -36,7 +30,7 @@ class CreateCsv extends Component{
   componentDidMount(){
   }
 
-  submitCSV(files) {
+  submitCSV(files, chips) {
     this.setState({
       ...this.state,
       loading: true
@@ -51,6 +45,7 @@ class CreateCsv extends Component{
     });
     this.setState({
       ...this.state,
+      chips: chips,
       data: newData,
       section: 2,
       loading: false
@@ -61,11 +56,11 @@ class CreateCsv extends Component{
       ...this.state,
       loading: true
     });
-    processCsv(this.state.data)
+    processCsv(this.state.data, this.state.chips)
     .then((response) => {
       this.setState({
         ...this.state,
-        data: response.data,
+        data: response,
         section: 3,
         loading: false
       });
@@ -102,7 +97,6 @@ class CreateCsv extends Component{
   }
 
   render(){
-    const handleDelete = index => () => {this.handleDeleteChip(index)};
     return(
       <div id="create-csv">
         {this.state.loading ? 

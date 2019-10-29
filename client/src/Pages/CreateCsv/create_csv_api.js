@@ -1,10 +1,13 @@
 import axios from "axios";
 import fileDownload from 'js-file-download';
 
-export function processCsv(csv_array){
-    return axios.post('http://localhost:5000/api/processCsv', csv_array)
+export function processCsv(csv_array, filter){
+    const params = {
+        csv_array,
+        filter
+    }
+    return axios.post('http://localhost:5000/api/processCsv', params)
     .then((response)=> {
-        console.log(response);
         return response.data;
     })
     .catch((err) => {
