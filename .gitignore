@@ -23,3 +23,7 @@ chrome-user-data
 .vscode
 *.swp
 *.swo
+.env
+.env.example
+.env.local
+.env.staging

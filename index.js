@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -11,10 +12,10 @@ const fs = require('fs');
 
 const mongoose = require('mongoose');
 
-const user = 'goodpropsemail@gmail.com';
-const mongo_user = 'Pmarko.alt';
-const password = 'Balearic';
-const ZWSID = 'X1-ZWz1hhdagtosuj_6msnx';
+const user = process.env.USER;
+const mongo_user = process.env.MONGO_USER;
+const password = process.env.PASSWORD;
+const ZWSID = process.env.ZWSID;
 
 const uses = require('./uses_master');
 
