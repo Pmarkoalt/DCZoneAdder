@@ -14,7 +14,8 @@ class SectionOneContainer extends Component{
       super(props)
       this.state = {
         files: [],
-        chips: [],
+        zone_chips: [],
+        use_chips: [],
         valid: false
       }
       this.createFile = this.createFile.bind(this);
@@ -34,20 +35,40 @@ class SectionOneContainer extends Component{
           valid: true
         });
     }
-    handleToggleChip(chips){
+    handleToggleChip(chips, type){
+      console.log(chips, type);
+      if (type === 'zone') {
         this.setState({
           ...this.state,
-          chips: chips,
+          zone_chips: chips,
         });
-    }
-    handleDeleteChip(chip) {
-        const pre_array = [...this.state.chips];
-        const currentIndex = this.state.chips.indexOf(chip);
-        pre_array.splice(currentIndex, 1);
+      } else if (type === 'use') {
         this.setState({
-          ...this.state.chips,
-          chips: pre_array,
+          ...this.state,
+          use_chips: chips,
         });
+      }
+    }
+    handleDeleteChip(chip, type) {
+        console.log(chip, type);
+        if (type === 'zone') {
+          const pre_array = [...this.state.zone_chips];
+          const currentIndex = this.state.zone_chips.indexOf(chip);
+          pre_array.splice(currentIndex, 1);
+          this.setState({
+            ...this.state.chips,
+            zone_chips: pre_array,
+          });
+        } else if (type === 'use') {
+          const pre_array = [...this.state.use_chips];
+          const currentIndex = this.state.use_chips.indexOf(chip);
+          pre_array.splice(currentIndex, 1);
+          this.setState({
+            ...this.state.chips,
+            use_chips: pre_array,
+          });
+        }
+
     }
 
     render(){
@@ -55,10 +76,10 @@ class SectionOneContainer extends Component{
             <div id="section-one">
               <h2>Please Ensure your csv data either includes a 'Address' or 'Street' value</h2>
               <FileDrop createFile={this.createFile} files={this.state.files} />
-              <ChipFilter handleToggleChip={this.handleToggleChip} handleDeleteChip={this.handleDeleteChip} chips={this.state.chips}/>
+              <ChipFilter handleToggleChip={this.handleToggleChip} handleDeleteChip={this.handleDeleteChip} zone_chips={this.state.zone_chips} use_chips={this.state.use_chips}/>
               <div id="submit-file-container">
                 {this.state.valid ? 
-                  <Button className="section-one-button" variant="contained" color="primary" onClick={() => {this.props.submitCSV(this.state.files, this.state.chips)}}>
+                  <Button className="section-one-button" variant="contained" color="primary" onClick={() => {this.props.submitCSV(this.state.files, this.state.zone_chips, this.state.use_chips)}}>
                     Submit
                   </Button>
                   :

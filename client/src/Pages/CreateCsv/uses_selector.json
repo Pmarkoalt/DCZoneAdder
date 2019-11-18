@@ -1,0 +1,322 @@
+[{
+  "label": "Residential-Single Family (NC)",
+  "value": "001"
+}, {
+  "label": "Residential-Multi-Family (NC)",
+  "value": "002"
+}, {
+  "label": "Residential-Transient (NC)",
+  "value": "003"
+}, {
+  "label": "Commercial-Retail (NC)",
+  "value": "004"
+}, {
+  "label": "Commercial-Office (NC)",
+  "value": "005"
+}, {
+  "label": "Commercial-Specific Purpose (NC)",
+  "value": "006"
+}, {
+  "label": "Industrial (NC)",
+  "value": "007"
+}, {
+  "label": "Special Purpose (NC)",
+  "value": "008"
+}, {
+  "label": "Residential-Row-Single-Family",
+  "value": "011"
+}, {
+  "label": "Residential-Detached-Single-Fa",
+  "value": "012"
+}, {
+  "label": "Residential-Semi-Detached-Sing",
+  "value": "013"
+}, {
+  "label": "Residential-Garage",
+  "value": "014"
+}, {
+  "label": "Residential-Mixed Use",
+  "value": "015"
+}, {
+  "label": "Residential-Condo-Horizontal",
+  "value": "016"
+}, {
+  "label": "Residential-Condo-Vertical",
+  "value": "017"
+}, {
+  "label": "Residential-Condo-Garage",
+  "value": "018"
+}, {
+  "label": "Residential-Single-Family-Misc",
+  "value": "019"
+}, {
+  "label": "Residential-Apartment-Walk-Up",
+  "value": "021"
+}, {
+  "label": "Residential-Apartment-Elevator",
+  "value": "022"
+}, {
+  "label": "Residential Flats-Less than 5 ",
+  "value": "023"
+}, {
+  "label": "Residential-Conversions-Less t",
+  "value": "024"
+}, {
+  "label": "Residential-Conversion-5 Units",
+  "value": "025"
+}, {
+  "label": "Residential-Cooperative-Horizontal",
+  "value": "026"
+}, {
+  "label": "Residential-Cooperative-Vertical",
+  "value": "027"
+}, {
+  "label": "Residential-Multifamily, Misc ",
+  "value": "029"
+}, {
+  "label": "Hotel-Small",
+  "value": "031"
+}, {
+  "label": "Hotel-Large",
+  "value": "032"
+}, {
+  "label": "Motel",
+  "value": "033"
+}, {
+  "label": "Club-Private",
+  "value": "034"
+}, {
+  "label": "Tourist Homes",
+  "value": "035"
+}, {
+  "label": "Dormitory",
+  "value": "036"
+}, {
+  "label": "Inn",
+  "value": "037"
+}, {
+  "label": "Fraternity/Sorority House",
+  "value": "038"
+}, {
+  "label": "Residential-Transient, Misc",
+  "value": "039"
+}, {
+  "label": "Store-Small 1-Story",
+  "value": "041"
+}, {
+  "label": "Store-Misc",
+  "value": "042"
+}, {
+  "label": "Store-Department",
+  "value": "043"
+}, {
+  "label": "Store-Shopping Center/Mall ",
+  "value": "044"
+}, {
+  "label": "Store-Restaurant",
+  "value": "045"
+}, {
+  "label": "Store-Barber/Beauty Shop ",
+  "value": "046"
+}, {
+  "label": "Store-Super Market",
+  "value": "047"
+}, {
+  "label": "Commercial-Retail-Condo",
+  "value": "048"
+}, {
+  "label": "Commercial-Retail-Misc ",
+  "value": "049"
+}, {
+  "label": "Commercial-Office-Small",
+  "value": "051"
+}, {
+  "label": "CCommercial-Office-Large ",
+  "value": "052"
+}, {
+  "label": "Commercial-Planned Development",
+  "value": "053"
+}, {
+  "label": "Office-Condo-Horizontal",
+  "value": "056"
+}, {
+  "label": "Office-Condo-Vertical",
+  "value": "057"
+}, {
+  "label": "Commercial-Office-Condo",
+  "value": "058"
+}, {
+  "label": "Commercial-Office-Misc.",
+  "value": "059"
+}, {
+  "label": "Commercial-Banks, Financial",
+  "value": "061"
+}, {
+  "label": "Commercial-Garage, Vehicle Sale",
+  "value": "062"
+}, {
+  "label": "Commercial-Parking Garage",
+  "value": "063"
+}, {
+  "label": "Parking Lot-Special Purpose",
+  "value": "064"
+}, {
+  "label": "Vehicle Service Station-Vintage",
+  "value": "065"
+}, {
+  "label": "Theaters, Entertainment",
+  "value": "066"
+}, {
+  "label": "Commercial-Restaurant ",
+  "value": "067"
+}, {
+  "label": "Commercial-Restaurant-Fast Food",
+  "value": "068"
+}, {
+  "label": "Commercial-Specific Purpose, Misc",
+  "value": "069"
+}, {
+  "label": "Industrial-Raw Material Handling",
+  "value": "071"
+}, {
+  "label": "Industrial-Heavy Manufacturing",
+  "value": "072"
+}, {
+  "label": "Industrial-Light (CLASS 2)",
+  "value": "073"
+}, {
+  "label": "Industrial-Warehouse-1-Story",
+  "value": "074"
+}, {
+  "label": "Industrial-Warehouse-Multi-Story",
+  "value": "075"
+}, {
+  "label": "Industrial-Truck Terminal",
+  "value": "076"
+}, {
+  "label": "Warehouse-Condo",
+  "value": "078"
+}, {
+  "label": "Industrial-Misc",
+  "value": "079"
+}, {
+  "label": "Religious",
+  "value": "081"
+}, {
+  "label": "Medical",
+  "value": "082"
+}, {
+  "label": "Educational",
+  "value": "083"
+}, {
+  "label": "Public Service",
+  "value": "084"
+}, {
+  "label": "Embassy, Chancery, etc.",
+  "value": "085"
+}, {
+  "label": "Museum, Library, Gallery",
+  "value": "086"
+}, {
+  "label": "Recreational",
+  "value": "087"
+}, {
+  "label": "Health Care Facility",
+  "value": "088"
+}, {
+  "label": "Special Purpose-Misc",
+  "value": "089"
+}, {
+  "label": "Vacant-True",
+  "value": "091"
+}, {
+  "label": "Vacant-with Permit",
+  "value": "092"
+}, {
+  "label": "Vacant-Zoning Limits",
+  "value": "093"
+}, {
+  "label": "Vacant-False-Abutting ",
+  "value": "094"
+}, {
+  "label": "Vacant-Residential Use1",
+  "value": "095"
+}, {
+  "label": "Vacant-Unimproved Parking",
+  "value": "096"
+}, {
+  "label": "Vacant-Improved and Abandoned ",
+  "value": "097"
+}, {
+  "label": "Condo-Horizontal-Combined-",
+  "value": "116"
+}, {
+  "label": "Condo-Vertical-Combined ",
+  "value": "117"
+}, {
+  "label": "Coop-Horizontal-Mixed Use",
+  "value": "126"
+}, {
+  "label": "Coop-Vertical-Mixed Use",
+  "value": "127"
+}, {
+  "label": "Vehicle Service Station-Kiosk",
+  "value": "165"
+}, {
+  "label": "Special Purpose-Memorial",
+  "value": "189"
+}, {
+  "label": "Vacant-True",
+  "value": "191"
+}, {
+  "label": "Vacant-With Permit ",
+  "value": "192"
+}, {
+  "label": "Vacant-Zoning limits ",
+  "value": "193"
+}, {
+  "label": "Vacant-False-Abutting",
+  "value": "194"
+}, {
+  "label": "Vacant-Commercial Use",
+  "value": "195"
+}, {
+  "label": "Vacant-Unimproved Parking",
+  "value": "196"
+}, {
+  "label": "Vacant-Improved and Abandoned ",
+  "value": "197"
+}, {
+  "label": "Garage-Multi-Family",
+  "value": "214"
+}, {
+  "label": "Condo-Investment-Horizontal",
+  "value": "216"
+}, {
+  "label": "Condo-Investment-Vertical",
+  "value": "217"
+}, {
+  "label": "Vehicle Service Station-Kiosk",
+  "value": "265"
+}, {
+  "label": "Condo-Duplex",
+  "value": "316"
+}, {
+  "label": "Vehicle Service Station-Market",
+  "value": "365"
+}, {
+  "label": "Condo-Horizontal-Parking-Unid",
+  "value": "416"
+}, {
+  "label": "Condo-Vertical-Parking-Unid",
+  "value": "417"
+}, {
+  "label": "Vehicle Service Station-Market",
+  "value": "465"
+}, {
+  "label": "Condo-Detached",
+  "value": "516"
+}, {
+  "label": "Condo Main",
+  "value": "995"
+}]

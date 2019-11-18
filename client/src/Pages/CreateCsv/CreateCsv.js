@@ -16,7 +16,8 @@ class CreateCsv extends Component{
     this.state = {
       date: new Date(),
       data: [],
-      chips: [],
+      zone_chips: [],
+      use_chips: [],
       valid: false,
       loading: false,
       section: 1
@@ -30,7 +31,7 @@ class CreateCsv extends Component{
   componentDidMount(){
   }
 
-  submitCSV(files, chips) {
+  submitCSV(files, zone_chips, use_chips) {
     this.setState({
       ...this.state,
       loading: true
@@ -45,7 +46,8 @@ class CreateCsv extends Component{
     });
     this.setState({
       ...this.state,
-      chips: chips,
+      zone_chips: zone_chips,
+      use_chips: use_chips,
       data: newData,
       section: 2,
       loading: false
@@ -56,7 +58,9 @@ class CreateCsv extends Component{
       ...this.state,
       loading: true
     });
-    processCsv(this.state.data, this.state.chips)
+    const zone_array = this.state.zone_chips.map(item => item.value);
+    const use_array = this.state.use_chips.map(item => item.value);
+    processCsv(this.state.data, {zones: zone_array, use: use_array})
     .then((response) => {
       this.setState({
         ...this.state,

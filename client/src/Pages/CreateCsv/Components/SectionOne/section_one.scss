@@ -77,15 +77,32 @@
     border: 1px black solid;
     border-radius: 10px;
 }
-#chip-section{
+#chip-section-container{
     display: flex;
-    justify-content: space-between;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    width: 50%;
+}
+.chip-section{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 75%;
+    max-width: 900px;
     margin-top: 20px;
 }
 
 .section-one-button{
     margin: 5px;
     max-height: 40px;
+    width: 110px;
+}
+
+.label{
+    width: 100px;
+}
+
+.select{
+    min-width: 200px;
 }

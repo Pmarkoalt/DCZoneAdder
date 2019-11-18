@@ -5,8 +5,18 @@ const superagent = require('superagent');
 const bodyParser = require('body-parser');
 const csv = require('csvtojson');
 const { Parser } = require('json2csv');
+const xml2js = require('xml2js');
+const parser = new xml2js.Parser({trim: true});
+const fs = require('fs');
 
+const mongoose = require('mongoose');
 
+const user = 'goodpropsemail@gmail.com';
+const mongo_user = 'Pmarko.alt';
+const password = 'Balearic';
+const ZWSID = 'X1-ZWz1hhdagtosuj_6msnx';
+
+const uses = require('./uses_master');
 
 
 const app = express();
@@ -23,6 +33,9 @@ app.use(bodyParser.json())
 // Set up CORS
 app.use(cors());
 
+// Set up Mongoose
+mongoose.connect('mongodb+srv://Pmarkoalt:Balearic@cluster0-3njbk.mongodb.net/test?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true});
+
 // Functions
 function normalizeObject(obj) {
     let key, keys = Object.keys(obj);
@@ -33,6 +46,60 @@ function normalizeObject(obj) {
         newobj[key.toLowerCase()] = obj[key];
     }
     return newobj;
+}
+
+function cleanData(data, filter){
+    // Removing unneccessary data
+    return data.map(prop => {
+        delete prop['address_url'];
+        delete prop['data_url'];
+        delete prop['x_coord'];
+        delete prop['y_coord'];
+        delete prop['zillowPropsURL'];
+        if (prop['Use Code']) {
+            const match = uses.find((use) => {
+                return prop['Use Code'] === use.code;
+            })
+            if (match) {
+                // Deleting and adding use code to end 
+                const code = prop['Use Code']
+                delete prop['Use Code'];
+                prop['Use Code'] = code;
+                prop['Use Title'] = `${match.name} ${match.class}`;
+                prop['Use Description'] = match.description;
+            }
+        }
+        return prop
+    }).filter(prop => {
+        // Check for Filter
+        if (!filter.zones && !filter.use) {
+            return true;
+        }
+        // Secondary Filter Check
+        if  (
+            (!Object.keys(filter.zones).length || filter.zones['ALL-ZONES'])
+            && !Object.keys(filter.use).length){
+            return true;
+        }
+        // See if current result has zone listed in the filter object
+        if (Object.keys(filter.zones).length && !filter.zones[prop['Zone']] && !filter.zones['ALL-ZONES']) {
+            return false;
+        }
+        // See if current result has zone listed in Use Object
+        if (Object.keys(filter.use).length && !filter.use[prop['Use Code']]) {
+            return false;
+        }
+        // If everything passes return object
+        return true;
+    });
+}
+
+function arrToHash(array) {
+    const hash = {};
+    array.forEach(item => {
+        hash[item] = true;
+    });
+    return hash;
 }
 
 function checkRes(response) {
@@ -72,6 +139,9 @@ function parsePropData(response) {
         const returnObj = {
             "Full Address": returnData.FULLADDRESS,
             "Street View URL": returnData.STREETVIEWURL,
+            "State": returnData.STATE,
+            "City": returnData.CITY,
+            "Zip Code": returnData.ZIPCODE,
             "Confidence Level": returnData.ConfidenceLevel,
             "x_coord": returnData.XCOORD,
             "y_coord": returnData.YCOORD
@@ -101,6 +171,7 @@ function parseAddData(response) {
                     returnObj['Owner Name'] = result.attributes.OWNERNAME && result.attributes.OWNERNAME !== 'Null' ? result.attributes.OWNERNAME : 'Unavailable';
                     returnObj['Owner Address'] = result.attributes.ADDRESS1 && result.attributes.ADDRESS1 !== 'Null' ? result.attributes.ADDRESS1 : 'Unavailable';
                     returnObj['Owner City Zip'] = result.attributes.CITYSTZIP && result.attributes.CITYSTZIP !== 'Null' ? result.attributes.CITYSTZIP : 'Unavailable';
+                    returnObj['Use Code'] = result.attributes.USECODE && result.attributes.USECODE !== 'Null' ? result.attributes.USECODE : 'Unavailable';
                     returnObj['Sale Price'] = result.attributes.SALEPRICE && result.attributes.SALEPRICE  !== 'Null' ? `$${result.attributes.SALEPRICE}` : 'Unavailable';
                     returnObj['Sale Date'] = result.attributes.SALEDATE && result.attributes.SALEDATE !== 'Null' ? result.attributes.SALEDATE : 'Unavailable';
                     returnObj['Current Price (Land)'] = result.attributes.PHASELAND && result.attributes.PHASELAND !== 'Null' ? `$${result.attributes.PHASELAND}` : 'Unavailable' ;
@@ -119,37 +190,43 @@ function parseAddData(response) {
         return Promise.reject("Unknown Parsing Zoning Data Error");
     }
 }
-
-
-function cleanData(data, filter){
-    // Removing unneccessary data
-    return data.map(prop => {
-        delete prop['address_url'];
-        delete prop['data_url'];
-        delete prop['x_coord'];
-        delete prop['y_coord'];
-        return prop
-    }).filter(prop => {
-        if (!Object.keys(filter).length || filter['ALL-ZONES']) {
-            return true;
-        } else {
-            return filter[prop['Zone']];
-        }
-    });
+function checkZillowData(data) {
+    if (data.ok) {
+        return Promise.resolve(data.res);
+    } else {
+        return Promise.reject("Error with Zillow API");
+    }
+}
+function xmltoJSON(response) {
+        return parser.parseStringPromise(response.text).then(function (result) {
+            const parse_json = result["SearchResults:searchresults"].response[0].results[0].result[0];
+            return Promise.resolve(parse_json);
+          })
+          .catch(function (err) {
+            console.err(err);
+            return Promise.reject(err);
+          });
 }
 
-function arrToHash(array) {
-    const hash = {};
-    array.forEach(item => {
-        hash[item] = true;
-    });
-    return hash;
+function parseZillowData(data) {
+    if (data) { 
+        const returnObj = {
+            "Zestimate": data.zestimate[0].amount[0]._ ? `$${data.zestimate[0].amount[0]._}` : 'Unavailable',
+            "Zestimate Last Update": data.zestimate[0]["last-updated"][0] ? data.zestimate[0]["last-updated"][0] : "Unavailable",
+            "Zestimate (High)": data.zestimate[0].valuationRange[0].high[0]._ ? `$${data.zestimate[0].valuationRange[0].high[0]._}` : "Unavailable",
+            "Zestimate (Low)": data.zestimate[0].valuationRange[0].low[0]._ ? `$${data.zestimate[0].valuationRange[0].low[0]._}` : "Unavailable",
+        }
+        return Promise.resolve(returnObj);
+    } else {
+        return Promise.reject({Assessment: "Unknown Parsing Zillow Error"});
+    }
 }
 
 // End Points
 app.post('/api/processCsv', (req, res) => {
     // Establish variables
-    const filter = arrToHash(req.body.filter);
+    const zone_filter = arrToHash(req.body.filter.zones);
+    const use_filter = arrToHash(req.body.filter.use);
     const properties = [];
     const basePropURL = 'https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?str=';
     const baseDataURL1 = 'https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_APPS/PropertyQuest/MapServer/identify?f=json&tolerance=1&';
@@ -217,9 +294,43 @@ app.post('/api/processCsv', (req, res) => {
             } else {
                 return Promise.resolve(prop);
             }
-        })).then(data => {
-            const final_data = cleanData(data, filter);
-            return res.status(200).json(final_data);
+        })).then(propData2 => {
+            // Zillow Queries
+            propData2.forEach(prop => {
+                if (!prop.errors) {
+                    const address = encodeURI(prop["Full Address"]);
+                    const cityStateZip = `${prop["City"]} ${prop["State"]} ${prop["Zip Code"]}`;
+                    prop.zillowPropsURL = `http://www.zillow.com/webservice/GetSearchResults.htm?zws-id=${ZWSID}&address=${address}&citystatezip=${cityStateZip}`;
+                }
+            });
+            Promise.all(propData2.map(prop => {
+                if (prop.zillowPropsURL) {
+                    return superagent.get(prop.zillowPropsURL)
+                        .then(checkZillowData)
+                        .then(xmltoJSON)
+                        .then(parseZillowData)
+                        .then((response) => {
+                            return Promise.resolve({
+                                ...prop,
+                                ...response
+                            });
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                            return Promise.resolve({
+                                ...prop,
+                                errors: [err]
+                            });
+                        });
+                } else {
+                    return Promise.resolve(prop);
+                }
+            })).then(newData => {
+                const final_data = cleanData(newData, { zones: zone_filter, use: use_filter});
+                return res.status(200).json(final_data);
+            }).catch(err => {
+                return Promise.reject(err);
+            });
         }).catch(err => {
             console.log(err);
             return res.status(500).json(err);

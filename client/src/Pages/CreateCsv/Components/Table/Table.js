@@ -61,7 +61,7 @@ class VerifyTable extends Component{
         </TableCell>
         {this.state.keys.map((key, i) => {
           return (
-            <TableCell key={i} align="right">{row[key] ? row[key] : 'Unavailable'}</TableCell>
+            <TableCell className="cell" key={i} align="right">{row[key] ? row[key] : 'Unavailable'}</TableCell>
           )
         })}
       </TableRow>
