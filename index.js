@@ -10,14 +10,12 @@ const xml2js = require('xml2js');
 const parser = new xml2js.Parser({trim: true});
 const fs = require('fs');
 
-
 // const mongoose = require('mongoose');
 
 const user = process.env.USER;
 const mongo_user = process.env.MONGO_USER;
 const password = process.env.PASSWORD;
 const ZWSID = process.env.ZWSID;
-const port = process.env.PORT || 5000;
 
 const uses = require('./uses_master');
 
@@ -249,7 +247,6 @@ app.post('/api/processCsv', (req, res) => {
             });
         }
     });
-    console.log('first');
     // Pull all property data
     Promise.all(properties.map(prop =>
         superagent.get(prop.address_url)
@@ -271,14 +268,12 @@ app.post('/api/processCsv', (req, res) => {
             })
     ))
     .then(propData => {
-        console.log('second')
         propData.forEach(prop => {
             if (!prop.errors) {
                 prop.data_url = `${baseDataURL1}geometry=%7B%22x%22%3A${prop.x_coord}%2C%22y%22%3A${prop.y_coord}%7D${baseDataURL2}`
             }
         });
         Promise.all(propData.map(prop => {
-            console.log('third');
             if (prop.data_url) {
                 return superagent.get(prop.data_url)
                     .then(checkRes)
@@ -301,7 +296,6 @@ app.post('/api/processCsv', (req, res) => {
                 return Promise.resolve(prop);
             }
         })).then(propData2 => {
-            console.log('forth');
             // Zillow Queries
             propData2.forEach(prop => {
                 if (!prop.errors) {
@@ -334,8 +328,6 @@ app.post('/api/processCsv', (req, res) => {
                 }
             })).then(newData => {
                 const final_data = cleanData(newData, { zones: zone_filter, use: use_filter});
-                console.log('final data');
-                console.log(final_data);
                 return res.status(200).json(final_data);
             }).catch(err => {
                 return Promise.reject(err);
@@ -373,6 +365,7 @@ app.get('*', (req,res) =>{
     res.sendFile(path.join(__dirname+'/client/build/index.html'));
 });
 
+const port = process.env.PORT || 5000;
 app.listen(port);
 
 console.log('App is listening on port ' + port);

@@ -6,7 +6,7 @@ export function processCsv(csv_array, filter){
         csv_array,
         filter
     }
-    return axios.post('http://localhost:5000/api/processCsv', params)
+    return axios.post('/api/processCsv', params)
     .then((response)=> {
         return response.data;
     })
@@ -17,7 +17,7 @@ export function processCsv(csv_array, filter){
 }
 
 export function saveCsv(csv_array){
-    return axios.post('http://localhost:5000/api/saveCsv', csv_array)
+    return axios.post('/api/saveCsv', csv_array)
     .then((response)=> {
         return 'success';
     })
@@ -28,7 +28,7 @@ export function saveCsv(csv_array){
 }
 
 export function downloadCurrentCsv(csv_array){
-    return axios.post('http://localhost:5000/api/downloadCsv', csv_array)
+    return axios.post('/api/downloadCsv', csv_array)
     .then((response)=> {
         const date = createDate();
         fileDownload(response.data, `processed-properties-${date}.csv`)
@@ -41,7 +41,7 @@ export function downloadCurrentCsv(csv_array){
 }
 
 export function downloadSelectedCsv(index){
-    return axios.get(`http://localhost:5000/api/downloadCsv/${index}`)
+    return axios.get(`/api/downloadCsv/${index}`)
     .then((response)=> {
         return response.data;
     })
