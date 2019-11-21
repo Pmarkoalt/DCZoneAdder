@@ -10,7 +10,7 @@ const xml2js = require('xml2js');
 const parser = new xml2js.Parser({trim: true});
 const fs = require('fs');
 
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 
 const user = process.env.USER;
 const mongo_user = process.env.MONGO_USER;
@@ -34,8 +34,8 @@ app.use(bodyParser.json())
 // Set up CORS
 app.use(cors());
 
-// Set up Mongoose
-mongoose.connect('mongodb+srv://Pmarkoalt:Balearic@cluster0-3njbk.mongodb.net/test?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true});
+// // Set up Mongoose
+// mongoose.connect('mongodb+srv://Pmarkoalt:Balearic@cluster0-3njbk.mongodb.net/test?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true});
 
 // Functions
 function normalizeObject(obj) {
@@ -336,6 +336,9 @@ app.post('/api/processCsv', (req, res) => {
             console.log(err);
             return res.status(500).json(err);
         });
+    }).catch(err => {
+        console.log(err);
+        return res.status(500).json(err);
     });
 });
 
