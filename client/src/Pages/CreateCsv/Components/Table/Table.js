@@ -72,7 +72,7 @@ class VerifyTable extends Component{
     const { classes } = this.props;
     return (
       <Paper id="table-container">
-        <Table id="table">
+        <Table id="table" fixedHeader={false} style={{ width: "auto", tableLayout: "auto" }}>
           <TableHead>
             <TableRow>
               <TableCell className={classes.head} key='0'>ID</TableCell>

@@ -1,25 +1,12 @@
 import React, { Component } from 'react';
 import Chip from '@material-ui/core/Chip';
 import Button from '@material-ui/core/Button';
-import Modal from '@material-ui/core/Modal';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Checkbox from '@material-ui/core/Checkbox';
 import Select from 'react-select';
-
-
 import zones from '../../zones.json';
 import uses from '../../uses_selector.json';
 
-
 import './section_one.scss';
-const modalStyle = {
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)'
-};
+
 
 
 class ChipFilter extends Component{
