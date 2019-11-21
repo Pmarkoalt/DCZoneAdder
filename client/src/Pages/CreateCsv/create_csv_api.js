@@ -12,7 +12,7 @@ export function processCsv(csv_array, filter){
     })
     .catch((err) => {
         console.log(err);
-        return [];
+        return [{id: 0, error: "Unknown Error Occured on backend. Please contact System Admin"}];
     });
 }
 

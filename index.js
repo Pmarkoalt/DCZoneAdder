@@ -10,12 +10,14 @@ const xml2js = require('xml2js');
 const parser = new xml2js.Parser({trim: true});
 const fs = require('fs');
 
+
 // const mongoose = require('mongoose');
 
 const user = process.env.USER;
 const mongo_user = process.env.MONGO_USER;
 const password = process.env.PASSWORD;
 const ZWSID = process.env.ZWSID;
+const port = process.env.PORT || 5000;
 
 const uses = require('./uses_master');
 
@@ -371,7 +373,6 @@ app.get('*', (req,res) =>{
     res.sendFile(path.join(__dirname+'/client/build/index.html'));
 });
 
-const port = process.env.PORT || 5000;
 app.listen(port);
 
 console.log('App is listening on port ' + port);
