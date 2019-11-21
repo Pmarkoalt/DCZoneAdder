@@ -247,6 +247,7 @@ app.post('/api/processCsv', (req, res) => {
             });
         }
     });
+    console.log('first');
     // Pull all property data
     Promise.all(properties.map(prop =>
         superagent.get(prop.address_url)

@@ -12,7 +12,7 @@ export function processCsv(csv_array, filter){
     })
     .catch((err) => {
         console.log(err);
-        return err;
+        return [];
     });
 }
 
