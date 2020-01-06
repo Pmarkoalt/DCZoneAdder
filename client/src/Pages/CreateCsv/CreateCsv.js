@@ -16,6 +16,7 @@ class CreateCsv extends Component{
     this.state = {
       date: new Date(),
       data: [],
+      job_id: 0,
       zone_chips: [],
       use_chips: [],
       valid: false,
@@ -62,9 +63,10 @@ class CreateCsv extends Component{
     const use_array = this.state.use_chips.map(item => item.value);
     processCsv(this.state.data, {zones: zone_array, use: use_array})
     .then((response) => {
+      console.log(response);
       this.setState({
         ...this.state,
-        data: response,
+        // data: response,
         section: 3,
         loading: false
       });

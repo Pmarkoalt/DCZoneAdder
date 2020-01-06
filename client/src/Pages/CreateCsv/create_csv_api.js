@@ -8,7 +8,7 @@ export function processCsv(csv_array, filter){
     }
     return axios.post('/api/processCsv', params)
     .then((response)=> {
-        return response.data;
+        return response;
     })
     .catch((err) => {
         console.log(err);

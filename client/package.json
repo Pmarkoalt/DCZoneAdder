@@ -15,7 +15,8 @@
     "react-dropzone": "^10.1.7",
     "react-router-dom": "5.1.2",
     "react-scripts": "3.0.1",
-    "react-select": "^3.0.8"
+    "react-select": "^3.0.8",
+    "socket.io-client": "2.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -26,6 +27,7 @@
   "eslintConfig": {
     "extends": "react-app"
   },
+  "proxy": "http://localhost:5000",
   "browserslist": {
     "production": [
       ">0.2%",
