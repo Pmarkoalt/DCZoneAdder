@@ -4,17 +4,23 @@ const path = require('path');
 const cors = require('cors');
 const superagent = require('superagent');
 const bodyParser = require('body-parser');
+const redis = require('redis');
+const client = redis.createClient();
+const Queue = require('bull');
+const server = require('http').createServer();
+const io = require('socket.io')(server);
+
 const csv = require('csvtojson');
 const { Parser } = require('json2csv');
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser({trim: true});
 const fs = require('fs');
+const mongoose = require('mongoose');
+const Schemas = require('./schemas');
 
-// const mongoose = require('mongoose');
-
-const user = process.env.USER;
-const mongo_user = process.env.MONGO_USER;
-const password = process.env.PASSWORD;
+// ENV Variables
+const cluster_user = process.env.CLUSTER_USER;
+const cluster_password = process.env.CLUSTER_PASSWORD;
 const ZWSID = process.env.ZWSID;
 
 const uses = require('./uses_master');
@@ -34,10 +40,65 @@ app.use(bodyParser.json({limit: '50mb', extended: true}));
 // Set up CORS
 app.use(cors());
 
+// Confirm Redis connected
+client.on('connect', function() {
+    console.log('Connected to Redis Server');
+});
+
 // // Set up Mongoose
-// mongoose.connect('mongodb+srv://Pmarkoalt:Balearic@cluster0-3njbk.mongodb.net/test?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(`mongodb+srv://${cluster_user}:${cluster_password}@cluster0-dkqdm.mongodb.net/test?retryWrites=true&w=majority`, {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connection.on('connected', function(){
+    console.log('Mongoose connected with DB');
+});
+const Jobs = mongoose.model('Jobs', Schemas.jobsSchema);
+const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
+
+
+// Set up CSV Queue
+const csvQueue = new Queue('csv_queue', 'redis://127.0.0.1:6379');
+
+csvQueue.process( async (task) => {
+    console.log("process");
+    await processAddress(task.data, task);
+    const completed_items = await fetchAddress(task.data.job_id);
+    const complete_job = await fetchJobStatus(task.data.job_id);
+    let keys = [];
+    // Find keys
+    for (let i = 0 ; completed_items.length > i; i++) {
+        if (completed_items[i].complete) {
+            key = Object.keys(completed_items[i].data);
+            break;
+        }
+    }
+    return io.sockets.emit('csv_update', {addresses: completed_items, job_complete: complete_job, keys: keys});
+});
+
+csvQueue.on('error', (error) => {
+    console.log(error);
+})
+
+csvQueue.on('completed', (job, result) => {
+    console.log('job complete', job.id);
+});
+
+// Set up Socket.io
+io.on('connection', socket => {
+    console.log('User connected')
+    
+    socket.on('disconnect', () => {
+      console.log('user disconnected')
+    })
+});
+server.listen(3001);
 
 // Functions
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
 function normalizeObject(obj) {
     let key, keys = Object.keys(obj);
     let n = keys.length;
@@ -49,50 +110,27 @@ function normalizeObject(obj) {
     return newobj;
 }
 
-function cleanData(data, filter){
+function cleanData(data){
     // Removing unneccessary data
-    return data.map(prop => {
-        delete prop['address_url'];
-        delete prop['data_url'];
-        delete prop['x_coord'];
-        delete prop['y_coord'];
-        delete prop['zillowPropsURL'];
-        if (prop['Use Code']) {
-            const match = uses.find((use) => {
-                return prop['Use Code'] === use.code;
-            })
-            if (match) {
-                // Deleting and adding use code to end 
-                const code = prop['Use Code']
-                delete prop['Use Code'];
-                prop['Use Code'] = code;
-                prop['Use Title'] = `${match.name} ${match.class}`;
-                prop['Use Description'] = match.description;
-            }
+    delete data['address_url'];
+    delete data['data_url'];
+    delete data['x_coord'];
+    delete data['y_coord'];
+    delete data['zillowPropsURL'];
+    if (data['Use Code']) {
+        const match = uses.find((use) => {
+            return data['Use Code'] === use.code;
+        })
+        if (match) {
+            // Deleting and adding use code to end 
+            const code = data['Use Code']
+            delete data['Use Code'];
+            data['Use Code'] = code;
+            data['Use Title'] = `${match.name} ${match.class}`;
+            data['Use Description'] = match.description;
         }
-        return prop
-    }).filter(prop => {
-        // Check for Filter
-        if (!filter.zones && !filter.use) {
-            return true;
-        }
-        // Secondary Filter Check
-        if  (
-            (!Object.keys(filter.zones).length || filter.zones['ALL-ZONES'])
-            && !Object.keys(filter.use).length){
-            return true;
-        }
-        // See if current result has zone listed in the filter object
-        if (Object.keys(filter.zones).length && !filter.zones[prop['Zone']] && !filter.zones['ALL-ZONES']) {
-            return false;
-        }
-        // See if current result has zone listed in Use Object
-        if (Object.keys(filter.use).length && !filter.use[prop['Use Code']]) {
-            return false;
-        }
-        // If everything passes return object
-        return true;
-    });
+    }
+    return data
 }
 
 function arrToHash(array) {
@@ -200,11 +238,14 @@ function checkZillowData(data) {
 }
 function xmltoJSON(response) {
         return parser.parseStringPromise(response.text).then(function (result) {
-            const parse_json = result["SearchResults:searchresults"].response[0].results[0].result[0];
+            const parse_json = result["SearchResults:searchresults"].response ?
+                result["SearchResults:searchresults"].response[0].results[0].result[0] : undefined;
+            if (parse_json === undefined) return Promise.reject("No data found");
             return Promise.resolve(parse_json);
           })
           .catch(function (err) {
-            console.err(err);
+            console.log('line 210')
+            console.log(err);
             return Promise.reject(err);
           });
 }
@@ -223,37 +264,65 @@ function parseZillowData(data) {
     }
 }
 
-// End Points
-app.post('/api/processCsv', (req, res) => {
-    // Establish variables
-    const zone_filter = arrToHash(req.body.filter.zones);
-    const use_filter = arrToHash(req.body.filter.use);
-    const properties = [];
+function processAddress(item, task) {
     const basePropURL = 'https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?str=';
     const baseDataURL1 = 'https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_APPS/PropertyQuest/MapServer/identify?f=json&tolerance=1&';
     const baseDataURL2 = 'returnGeometry=false&imageDisplay=100%2C100%2C96&geometryType=esriGeometryPoint&sr=26985&mapExtent=400713.2%2C136977.93%2C400715.2%2C136979.93&layers=all%3A25%2C11%2C';
-    req.body.csv_array.forEach((property) => {
-        // Normalize Object
-        const normProp = normalizeObject(property);
-        if (normProp.street) {
-            properties.push({
-                ...property,
-                address_url: `${basePropURL}${encodeURI(normProp.street)}&f=json`
-            });
-        } else if (normProp.address) {
-            properties.push({
-                ...property,
-                address_url: `${basePropURL}${encodeURI(normProp.address)}&f=json`
-            });
+    const prop = normalizeObject(item.data);
+
+    return new Promise((resolve, reject) =>{
+        if (prop.street) {
+            prop.address_url = `${basePropURL}${encodeURI(prop.street)}&f=json`;
+        } else if (prop.address) {
+            prop.address_url = `${basePropURL}${encodeURI(prop.address)}&f=json`
+        } else {
+            reject({message: "no valid address"});
         }
-    });
-    // Pull all property data
-    Promise.all(properties.map(prop =>
-        superagent.get(prop.address_url)
+        
+        return superagent.get(prop.address_url)
             .then(checkRes)
             .then(checkPropData)
             .then(parsePropData)
             .then((response) => {
+                task.progress(33);
+                return resolve({
+                    ...prop,
+                    ...response
+                });
+            })
+            .catch((err) => {
+                console.log(err);
+                return reject({message: "Problem finding address in DC Gov database", prop});
+            })
+    }).then((prop) => {
+        prop.data_url = `${baseDataURL1}geometry=%7B%22x%22%3A${prop.x_coord}%2C%22y%22%3A${prop.y_coord}%7D${baseDataURL2}`;
+        return superagent.get(prop.data_url)
+        .then(checkRes)
+        .then(checkAddData)
+        .then(parseAddData)
+        .then((response) => {
+            task.progress(66);
+            return Promise.resolve({
+                ...prop,
+                ...response
+            });
+        })
+        .catch((err) => {
+            console.log(err);
+            return Promise.reject({message: "Problem finding tax information in DC Gov database", prop});
+        });
+    }).then((prop) => {
+        prop.searchZillow = true;
+        if (prop.searchZillow) {
+            const address = encodeURI(prop["Full Address"]);
+            const cityStateZip = `${prop["City"]} ${prop["State"]} ${prop["Zip Code"]}`;
+            prop.zillowPropsURL = `http://www.zillow.com/webservice/GetSearchResults.htm?zws-id=${ZWSID}&address=${address}&citystatezip=${cityStateZip}`;
+            return superagent.get(prop.zillowPropsURL)
+            .then(checkZillowData)
+            .then(xmltoJSON)
+            .then(parseZillowData)
+            .then((response) => {
+                task.progress(90);
                 return Promise.resolve({
                     ...prop,
                     ...response
@@ -261,84 +330,162 @@ app.post('/api/processCsv', (req, res) => {
             })
             .catch((err) => {
                 console.log(err);
-                return Promise.resolve({
-                    ...prop,
-                    errors: err
-                });
-            })
-    ))
-    .then(propData => {
-        propData.forEach(prop => {
-            if (!prop.errors) {
-                prop.data_url = `${baseDataURL1}geometry=%7B%22x%22%3A${prop.x_coord}%2C%22y%22%3A${prop.y_coord}%7D${baseDataURL2}`
-            }
-        });
-        Promise.all(propData.map(prop => {
-            if (prop.data_url) {
-                return superagent.get(prop.data_url)
-                    .then(checkRes)
-                    .then(checkAddData)
-                    .then(parseAddData)
-                    .then((response) => {
-                        return Promise.resolve({
-                            ...prop,
-                            ...response
-                        });
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                        return Promise.resolve({
-                            ...prop,
-                            errors: err
-                        });
+                return Promise.reject({message: "Problem communicating with Zillow", prop});
+            });
+        } else {
+            return Promise.resolve(prop);
+        }
+    }).then((prop) => {
+        const final_data = cleanData(prop);
+        // console.log(final_data);
+        // console.log("fifth", task.id);
+        // console.log
+        return Addresses.findOneAndUpdate(
+            {_id: item._id}, 
+            { 
+                $set: {
+                    data: final_data,
+                    complete: true,
+                    date_modifed: new Date()
+                }
+            },
+            {new: true, useFindAndModify: true},
+            (err, address) => {
+                if (err) console.log(err);
+                return Jobs.findOneAndUpdate(
+                    { job_id: item.job_id }, 
+                    {
+                        $inc: {
+                            completed_items: 1
+                        }, 
+                        $set: {
+                            date_modifed: new Date()
+                        }
+                    },
+                    { new: true, useFindAndModify: true },
+                    (err, job) => {
+                        if (err) console.log(err);
+                        Promise.resolve(prop);
                     });
-            } else {
-                return Promise.resolve(prop);
+            });
+    }).then((prop) => {
+        return Promise.resolve(prop);
+    }).catch((prop) => {
+        // Overwriting prop object and storing error in external variable
+        const error = prop.message;
+        prop = prop.prop;
+        const final_data = cleanData(prop);
+        return Addresses.findOneAndUpdate(
+            {_id: item._id}, 
+            { 
+                $set: {
+                    data: final_data,
+                    error: true,
+                    error_details: error,
+                    date_modifed: new Date()
+                }   
+            },
+            {new: true, useFindAndModify: true},
+            (err, address) => {
+                return Jobs.findOneAndUpdate(
+                    {job_id: item.job_id},
+                    {
+                        $inc: {
+                            failed_items: 1
+                        }, 
+                        $set: {
+                            date_modifed: new Date()
+                        }
+                    },
+                    {new: true, useFindAndModify: true},
+                    (err, job) => {
+                        task.progress(100);
+                        return Promise.resolve(prop);
+                    });
+            });
+    });
+}
+
+async function fetchAddress(job_id) {
+    return new Promise((resolve, reject) => {
+        return Addresses.find(
+            {job_id, complete: true}, 
+            (err, docs) => {
+                if (err) console.log(err);
+                const returnArray = docs.map(item => {
+                    return item.data;
+                });
+                return resolve(returnArray);
             }
-        })).then(propData2 => {
-            // Zillow Queries
-            propData2.forEach(prop => {
-                if (!prop.errors) {
-                    const address = encodeURI(prop["Full Address"]);
-                    const cityStateZip = `${prop["City"]} ${prop["State"]} ${prop["Zip Code"]}`;
-                    prop.zillowPropsURL = `http://www.zillow.com/webservice/GetSearchResults.htm?zws-id=${ZWSID}&address=${address}&citystatezip=${cityStateZip}`;
-                }
-            });
-            Promise.all(propData2.map(prop => {
-                if (prop.zillowPropsURL) {
-                    return superagent.get(prop.zillowPropsURL)
-                        .then(checkZillowData)
-                        .then(xmltoJSON)
-                        .then(parseZillowData)
-                        .then((response) => {
-                            return Promise.resolve({
-                                ...prop,
-                                ...response
-                            });
-                        })
-                        .catch((err) => {
-                            console.log(err);
-                            return Promise.resolve({
-                                ...prop,
-                                errors: [err]
-                            });
-                        });
+        )
+    })
+}
+
+async function fetchJobStatus(job_id) {
+    return new Promise((resolve, reject) => {
+        return Jobs.findOne(
+            {job_id},
+            (err, doc) => {
+                if (err) console.log(err);
+                const job = doc.toObject();
+                
+                // Update if job is complete
+                if (
+                    job.completed_items + job.failed_items === job.total_items &&
+                    job.completed === false
+                ) {
+                    return Jobs.findOneAndUpdate(
+                        {job_id},
+                        {
+                            $set: {
+                                complete: true,
+                            }
+                        },
+                        (err, doc) => {
+                            if (err) console.log(err);
+                            return resolve(true)
+                        }
+                    )
+                } else if (
+                    job.completed_items + job.failed_items === job.total_items &&
+                    job.completed === false
+                ) {
+                    return resolve(true)
                 } else {
-                    return Promise.resolve(prop);
+                    return resolve(false)
                 }
-            })).then(newData => {
-                const final_data = cleanData(newData, { zones: zone_filter, use: use_filter});
-                return res.status(200).json(final_data);
-            }).catch(err => {
-                return Promise.reject(err);
-            });
-        }).catch(err => {
-            console.log(err);
-            return res.status(500).json(err);
+            }
+        )
+    }) 
+}
+
+// End Points
+app.post('/api/processCsv', (req, res) => {
+    // Creating Job ID
+    const job_id = uuidv4();
+    // Creating Job
+    const job = new Jobs({
+        job_id,
+        total_items: req.body.csv_array.length,
+        zone_filters: arrToHash(req.body.filter.zones),
+        use_filters: arrToHash(req.body.filter.use)
+    });
+    job.save((err, job) => {
+        if (err) return res.status(500).json({message: "Problem creating job"});
+        // Assigning Job ID to every item in array
+        const csv_array = req.body.csv_array.map((el) => {
+            const o = Object.assign({}, el);
+            o.job_id = job_id;
+            o.data = el;
+            return o;
         });
-    }).catch(err => {
-        console.log(err);
-        return res.status(500).json(err);
+        Addresses.create(csv_array, (err, csvs) => {
+            if (err) return res.status(500).json({message: "Problem creating addresses"});
+            for (let i = 0; i < csvs.length; i++) {
+                csvQueue.add(csvs[i]);
+            }
+            return res.json({job_id: job_id});
+        });
     });
 });
 
@@ -358,7 +505,6 @@ app.post('/api/downloadCsv/:id', (req, res) => {
 app.post('/api/saveCsv', (req, res) => {
     return res.json({message: 'Save Complete'});
 });
-
 
 // Handles any requests that don't match the ones above
 app.get('*', (req,res) =>{

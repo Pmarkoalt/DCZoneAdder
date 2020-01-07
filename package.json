@@ -4,14 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "heroku-postbuild": "cd client && npm install && npm run build"
+    "start": "nodemon index.js",
+    "heroku-postbuild": "cd client && npm install && npm run build",
+    "debug": "node --nolazy --inspect-brk=9229 index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@babel/plugin-proposal-optional-chaining": "7.7.4",
     "body-parser": "^1.19.0",
+    "bull": "3.12.1",
     "cors": "^2.8.5",
     "csvtojson": "^2.0.10",
     "dotenv": "^8.2.0",
@@ -19,7 +22,10 @@
     "heroku": "7.35.0",
     "json2csv": "^4.5.2",
     "mongoose": "^5.7.7",
+    "redis": "2.8.0",
+    "socket.io": "2.3.0",
     "superagent": "^5.1.0",
     "xml2js": "^0.4.22"
-  }
+  },
+  "devDependencies": {}
 }
