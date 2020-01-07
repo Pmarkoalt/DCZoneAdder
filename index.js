@@ -176,7 +176,7 @@ function checkPropData(response) {
             });
             return Promise.reject(errors)
         } else {
-            return Promise.reject({Assessment: "Unknown Address Error"});
+            return Promise.reject("Unknown Address Error");
         }
     }
 }
@@ -197,7 +197,7 @@ function parsePropData(response) {
         }
         return Promise.resolve(returnObj);
     } else {
-        return Promise.reject({Assessment: "Unknown Parsing Address Error"});
+        return Promise.reject("Unknown Parsing Address Error");
     }
 }
 function checkAddData(response) {
@@ -270,7 +270,7 @@ function parseZillowData(data) {
         }
         return Promise.resolve(returnObj);
     } else {
-        return Promise.reject({Assessment: "Unknown Parsing Zillow Error"});
+        return Promise.reject("Unknown Parsing Zillow Error");
     }
 }
 
