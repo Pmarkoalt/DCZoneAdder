@@ -19,8 +19,10 @@ class TableContainer extends Component{
     render(){
         return(
             <div id="section-two">
-              <h2>{this.props.finalTable ? 'Processed Data' : 'Please Verify This Data is Correct and Then Submit'}</h2>
-              <Table data={this.props.data} />
+              <h2>{this.props.finalTable ? `Processed Data Job ID: ${this.props.job_id}` : 'Please Verify This Data is Correct and Then Submit'}</h2>
+              {this.props.finalTable && !this.props.job_complete ? <h3>Job Processing, Please Wait</h3> : <span></span> }
+              {this.props.finalTable && this.props.job_complete ? <h3>Job Complete!</h3> : <span></span> }
+              <Table data={this.props.data} keys={this.props.keys} />
 
               {this.props.finalTable ? 
                 <div>

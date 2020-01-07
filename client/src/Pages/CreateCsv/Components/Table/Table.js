@@ -45,6 +45,15 @@ class VerifyTable extends Component{
       keys: key_array
     });
   }
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    console.log(this.props);
+    if (prevProps.keys !== this.props.keys) {
+      this.setState({
+        ...this.state,
+        keys: this.props.keys
+      });
+    }
+  }
   titleCase(str){
     str = str.toLowerCase().split(/[\s_]+/);
     let final = [ ];

@@ -38,6 +38,7 @@ class CreateCsv extends Component{
     const { endpoint } = this.state;
     const socket = io.connect(endpoint);
     socket.on("csv_update", data => {
+      console.log(data);
       this.setState({
         ...this.state,
         data: data.addresses,
@@ -129,7 +130,7 @@ class CreateCsv extends Component{
         : ''}
         {this.state.section === 1 && !this.state.loading ? <SectionOneContainer submitCSV={this.submitCSV} /> : ''}
         {this.state.section === 2 && !this.state.loading ? <TableContainer data={this.state.data} processCSV={this.processCSV}  /> : ''}
-        {this.state.section === 3 && !this.state.loading ? <TableContainer data={this.state.data} keys={this.state.keys} finalTable={true} saveCSV={this.saveCSV} downloadCSV={this.downloadCSV} /> : ''}
+        {this.state.section === 3 && !this.state.loading ? <TableContainer data={this.state.data} keys={this.state.keys} job_id={this.state.job_id} job_complete={this.state.job_complete} finalTable={true} saveCSV={this.saveCSV} downloadCSV={this.downloadCSV} /> : ''}
       </div>
     )
   }

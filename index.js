@@ -58,19 +58,15 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 const csvQueue = new Queue('csv_queue', 'redis://127.0.0.1:6379');
 
 csvQueue.process( async (task) => {
-    console.log("process");
     await processAddress(task.data, task);
-    const completed_items = await fetchAddress(task.data.job_id);
+    const addresses = await fetchAddress(task.data.job_id);
+    const address_data = addresses.map(item => {
+        return item.data;
+    });
     const complete_job = await fetchJobStatus(task.data.job_id);
-    let keys = [];
-    // Find keys
-    for (let i = 0 ; completed_items.length > i; i++) {
-        if (completed_items[i].complete) {
-            key = Object.keys(completed_items[i].data);
-            break;
-        }
-    }
-    return io.sockets.emit('csv_update', {addresses: completed_items, job_complete: complete_job, keys: keys});
+    const keys = await createKeys(addresses, address_data)
+
+    return io.sockets.emit('csv_update', {addresses: address_data, job_complete: complete_job, keys: keys});
 });
 
 csvQueue.on('error', (error) => {
@@ -92,12 +88,15 @@ io.on('connection', socket => {
 server.listen(3001);
 
 // Functions
-function uuidv4() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  }
+function generateId() {
+    var length = 8,
+        charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        retVal = "";
+    for (var i = 0, n = charset.length; i < length; ++i) {
+        retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    return retVal;
+}
 
 function normalizeObject(obj) {
     let key, keys = Object.keys(obj);
@@ -412,10 +411,7 @@ async function fetchAddress(job_id) {
             {job_id, complete: true}, 
             (err, docs) => {
                 if (err) console.log(err);
-                const returnArray = docs.map(item => {
-                    return item.data;
-                });
-                return resolve(returnArray);
+                return resolve(docs);
             }
         )
     })
@@ -459,10 +455,23 @@ async function fetchJobStatus(job_id) {
     }) 
 }
 
+async function createKeys(addresses, data) {
+    return new Promise((resolve, reject) => {
+        for (let i = 0 ; data.length > i; i++) {
+            if (addresses[i].complete) {
+                console.log('complete');
+                keys = Object.keys(data[i]);
+                return resolve(keys);
+            }
+        }
+        return resolve({});
+    });
+}
+
 // End Points
 app.post('/api/processCsv', (req, res) => {
     // Creating Job ID
-    const job_id = uuidv4();
+    const job_id = generateId();
     // Creating Job
     const job = new Jobs({
         job_id,
