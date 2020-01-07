@@ -478,26 +478,55 @@ async function createKeys(addresses, data) {
     });
 }
 
+function splitAddressDash(csv_array) {
+    const return_array = [];
+    for (let i = 0; csv_array.length > i;  i++) {
+        // console.log(csv_array[i]);
+        if (csv_array[i].Address.match(/[0-9][-][0-9]/)) {
+            const space_index = csv_array[i].Address.indexOf(" ");
+            const dash_index = csv_array[i].Address.indexOf("-");
+            const street_address = csv_array[i].Address.slice(space_index + 1);
+
+            const first_number = parseInt(csv_array[i].Address.slice(0, dash_index));
+            const second_number = parseInt(csv_array[i].Address.slice(dash_index + 1, space_index));
+            // console.log(space_index, dash_index, street_address, first_number, second_number);
+            for (let j = first_number; second_number > j; j++) {
+                const tempAddress = Object.assign({}, csv_array[i]);
+                tempAddress.Address = `${j} ${street_address}`;
+                return_array.push(tempAddress);
+            }
+        } else {
+            return_array.push(csv_array[i]);
+        }
+    }
+    return return_array;
+}
+
 // End Points
 app.post('/api/processCsv', (req, res) => {
     // Creating Job ID
     const job_id = generateId();
+    let csv_array = splitAddressDash(req.body.csv_array);
+
     // Creating Job
     const job = new Jobs({
         job_id,
-        total_items: req.body.csv_array.length,
+        total_items: csv_array.length,
         zone_filters: arrToHash(req.body.filter.zones),
         use_filters: arrToHash(req.body.filter.use)
     });
     job.save((err, job) => {
         if (err) return res.status(500).json({message: "Problem creating job"});
+        
+
         // Assigning Job ID to every item in array
-        const csv_array = req.body.csv_array.map((el) => {
+        csv_array = csv_array.map((el) => {
             const o = Object.assign({}, el);
             o.job_id = job_id;
             o.data = el;
             return o;
         });
+
         Addresses.create(csv_array, (err, csvs) => {
             if (err) return res.status(500).json({message: "Problem creating addresses"});
             for (let i = 0; i < csvs.length; i++) {
