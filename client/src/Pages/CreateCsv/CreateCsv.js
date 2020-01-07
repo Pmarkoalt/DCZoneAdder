@@ -26,6 +26,7 @@ class CreateCsv extends Component{
       valid: false,
       loading: false,
       job_complete: false,
+      search_zillow: true,
       section: 1
     }
     this.submitCSV = this.submitCSV.bind(this);
@@ -33,6 +34,7 @@ class CreateCsv extends Component{
     this.downloadCSV = this.downloadCSV.bind(this);
     this.saveCSV = this.saveCSV.bind(this);
     this.changeSection = this.changeSection.bind(this);
+    this.changeZillow = this.changeZillow.bind(this);
   }
   componentDidMount(){
     const { endpoint } = this.state;
@@ -78,7 +80,7 @@ class CreateCsv extends Component{
     });
     const zone_array = this.state.zone_chips.map(item => item.value);
     const use_array = this.state.use_chips.map(item => item.value);
-    processCsv(this.state.data, {zones: zone_array, use: use_array})
+    processCsv(this.state.data, {zones: zone_array, use: use_array}, this.state.search_zillow)
     .then((response) => {
       this.setState({
         ...this.state,
@@ -110,7 +112,12 @@ class CreateCsv extends Component{
       section: section_number
     });
   }
-
+  changeZillow() {
+    this.setState({
+      ...this.state,
+      search_zillow: !this.state.search_zillow
+    });
+  }
   sectionThree() {
     return (
       <div id="section-three">
@@ -129,7 +136,7 @@ class CreateCsv extends Component{
         </div>
         : ''}
         {this.state.section === 1 && !this.state.loading ? <SectionOneContainer submitCSV={this.submitCSV} /> : ''}
-        {this.state.section === 2 && !this.state.loading ? <TableContainer data={this.state.data} processCSV={this.processCSV}  /> : ''}
+        {this.state.section === 2 && !this.state.loading ? <TableContainer data={this.state.data} search_zillow={this.state.search_zillow} changeZillow={this.changeZillow} processCSV={this.processCSV}  /> : ''}
         {this.state.section === 3 && !this.state.loading ? <TableContainer data={this.state.data} keys={this.state.keys} job_id={this.state.job_id} job_complete={this.state.job_complete} finalTable={true} saveCSV={this.saveCSV} downloadCSV={this.downloadCSV} /> : ''}
       </div>
     )

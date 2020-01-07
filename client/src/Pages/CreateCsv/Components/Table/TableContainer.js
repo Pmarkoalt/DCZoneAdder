@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import Table from './Table';
 
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+
+
 
 import './section_two.scss';
 
@@ -35,6 +39,19 @@ class TableContainer extends Component{
                 </div>
                 :
                 <div>
+                  <div id="section-two-zillow">
+                    <FormControlLabel
+                      value="start"
+                      control={
+                        <Checkbox
+                          checked={this.props.search_zillow}
+                          onChange={this.props.changeZillow}
+                        />
+                      }
+                      label="Search Zillow API?"
+                      labelPlacement="start"
+                    />
+                  </div>
                   <Button id="section-two-submit" variant="contained" color="primary" onClick={() => {this.props.processCSV()}}>
                     Submit
                   </Button>

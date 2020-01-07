@@ -1,10 +1,11 @@
 import axios from "axios";
 import fileDownload from 'js-file-download';
 
-export function processCsv(csv_array, filter){
+export function processCsv(csv_array, filter, search_zillow){
     const params = {
         csv_array,
-        filter
+        filter,
+        search_zillow
     }
     return axios.post('/api/processCsv', params)
     .then((response)=> {

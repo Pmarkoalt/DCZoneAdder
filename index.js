@@ -58,9 +58,10 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 const csvQueue = new Queue('csv_queue', 'redis://127.0.0.1:6379');
 
 csvQueue.process( async (task) => {
-    await processAddress(task.data, task);
-    const addresses = await fetchAddress(task.data.job_id);
-    const job_data = await fetchJobData(task.data.job_id);
+    const current_address = await fetchCurrentAddress(task.data.id);
+    await processAddress(current_address, task, task.data.search_zillow);
+    const addresses = await fetchAddress(current_address.job_id);
+    const job_data = await fetchJobData(current_address.job_id);
     let address_data = addresses.map(item => {
         return item.data;
     });
@@ -273,7 +274,11 @@ function parseZillowData(data) {
     }
 }
 
-function processAddress(item, task) {
+async function fetchCurrentAddress(id) {
+    return Addresses.findById(id);
+}
+
+function processAddress(item, task, searchZillow) {
     const basePropURL = 'https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?str=';
     const baseDataURL1 = 'https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_APPS/PropertyQuest/MapServer/identify?f=json&tolerance=1&';
     const baseDataURL2 = 'returnGeometry=false&imageDisplay=100%2C100%2C96&geometryType=esriGeometryPoint&sr=26985&mapExtent=400713.2%2C136977.93%2C400715.2%2C136979.93&layers=all%3A25%2C11%2C';
@@ -321,8 +326,7 @@ function processAddress(item, task) {
             return Promise.reject({message: "Problem finding tax information in DC Gov database", prop});
         });
     }).then((prop) => {
-        prop.searchZillow = true;
-        if (prop.searchZillow) {
+        if (searchZillow) {
             const address = encodeURI(prop["Full Address"]);
             const cityStateZip = `${prop["City"]} ${prop["State"]} ${prop["Zip Code"]}`;
             prop.zillowPropsURL = `http://www.zillow.com/webservice/GetSearchResults.htm?zws-id=${ZWSID}&address=${address}&citystatezip=${cityStateZip}`;
@@ -497,7 +501,7 @@ app.post('/api/processCsv', (req, res) => {
         Addresses.create(csv_array, (err, csvs) => {
             if (err) return res.status(500).json({message: "Problem creating addresses"});
             for (let i = 0; i < csvs.length; i++) {
-                csvQueue.add(csvs[i]);
+                csvQueue.add({ id: csvs[i]._id, search_zillow: req.body.search_zillow});
             }
             return res.json({job_id: job_id});
         });
