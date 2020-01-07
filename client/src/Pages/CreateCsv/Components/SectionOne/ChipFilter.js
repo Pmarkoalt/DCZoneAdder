@@ -96,7 +96,8 @@ class ChipFilter extends Component{
               />
               <Button className="section-one-button" 
                 variant="contained" 
-                color="secondary" 
+                color="secondary"
+                disabled={!this.state.selected_zone}
                 onClick={() => {this.handleToggle('zone')}}>
                     Add Zone
               </Button>
@@ -128,6 +129,7 @@ class ChipFilter extends Component{
               <Button className="section-one-button" 
                 variant="contained" 
                 color="secondary" 
+                disabled={!this.state.selected_use}
                 onClick={() => {this.handleToggle('use')}}>
                     Add Use
               </Button>

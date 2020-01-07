@@ -60,13 +60,23 @@ const csvQueue = new Queue('csv_queue', 'redis://127.0.0.1:6379');
 csvQueue.process( async (task) => {
     await processAddress(task.data, task);
     const addresses = await fetchAddress(task.data.job_id);
-    const address_data = addresses.map(item => {
+    const job_data = await fetchJobData(task.data.job_id);
+    let address_data = addresses.map(item => {
         return item.data;
     });
-    const complete_job = await fetchJobStatus(task.data.job_id);
+    if (job_data.zone_filters || job_data.use_filters) {
+        address_data = address_data.filter(item => {
+            if (job_data.zone_filters && !job_data.zone_filters[item.Zone]) {
+                return false
+            }
+            if (job_data.use_filters && !job_data.use_filters[item['Use Code']]) {
+                return false
+            }
+            return true;
+        });
+    }
     const keys = await createKeys(addresses, address_data)
-
-    return io.sockets.emit('csv_update', {addresses: address_data, job_complete: complete_job, keys: keys});
+    return io.sockets.emit('csv_update', {addresses: address_data, job_complete: job_data.completed, keys: keys});
 });
 
 csvQueue.on('error', (error) => {
@@ -417,7 +427,7 @@ async function fetchAddress(job_id) {
     })
 }
 
-async function fetchJobStatus(job_id) {
+async function fetchJobData(job_id) {
     return new Promise((resolve, reject) => {
         return Jobs.findOne(
             {job_id},
@@ -434,21 +444,17 @@ async function fetchJobStatus(job_id) {
                         {job_id},
                         {
                             $set: {
-                                complete: true,
+                                completed: true,
                             }
                         },
+                        {new: true},
                         (err, doc) => {
                             if (err) console.log(err);
-                            return resolve(true)
+                            return resolve(doc)
                         }
                     )
-                } else if (
-                    job.completed_items + job.failed_items === job.total_items &&
-                    job.completed === false
-                ) {
-                    return resolve(true)
                 } else {
-                    return resolve(false)
+                    return resolve(job)
                 }
             }
         )
