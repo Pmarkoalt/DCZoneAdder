@@ -5,18 +5,13 @@ const cors = require('cors');
 const superagent = require('superagent');
 const bodyParser = require('body-parser');
 const redis = require('redis');
-const client = redis.createClient(
-    {
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
-        password: process.env.REDIS_PASSWORD
-    });
+const client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
 // Method for testing purposes to clean Redis Collection
-client.flushdb( function (err, succeeded) {
-    if (err) return console.log(err);
-    console.log("Success",succeeded); // will be true if successfull
-});
-console.log(process.env.REDIS_HOST, process.env.REDIS_PORT, process.env.REDIS_PASSWORD);
+// client.flushdb( function (err, succeeded) {
+//     if (err) return console.log(err);
+//     console.log("Success",succeeded); // will be true if successfull
+// });
+// console.log(process.env.REDIS_HOST, process.env.REDIS_PORT, process.env.REDIS_PASSWORD);
 const Queue = require('bull');
 const server = require('http').createServer();
 const io = require('socket.io')(server);
@@ -33,14 +28,6 @@ const Schemas = require('./schemas');
 const cluster_user = process.env.CLUSTER_USER;
 const cluster_password = process.env.CLUSTER_PASSWORD;
 const ZWSID = process.env.ZWSID;
-const redis_param = {
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
-    password: process.env.REDIS_PASSWORD,
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false
-};
-
 const uses = require('./uses_master');
 
 
@@ -73,7 +60,7 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 
 
 // Set up CSV Queue
-const csvQueue = new Queue('csv_queue', redis_param);
+const csvQueue = new Queue('csv_queue', client);
 // csvQueue.clean(3600 * 1000, "completed");
 
 csvQueue.process( async (task) => {
