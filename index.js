@@ -5,7 +5,12 @@ const cors = require('cors');
 const superagent = require('superagent');
 const bodyParser = require('body-parser');
 const redis = require('redis');
-const client = redis.createClient();
+const client = redis.createClient(
+    {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT,
+        password: process.env.REDIS_PASSWORD
+    });
 // Method for testing purposes to clean Redis Collection
 // client.flushdb( function (err, succeeded) {
 //     if (err) return console.log(err);
@@ -60,7 +65,11 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 
 
 // Set up CSV Queue
-const csvQueue = new Queue('csv_queue', 'redis://127.0.0.1:6379');
+const csvQueue = new Queue('csv_queue', {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+    password: process.env.REDIS_PASSWORD
+});
 csvQueue.clean(3600 * 1000, "completed");
 
 csvQueue.process( async (task) => {
