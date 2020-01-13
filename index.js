@@ -36,7 +36,9 @@ const ZWSID = process.env.ZWSID;
 const redis_param = {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
-    password: process.env.REDIS_PASSWORD
+    password: process.env.REDIS_PASSWORD,
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false
 };
 
 const uses = require('./uses_master');
@@ -71,7 +73,6 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 
 
 // Set up CSV Queue
-console.log(redis_param);
 const csvQueue = new Queue('csv_queue', redis_param);
 // csvQueue.clean(3600 * 1000, "completed");
 
