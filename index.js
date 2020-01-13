@@ -65,27 +65,27 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 
 
 // Set up CSV Queue
-const csvQueue = new Queue('csv_queue', {
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
-    password: process.env.REDIS_PASSWORD
-});
-csvQueue.clean(3600 * 1000, "completed");
+// const csvQueue = new Queue('csv_queue', {
+//     host: process.env.REDIS_HOST,
+//     port: process.env.REDIS_PORT,
+//     password: process.env.REDIS_PASSWORD
+// });
+// csvQueue.clean(3600 * 1000, "completed");
 
-csvQueue.process( async (task) => {
-    const current_address = await fetchCurrentAddress(task.data.id);
-    await processAddress(current_address, task, task.data.search_zillow);
-    await fetchCurrentJob(current_address.job_id);
-    return;
-});
+// csvQueue.process( async (task) => {
+//     const current_address = await fetchCurrentAddress(task.data.id);
+//     await processAddress(current_address, task, task.data.search_zillow);
+//     await fetchCurrentJob(current_address.job_id);
+//     return;
+// });
 
-csvQueue.on('error', (error) => {
-    console.log(error);
-})
+// csvQueue.on('error', (error) => {
+//     console.log(error);
+// })
 
-csvQueue.on('completed', (job, result) => {
-    console.log('job complete', job.id);
-});
+// csvQueue.on('completed', (job, result) => {
+//     console.log('job complete', job.id);
+// });
 
 // Set up Socket.io
 io.on('connection', socket => {
