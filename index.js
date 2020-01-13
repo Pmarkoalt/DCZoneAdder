@@ -5,7 +5,11 @@ const cors = require('cors');
 const superagent = require('superagent');
 const bodyParser = require('body-parser');
 const redis = require('redis');
-const client = redis.createClient(process.env.REDISCLOUD_URL, {no_ready_check: true});
+const url = require('url');
+const redisURL = url.parse(process.env.REDISCLOUD_URL);
+const client = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
+client.auth(redisURL.auth.split(":")[1]);
+
 // Method for testing purposes to clean Redis Collection
 // client.flushdb( function (err, succeeded) {
 //     if (err) return console.log(err);
