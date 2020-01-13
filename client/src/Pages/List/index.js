@@ -1,4 +1,4 @@
-import List from './List'
+import ListComponent from './List'
 
 
-export default List;
+export default ListComponent;

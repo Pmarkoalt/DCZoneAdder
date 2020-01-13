@@ -6,6 +6,11 @@ const superagent = require('superagent');
 const bodyParser = require('body-parser');
 const redis = require('redis');
 const client = redis.createClient();
+// Method for testing purposes to clean Redis Collection
+// client.flushdb( function (err, succeeded) {
+//     if (err) return console.log(err);
+//     console.log("Success",succeeded); // will be true if successfull
+// });
 const Queue = require('bull');
 const server = require('http').createServer();
 const io = require('socket.io')(server);
@@ -56,28 +61,13 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 
 // Set up CSV Queue
 const csvQueue = new Queue('csv_queue', 'redis://127.0.0.1:6379');
+csvQueue.clean(3600 * 1000, "completed");
 
 csvQueue.process( async (task) => {
     const current_address = await fetchCurrentAddress(task.data.id);
     await processAddress(current_address, task, task.data.search_zillow);
-    const addresses = await fetchAddress(current_address.job_id);
-    const job_data = await fetchJobData(current_address.job_id);
-    let address_data = addresses.map(item => {
-        return item.data;
-    });
-    if (job_data.zone_filters || job_data.use_filters) {
-        address_data = address_data.filter(item => {
-            if (job_data.zone_filters && !job_data.zone_filters[item.Zone]) {
-                return false
-            }
-            if (job_data.use_filters && !job_data.use_filters[item['Use Code']]) {
-                return false
-            }
-            return true;
-        });
-    }
-    const keys = await createKeys(addresses, address_data)
-    return io.sockets.emit('csv_update', {addresses: address_data, job_complete: job_data.completed, keys: keys});
+    await fetchCurrentJob(current_address.job_id);
+    return;
 });
 
 csvQueue.on('error', (error) => {
@@ -99,6 +89,16 @@ io.on('connection', socket => {
 server.listen(3001);
 
 // Functions
+
+function toTitleCase(str) {
+    return str.replace(
+        /\w\S*/g,
+        function(txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        }
+    );
+}
+
 function generateId() {
     var length = 8,
         charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
@@ -419,6 +419,28 @@ function processAddress(item, task, searchZillow) {
     });
 }
 
+async function fetchCurrentJob(job_id) {
+    const addresses = await fetchAddress(job_id);
+    const job_data = await fetchJobData(job_id);
+    let address_data = addresses.map(item => {
+        return item.data;
+    });
+    if (job_data.zone_filters || job_data.use_filters) {
+        address_data = address_data.filter(item => {
+            if (job_data.zone_filters && !job_data.zone_filters[item.Zone]) {
+                return false
+            }
+            if (job_data.use_filters && !job_data.use_filters[item['Use Code']]) {
+                return false
+            }
+            return true;
+        });
+    }
+    const keys = await createKeys(addresses, address_data)
+    io.sockets.emit('csv_update', {job_id: job_id, addresses: address_data, job_complete: job_data.completed, keys: keys});
+    return {job_id: job_id, addresses: address_data, job_complete: job_data.completed, keys: keys};
+}
+
 async function fetchAddress(job_id) {
     return new Promise((resolve, reject) => {
         return Addresses.find(
@@ -437,6 +459,7 @@ async function fetchJobData(job_id) {
             {job_id},
             (err, doc) => {
                 if (err) console.log(err);
+                if (!doc) return resolve({});
                 const job = doc.toObject();
                 
                 // Update if job is complete
@@ -546,13 +569,42 @@ app.post('/api/downloadCsv', (req, res) => {
     return res.status(200).send(csv);
 });
 
-app.post('/api/downloadCsv/:id', (req, res) => {
-    return res.json({message: 'Download'});
+app.get('/api/downloadCsvById/:id', (req, res) => {
+    return Addresses.findOne({job_id: req.params.id}, (err, doc) => {
+        if (err) return res.status(500).send({message: "problem with Mongo"});
+        const doc_object = doc.toObject();
+        const address = doc_object.data;
+        let keys = Object.keys(address);
+        const final_keys = keys.map(key => {
+            return toTitleCase(key)
+        });
+        console.log(final_keys);
+        const json2csvParser = new Parser({final_keys});
+        const csv = json2csvParser.parse(address);
+        res.setHeader('Content-disposition', 'attachment; filename=data.csv');
+        res.set('Content-Type', 'text/csv');
+        return res.status(200).send(csv);
+    })
 });
 
 app.post('/api/saveCsv', (req, res) => {
     return res.json({message: 'Save Complete'});
 });
+
+app.get('/api/addressByJobId/:id', async (req, res) => {
+    const job_id = req.params.id;
+    console.log(job_id);
+    if (!job_id) return res.status(400).json({message: "No Job Id provided"});
+    const return_data = await fetchCurrentJob(job_id);
+    return res.json(return_data);
+});
+
+app.get('/api/findAllJobs', (req, res) => {
+    Jobs.find({}, (err, jobs) => {
+        if (err) return res.status(500).json({message: "Problem with Mongo DB"});
+        return res.json({jobs: jobs});
+    })
+})
 
 // Handles any requests that don't match the ones above
 app.get('*', (req,res) =>{

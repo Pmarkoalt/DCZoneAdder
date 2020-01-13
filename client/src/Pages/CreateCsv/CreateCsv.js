@@ -6,7 +6,7 @@ import io from "socket.io-client";
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import { processCsv, saveCsv, downloadCurrentCsv } from './create_csv_api';
+import { processCsv, downloadCurrentCsv, fetchCurrentJob } from './create_csv_api';
 import SectionOneContainer from './Components/SectionOne/SectionOneContainer';
 import TableContainer from './Components/Table/TableContainer';
 
@@ -32,21 +32,39 @@ class CreateCsv extends Component{
     this.submitCSV = this.submitCSV.bind(this);
     this.processCSV = this.processCSV.bind(this);
     this.downloadCSV = this.downloadCSV.bind(this);
-    this.saveCSV = this.saveCSV.bind(this);
     this.changeSection = this.changeSection.bind(this);
     this.changeZillow = this.changeZillow.bind(this);
   }
   componentDidMount(){
     const { endpoint } = this.state;
     const socket = io.connect(endpoint);
-    socket.on("csv_update", data => {
-      console.log(data);
+    if (this.props.match.params.id) {
       this.setState({
         ...this.state,
-        data: data.addresses,
-        job_complete: data.job_complete,
-        keys: data.keys
+        loading: true
       });
+      fetchCurrentJob(this.props.match.params.id)
+      .then(data => {
+        this.setState({
+          ...this.state,
+          job_id: data.job_id,
+          section: 3,
+          data: data.addresses,
+          job_complete: data.job_complete,
+          loading: false
+        });
+      })
+    }
+    socket.on("csv_update", data => {
+      if (data.job_id === this.state.job_id) {
+        console.log(data);
+        this.setState({
+          ...this.state,
+          data: data.addresses,
+          job_complete: data.job_complete,
+          keys: data.keys
+        });
+      }
     });
   }
 
@@ -100,12 +118,6 @@ class CreateCsv extends Component{
 
     });
   }
-  saveCSV() {
-    saveCsv(this.state.csv)
-    .then(response => {
-
-    })
-  }
   changeSection(section_number) {
     this.setState({
       ...this.state,
@@ -137,7 +149,7 @@ class CreateCsv extends Component{
         : ''}
         {this.state.section === 1 && !this.state.loading ? <SectionOneContainer submitCSV={this.submitCSV} /> : ''}
         {this.state.section === 2 && !this.state.loading ? <TableContainer data={this.state.data} search_zillow={this.state.search_zillow} changeZillow={this.changeZillow} processCSV={this.processCSV}  /> : ''}
-        {this.state.section === 3 && !this.state.loading ? <TableContainer data={this.state.data} keys={this.state.keys} job_id={this.state.job_id} job_complete={this.state.job_complete} finalTable={true} saveCSV={this.saveCSV} downloadCSV={this.downloadCSV} /> : ''}
+        {this.state.section === 3 && !this.state.loading ? <TableContainer data={this.state.data} keys={this.state.keys} job_id={this.state.job_id} job_complete={this.state.job_complete} finalTable={true} downloadCSV={this.downloadCSV} /> : ''}
       </div>
     )
   }

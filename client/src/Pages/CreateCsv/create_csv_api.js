@@ -17,16 +17,16 @@ export function processCsv(csv_array, filter, search_zillow){
     });
 }
 
-export function saveCsv(csv_array){
-    return axios.post('/api/saveCsv', csv_array)
-    .then((response)=> {
-        return 'success';
-    })
-    .catch((err) => {
-        console.log(err);
-        return err;
-    });
-}
+// export function saveCsv(csv_array){
+//     return axios.post('/api/saveCsv', csv_array)
+//     .then((response)=> {
+//         return 'success';
+//     })
+//     .catch((err) => {
+//         console.log(err);
+//         return err;
+//     });
+// }
 
 export function downloadCurrentCsv(csv_array){
     return axios.post('/api/downloadCsv', csv_array)
@@ -39,6 +39,13 @@ export function downloadCurrentCsv(csv_array){
         console.log(err);
         return {success: false, message: err};
     });
+}
+
+export function fetchCurrentJob(job_id) {
+    return axios.get(`/api/addressByJobId/${job_id}`)
+    .then((response) => {
+        return response.data;
+    })
 }
 
 export function downloadSelectedCsv(index){
