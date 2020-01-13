@@ -4,13 +4,13 @@ const path = require('path');
 const cors = require('cors');
 const superagent = require('superagent');
 const bodyParser = require('body-parser');
-const redis = require('redis');
-const client = redis.createClient(
-    {
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
-        password: process.env.REDIS_PASSWORD
-    });
+// const redis = require('redis');
+// const client = redis.createClient(
+//     {
+//         host: process.env.REDIS_HOST,
+//         port: process.env.REDIS_PORT,
+//         password: process.env.REDIS_PASSWORD
+//     });
 // Method for testing purposes to clean Redis Collection
 // client.flushdb( function (err, succeeded) {
 //     if (err) return console.log(err);
@@ -51,9 +51,9 @@ app.use(bodyParser.json({limit: '50mb', extended: true}));
 app.use(cors());
 
 // Confirm Redis connected
-client.on('connect', function() {
-    console.log('Connected to Redis Server');
-});
+// client.on('connect', function() {
+//     console.log('Connected to Redis Server');
+// });
 
 // // Set up Mongoose
 mongoose.connect(`mongodb+srv://${cluster_user}:${cluster_password}@cluster0-dkqdm.mongodb.net/test?retryWrites=true&w=majority`, {useNewUrlParser: true, useUnifiedTopology: true});
