@@ -37,6 +37,7 @@ class CreateCsv extends Component{
   }
   componentDidMount(){
     const { endpoint } = this.state;
+    console.log(this.state.endpoint);
     const socket = io.connect(endpoint);
     if (this.props.match.params.id) {
       this.setState({
