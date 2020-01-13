@@ -1,5 +1,8 @@
 require('dotenv').config()
 const express = require('express');
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
 const path = require('path');
 const cors = require('cors');
 const superagent = require('superagent');
@@ -17,8 +20,6 @@ const bodyParser = require('body-parser');
 // });
 // console.log(process.env.REDIS_HOST, process.env.REDIS_PORT, process.env.REDIS_PASSWORD);
 const Queue = require('bull');
-const server = require('http').createServer();
-const io = require('socket.io')(server);
 
 const csv = require('csvtojson');
 const { Parser } = require('json2csv');
@@ -34,9 +35,6 @@ const cluster_password = process.env.CLUSTER_PASSWORD;
 const ZWSID = process.env.ZWSID;
 const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 const uses = require('./uses_master');
-
-
-const app = express();
 
 // Serve the static files from the React app
 app.use(express.static(path.join(__dirname, 'client/build')));
@@ -617,6 +615,7 @@ app.get('*', (req,res) =>{
 });
 
 const port = process.env.PORT || 5000;
-app.listen(port);
+app.listen(port, () => {
+    console.log('App is listening on port ' + port);
+});
 
-console.log('App is listening on port ' + port);
