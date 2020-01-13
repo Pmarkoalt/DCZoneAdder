@@ -4,18 +4,19 @@ const path = require('path');
 const cors = require('cors');
 const superagent = require('superagent');
 const bodyParser = require('body-parser');
-// const redis = require('redis');
-// const client = redis.createClient(
-//     {
-//         host: process.env.REDIS_HOST,
-//         port: process.env.REDIS_PORT,
-//         password: process.env.REDIS_PASSWORD
-//     });
+const redis = require('redis');
+const client = redis.createClient(
+    {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT,
+        password: process.env.REDIS_PASSWORD
+    });
 // Method for testing purposes to clean Redis Collection
-// client.flushdb( function (err, succeeded) {
-//     if (err) return console.log(err);
-//     console.log("Success",succeeded); // will be true if successfull
-// });
+client.flushdb( function (err, succeeded) {
+    if (err) return console.log(err);
+    console.log("Success",succeeded); // will be true if successfull
+});
+console.log(process.env.REDIS_HOST, process.env.REDIS_PORT, process.env.REDIS_PASSWORD);
 const Queue = require('bull');
 const server = require('http').createServer();
 const io = require('socket.io')(server);
