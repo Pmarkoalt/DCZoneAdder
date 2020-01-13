@@ -4,11 +4,11 @@ const path = require('path');
 const cors = require('cors');
 const superagent = require('superagent');
 const bodyParser = require('body-parser');
-const redis = require('redis');
-const url = require('url');
-const redisURL = url.parse(process.env.REDISCLOUD_URL);
-const client = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
-client.auth(redisURL.auth.split(":")[1]);
+// const redis = require('redis');
+// const url = require('url');
+// const redisURL = url.parse(process.env.REDISCLOUD_URL);
+// const client = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
+// client.auth(redisURL.auth.split(":")[1]);
 
 // Method for testing purposes to clean Redis Collection
 // client.flushdb( function (err, succeeded) {
@@ -32,6 +32,7 @@ const Schemas = require('./schemas');
 const cluster_user = process.env.CLUSTER_USER;
 const cluster_password = process.env.CLUSTER_PASSWORD;
 const ZWSID = process.env.ZWSID;
+const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 const uses = require('./uses_master');
 
 
@@ -50,9 +51,9 @@ app.use(bodyParser.json({limit: '50mb', extended: true}));
 app.use(cors());
 
 // Confirm Redis connected
-client.on('connect', function() {
-    console.log('Connected to Redis Server');
-});
+// client.on('connect', function() {
+//     console.log('Connected to Redis Server');
+// });
 
 // // Set up Mongoose
 mongoose.connect(`mongodb+srv://${cluster_user}:${cluster_password}@cluster0-dkqdm.mongodb.net/test?retryWrites=true&w=majority`, {useNewUrlParser: true, useUnifiedTopology: true});
@@ -64,7 +65,7 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 
 
 // Set up CSV Queue
-const csvQueue = new Queue('csv_queue', client);
+const csvQueue = new Queue('csv_queue', REDIS_URL);
 // csvQueue.clean(3600 * 1000, "completed");
 
 csvQueue.process( async (task) => {
