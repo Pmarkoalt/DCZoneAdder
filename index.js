@@ -33,6 +33,11 @@ const Schemas = require('./schemas');
 const cluster_user = process.env.CLUSTER_USER;
 const cluster_password = process.env.CLUSTER_PASSWORD;
 const ZWSID = process.env.ZWSID;
+const redis_param = {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+    password: process.env.REDIS_PASSWORD
+};
 
 const uses = require('./uses_master');
 
@@ -66,27 +71,24 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 
 
 // Set up CSV Queue
-// const csvQueue = new Queue('csv_queue', {
-//     host: process.env.REDIS_HOST,
-//     port: process.env.REDIS_PORT,
-//     password: process.env.REDIS_PASSWORD
-// });
+console.log(redis_param);
+const csvQueue = new Queue('csv_queue', redis_param);
 // csvQueue.clean(3600 * 1000, "completed");
 
-// csvQueue.process( async (task) => {
-//     const current_address = await fetchCurrentAddress(task.data.id);
-//     await processAddress(current_address, task, task.data.search_zillow);
-//     await fetchCurrentJob(current_address.job_id);
-//     return;
-// });
+csvQueue.process( async (task) => {
+    const current_address = await fetchCurrentAddress(task.data.id);
+    await processAddress(current_address, task, task.data.search_zillow);
+    await fetchCurrentJob(current_address.job_id);
+    return;
+});
 
-// csvQueue.on('error', (error) => {
-//     console.log(error);
-// })
+csvQueue.on('error', (error) => {
+    console.log(error);
+})
 
-// csvQueue.on('completed', (job, result) => {
-//     console.log('job complete', job.id);
-// });
+csvQueue.on('completed', (job, result) => {
+    console.log('job complete', job.id);
+});
 
 // Set up Socket.io
 io.on('connection', socket => {
