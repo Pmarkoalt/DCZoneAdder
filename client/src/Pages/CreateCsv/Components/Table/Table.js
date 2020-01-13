@@ -46,7 +46,6 @@ class VerifyTable extends Component{
     });
   }
   componentDidUpdate(prevProps, prevState, snapshot) {
-    console.log(this.props);
     if (prevProps.keys !== this.props.keys && this.props.keys.length) {
       this.setState({
         ...this.state,

@@ -16,7 +16,7 @@ class CreateCsv extends Component{
   constructor(props) {
     super(props)
     this.state = {
-      endpoint: "http://localhost:3001",
+      endpoint: process.env.PORT ? `http://localhost:${process.env.PORT}` : `http://localhost:3001`,
       date: new Date(),
       data: [],
       keys: [],
@@ -57,7 +57,6 @@ class CreateCsv extends Component{
     }
     socket.on("csv_update", data => {
       if (data.job_id === this.state.job_id) {
-        console.log(data);
         this.setState({
           ...this.state,
           data: data.addresses,

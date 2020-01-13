@@ -257,7 +257,6 @@ function xmltoJSON(response) {
             return Promise.resolve(parse_json);
           })
           .catch(function (err) {
-            console.log('line 210')
             console.log(err);
             return Promise.reject(err);
           });
