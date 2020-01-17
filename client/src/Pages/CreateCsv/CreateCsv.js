@@ -36,9 +36,9 @@ class CreateCsv extends Component{
     this.changeZillow = this.changeZillow.bind(this);
   }
   componentDidMount(){
-    const { endpoint } = this.state;
+    // const { endpoint } = this.state;
     console.log(this.state.endpoint);
-    const socket = io.connect(endpoint);
+    const socket = io.connect();
     if (this.props.match.params.id) {
       this.setState({
         ...this.state,
