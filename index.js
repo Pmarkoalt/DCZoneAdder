@@ -89,7 +89,7 @@ io.on('connection', socket => {
       console.log('user disconnected');
     });
 });
-server.listen(3001);
+// server.listen(3001);
 
 // Functions
 
