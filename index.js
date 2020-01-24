@@ -345,6 +345,10 @@ function processAddress(item, task, searchZillow) {
             })
             .catch((err) => {
                 console.log(err);
+                // No data from zillow so just return the record as is.
+                if (err === "No data found") {
+                    return Promise.resolve(prop);
+                }
                 return Promise.reject({message: "Problem communicating with Zillow", prop});
             });
         } else {
