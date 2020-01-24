@@ -515,7 +515,7 @@ function splitAddressDash(csv_array) {
             const first_number = parseInt(csv_array[i].Address.slice(0, dash_index));
             const second_number = parseInt(csv_array[i].Address.slice(dash_index + 1, space_index));
             // console.log(space_index, dash_index, street_address, first_number, second_number);
-            for (let j = first_number; second_number > j; j++) {
+            for (let j = first_number; second_number >= j; j++) {
                 const tempAddress = Object.assign({}, csv_array[i]);
                 tempAddress.Address = `${j} ${street_address}`;
                 return_array.push(tempAddress);
