@@ -542,7 +542,8 @@ app.post('/api/processCsv', (req, res) => {
         job_id,
         total_items: csv_array.length,
         zone_filters: arrToHash(req.body.filter.zones),
-        use_filters: arrToHash(req.body.filter.use)
+        use_filters: arrToHash(req.body.filter.use),
+        export_file_name: req.body.export_file_name,
     });
     job.save((err, job) => {
         if (err) return res.status(500).json({message: "Problem creating job"});

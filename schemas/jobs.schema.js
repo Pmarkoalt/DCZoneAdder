@@ -3,6 +3,7 @@ var Schema = mongoose.Schema;
 
 var jobsSchema = new Schema({
   job_id:  String,
+  export_file_name: String,
   total_items: {
     type: Number,
     default: 0

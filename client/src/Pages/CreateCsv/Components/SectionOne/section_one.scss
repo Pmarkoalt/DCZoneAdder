@@ -40,9 +40,11 @@
 
 #submit-file-container{
   display: flex;
+  align-items: flex-end;
   justify-content: space-around;
   margin-top: 20px;
-  width : 250px;
+  min-width : 250px;
+  width: 100%;
 }
 #file-list-container{
     display: flex;
@@ -105,4 +107,16 @@
 
 .select{
     min-width: 200px;
+}
+
+label.export-filename {
+    font-size: 1.5em;
+    * + * {
+        margin-left: 10px;
+    }
+
+    input {
+        height: 1em;
+        font-size: 1em;
+    }
 }

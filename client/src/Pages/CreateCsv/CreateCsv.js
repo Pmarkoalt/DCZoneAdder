@@ -27,7 +27,8 @@ class CreateCsv extends Component{
       loading: false,
       job_complete: false,
       search_zillow: true,
-      section: 1
+      section: 1,
+      exportFileName: undefined,
     }
     this.submitCSV = this.submitCSV.bind(this);
     this.processCSV = this.processCSV.bind(this);
@@ -52,7 +53,8 @@ class CreateCsv extends Component{
           section: 3,
           data: data.addresses,
           job_complete: data.job_complete,
-          loading: false
+          loading: false,
+          exportFileName: data.export_file_name,
         });
       })
     }
@@ -68,7 +70,7 @@ class CreateCsv extends Component{
     });
   }
 
-  submitCSV(files, zone_chips, use_chips) {
+  submitCSV(files, zone_chips, use_chips, exportFileName) {
     this.setState({
       ...this.state,
       loading: true
@@ -88,7 +90,8 @@ class CreateCsv extends Component{
       use_chips: use_chips,
       data: newData,
       section: 2,
-      loading: false
+      loading: false,
+      exportFileName,
     });
   }
   processCSV() {
@@ -98,7 +101,7 @@ class CreateCsv extends Component{
     });
     const zone_array = this.state.zone_chips.map(item => item.value);
     const use_array = this.state.use_chips.map(item => item.value);
-    processCsv(this.state.data, {zones: zone_array, use: use_array}, this.state.search_zillow)
+    processCsv(this.state.data, {zones: zone_array, use: use_array}, this.state.search_zillow, this.state.exportFileName)
     .then((response) => {
       this.setState({
         ...this.state,
@@ -113,7 +116,7 @@ class CreateCsv extends Component{
     })
   }
   downloadCSV() {
-    downloadCurrentCsv(this.state.data)
+    downloadCurrentCsv(this.state.data, this.state.exportFileName)
     .then((response) => {
 
     });

@@ -1,10 +1,10 @@
 import axios from "axios";
 import fileDownload from 'js-file-download';
 
-export function downloadCsvById(job_id){
+export function downloadCsvById(job_id, fileName = `processed-properties-${job_id}.csv`){
     return axios.get(`/api/downloadCsvById/${job_id}`)
     .then((response)=> {
-        fileDownload(response.data, `processed-properties-${job_id}.csv`)
+        fileDownload(response.data, fileName)
         return {success: true, message: 'File download initialized'};
     })
     .catch((err) => {

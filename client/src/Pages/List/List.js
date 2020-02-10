@@ -31,8 +31,9 @@ class ListComponent extends Component{
     })
   }
 
-  downloadCsv(job_id) {
-    downloadCsvById(job_id)
+  downloadCsv(job_id, fileName) {
+    const _fileName = fileName.endsWith(".csv") ? fileName : `${fileName}.csv`;
+    downloadCsvById(job_id, _fileName)
     .then(response => {
       console.log(response);
     })
@@ -65,7 +66,7 @@ class ListComponent extends Component{
         href={`/job/${item.job_id}`}
       >
         <ListItemText
-          primary={`Job ID: ${item.job_id}`}
+          primary={item.export_file_name || `Job ID: ${item.job_id}`}
           secondary={this.formatDate(item.date_modifed)}
         />
         <ListItemSecondaryAction>
@@ -75,7 +76,7 @@ class ListComponent extends Component{
           <IconButton 
             edge="end" 
             aria-label="comments"
-            onClick={() => this.downloadCsv(item.job_id)}
+            onClick={() => this.downloadCsv(item.job_id, item.export_file_name)}
           >
             <GetAppIcon />
           </IconButton>

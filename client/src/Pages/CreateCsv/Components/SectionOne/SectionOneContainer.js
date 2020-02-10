@@ -16,11 +16,13 @@ class SectionOneContainer extends Component{
         files: [],
         zone_chips: [],
         use_chips: [],
-        valid: false
+        valid: false,
+        exportFileName: undefined,
       }
       this.createFile = this.createFile.bind(this);
       this.handleToggleChip = this.handleToggleChip.bind(this);
       this.handleDeleteChip = this.handleDeleteChip.bind(this);
+      this.handleExportFileNameChange = this.handleExportFileNameChange.bind(this);
     }
     componentDidMount(){
   
@@ -70,6 +72,9 @@ class SectionOneContainer extends Component{
         }
 
     }
+    handleExportFileNameChange(event) {
+      this.setState({exportFileName: event.target.value});
+    }
 
     render(){
         return(
@@ -78,15 +83,13 @@ class SectionOneContainer extends Component{
               <FileDrop createFile={this.createFile} files={this.state.files} />
               <ChipFilter handleToggleChip={this.handleToggleChip} handleDeleteChip={this.handleDeleteChip} zone_chips={this.state.zone_chips} use_chips={this.state.use_chips}/>
               <div id="submit-file-container">
-                {this.state.valid ? 
-                  <Button className="section-one-button" variant="contained" color="primary" onClick={() => {this.props.submitCSV(this.state.files, this.state.zone_chips, this.state.use_chips)}}>
-                    Submit
-                  </Button>
-                  :
-                  <Button className="section-one-button" variant="contained" disabled color="primary">
-                    Submit
-                  </Button>
-                }
+                <label className="export-filename">
+                  <span>CSV Export Filename:</span>
+                  <input type="text" onChange={this.handleExportFileNameChange} />
+                </label>
+                <Button className="section-one-button" variant="contained" disabled={!this.state.valid} color="primary" onClick={() => {this.props.submitCSV(this.state.files, this.state.zone_chips, this.state.use_chips, this.state.exportFileName)}}>
+                  Submit
+                </Button>
               </div>
             </div>
         )

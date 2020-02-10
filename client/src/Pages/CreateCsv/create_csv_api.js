@@ -1,11 +1,12 @@
 import axios from "axios";
 import fileDownload from 'js-file-download';
 
-export function processCsv(csv_array, filter, search_zillow){
+export function processCsv(csv_array, filter, search_zillow, exportFileName){
     const params = {
         csv_array,
         filter,
-        search_zillow
+        search_zillow,
+        export_file_name: exportFileName,
     }
     return axios.post('/api/processCsv', params)
     .then((response)=> {
@@ -28,11 +29,11 @@ export function processCsv(csv_array, filter, search_zillow){
 //     });
 // }
 
-export function downloadCurrentCsv(csv_array){
+export function downloadCurrentCsv(csv_array, filename=`processed-properties-${createDate()}.csv`){
     return axios.post('/api/downloadCsv', csv_array)
     .then((response)=> {
-        const date = createDate();
-        fileDownload(response.data, `processed-properties-${date}.csv`)
+        const _filename = filename.endsWith(".csv") ? filename : `${filename}.csv`;
+        fileDownload(response.data, _filename);
         return {success: true, message: 'File download initialized'};
     })
     .catch((err) => {
