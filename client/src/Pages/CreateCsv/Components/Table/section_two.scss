@@ -5,29 +5,21 @@
 
 #table-container{
   width: '100%';
-  height: 70%;
-  max-height: 60vh !important;
+  // height: 70%;
+  max-height: 50vh !important;
   max-width: 80vw !important;
   overflow: 'auto' !important;
   overflow-x: auto !important;
+  margin-bottom: 10px;
 }
 #table{
   min-width: 650px;
 }
-#section-two-submit{
-  position: absolute;
-  bottom: 0;
-  right: 20px;
-}
-#section-two-zillow{
-  position: absolute;
-  bottom: 0;
-  right: 200px;
-}
-#section-two-download{
-  position: absolute;
-  bottom: 0;
-  right: 120px;
+.section-actions {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
 }
 .header-cell{
   position: sticky;

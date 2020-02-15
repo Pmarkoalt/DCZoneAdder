@@ -442,9 +442,10 @@ async function fetchCurrentJob(job_id) {
             return true;
         });
     }
-    const keys = await createKeys(addresses, address_data)
+    const {csv_export_fields: customKeys = []} = job_data;
+    const keys = customKeys.length > 0 ? customKeys : await createKeys(addresses, address_data);
     io.sockets.emit('csv_update', {job_id: job_id, addresses: address_data, job_complete: job_data.completed, keys: keys});
-    return {job_id: job_id, addresses: address_data, job_complete: job_data.completed, keys: keys};
+    return {job_id: job_id, addresses: address_data, job_complete: job_data.completed, keys: keys, export_file_name: job_data.export_file_name};
 }
 
 async function fetchAddress(job_id) {
@@ -510,7 +511,6 @@ async function createKeys(addresses, data) {
 function splitAddressDash(csv_array) {
     const return_array = [];
     for (let i = 0; csv_array.length > i;  i++) {
-        // console.log(csv_array[i]);
         if (csv_array[i].Address.match(/[0-9][-][0-9]/)) {
             const space_index = csv_array[i].Address.indexOf(" ");
             const dash_index = csv_array[i].Address.indexOf("-");
@@ -518,7 +518,6 @@ function splitAddressDash(csv_array) {
 
             const first_number = parseInt(csv_array[i].Address.slice(0, dash_index));
             const second_number = parseInt(csv_array[i].Address.slice(dash_index + 1, space_index));
-            // console.log(space_index, dash_index, street_address, first_number, second_number);
             for (let j = first_number; second_number >= j; j++) {
                 const tempAddress = Object.assign({}, csv_array[i]);
                 tempAddress.Address = `${j} ${street_address}`;
@@ -544,6 +543,7 @@ app.post('/api/processCsv', (req, res) => {
         zone_filters: arrToHash(req.body.filter.zones),
         use_filters: arrToHash(req.body.filter.use),
         export_file_name: req.body.export_file_name,
+        csv_export_fields: req.body.csv_export_fields,
     });
     job.save((err, job) => {
         if (err) return res.status(500).json({message: "Problem creating job"});
@@ -554,6 +554,7 @@ app.post('/api/processCsv', (req, res) => {
             const o = Object.assign({}, el);
             o.job_id = job_id;
             o.data = el;
+            o.fields = req.body.csv_export_fields;
             return o;
         });
 
@@ -576,22 +577,20 @@ app.post('/api/downloadCsv', (req, res) => {
     return res.status(200).send(csv);
 });
 
-app.get('/api/downloadCsvById/:id', (req, res) => {
+app.get('/api/downloadCsvById/:id', async (req, res) => {
     return Addresses.findOne({job_id: req.params.id}, (err, doc) => {
         if (err) return res.status(500).send({message: "problem with Mongo"});
         const doc_object = doc.toObject();
+        const {fields = []} = doc_object;
         const address = doc_object.data;
-        let keys = Object.keys(address);
-        const final_keys = keys.map(key => {
-            return toTitleCase(key)
-        });
-        console.log(final_keys);
-        const json2csvParser = new Parser({final_keys});
+        let keys = fields.length > 0 ? fields : Object.keys(address);
+        let final_keys = keys.map(toTitleCase);
+        const json2csvParser = new Parser({fields: final_keys});
         const csv = json2csvParser.parse(address);
         res.setHeader('Content-disposition', 'attachment; filename=data.csv');
         res.set('Content-Type', 'text/csv');
         return res.status(200).send(csv);
-    })
+    });
 });
 
 app.post('/api/saveCsv', (req, res) => {
@@ -606,12 +605,22 @@ app.get('/api/addressByJobId/:id', async (req, res) => {
     return res.json(return_data);
 });
 
+app.delete('/api/jobs/:id', async (req, res) => {
+    const job_id = req.params.id;
+    console.log(job_id);
+    if (!job_id) return res.status(400).json({message: "No Job Id provided"});
+    const job = await Jobs.deleteOne({job_id}).exec();
+    const address = await Addresses.deleteMany({job_id}).exec();
+    return res.json({job, address});
+})
+
 app.get('/api/findAllJobs', (req, res) => {
     Jobs.find({}, (err, jobs) => {
         if (err) return res.status(500).json({message: "Problem with Mongo DB"});
         return res.json({jobs: jobs});
     })
 })
+
 
 // Handles any requests that don't match the ones above
 app.get('*', (req,res) =>{

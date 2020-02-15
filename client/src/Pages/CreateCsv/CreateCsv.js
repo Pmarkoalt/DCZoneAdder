@@ -8,9 +8,11 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { processCsv, downloadCurrentCsv, fetchCurrentJob } from './create_csv_api';
 import SectionOneContainer from './Components/SectionOne/SectionOneContainer';
+import SectionTwoContainer from './Components/SectionTwo/SectionTwoContainer';
 import TableContainer from './Components/Table/TableContainer';
 
 import './create_csv.scss';
+import { zillowFields } from './Components/SectionTwo/export_fields';
 
 class CreateCsv extends Component{
   constructor(props) {
@@ -29,16 +31,17 @@ class CreateCsv extends Component{
       search_zillow: true,
       section: 1,
       exportFileName: undefined,
+      csvExportFields: [],
     }
     this.submitCSV = this.submitCSV.bind(this);
     this.processCSV = this.processCSV.bind(this);
     this.downloadCSV = this.downloadCSV.bind(this);
     this.changeSection = this.changeSection.bind(this);
     this.changeZillow = this.changeZillow.bind(this);
+    this.handleAddExportField = this.handleAddExportField.bind(this);
+    this.handleRemoveExportField = this.handleRemoveExportField.bind(this);
   }
   componentDidMount(){
-    // const { endpoint } = this.state;
-    console.log(this.state.endpoint);
     const socket = io.connect();
     if (this.props.match.params.id) {
       this.setState({
@@ -55,6 +58,7 @@ class CreateCsv extends Component{
           job_complete: data.job_complete,
           loading: false,
           exportFileName: data.export_file_name,
+          csvExportFields: data.csv_export_fields || [],
         });
       })
     }
@@ -70,7 +74,7 @@ class CreateCsv extends Component{
     });
   }
 
-  submitCSV(files, zone_chips, use_chips, exportFileName) {
+  submitCSV(files, zone_chips, use_chips, exportFileName, csvExportFields) {
     this.setState({
       ...this.state,
       loading: true
@@ -83,7 +87,6 @@ class CreateCsv extends Component{
         ...parsed
       ];
     });
-    console.log(newData)
     this.setState({
       ...this.state,
       zone_chips: zone_chips,
@@ -92,6 +95,7 @@ class CreateCsv extends Component{
       section: 2,
       loading: false,
       exportFileName,
+      csvExportFields
     });
   }
   processCSV() {
@@ -101,8 +105,13 @@ class CreateCsv extends Component{
     });
     const zone_array = this.state.zone_chips.map(item => item.value);
     const use_array = this.state.use_chips.map(item => item.value);
-    processCsv(this.state.data, {zones: zone_array, use: use_array}, this.state.search_zillow, this.state.exportFileName)
-    .then((response) => {
+    processCsv(
+      this.state.data,
+      {zones: zone_array, use: use_array},
+      this.state.search_zillow,
+      this.state.exportFileName,
+      this.state.csvExportFields
+    ).then((response) => {
       this.setState({
         ...this.state,
         job_id: response.data.job_id,
@@ -128,8 +137,13 @@ class CreateCsv extends Component{
     });
   }
   changeZillow() {
+    let fields = this.state.csvExportFields || [];
+    if (this.state.search_zillow) {
+      fields = fields.filter(x => !zillowFields.includes(x));
+    }
     this.setState({
       ...this.state,
+      csvExportFields: fields,
       search_zillow: !this.state.search_zillow
     });
   }
@@ -139,6 +153,14 @@ class CreateCsv extends Component{
         Section Three
       </div>
     )
+  }
+  handleAddExportField(field) {
+    const fields = this.state.csvExportFields || [];
+    this.setState({csvExportFields: [...fields, field]});
+  }
+  handleRemoveExportField(field) {
+    const newList = this.state.csvExportFields.filter(f => f !== field);
+    this.setState({csvExportFields: newList});
   }
 
   render(){
@@ -151,7 +173,7 @@ class CreateCsv extends Component{
         </div>
         : ''}
         {this.state.section === 1 && !this.state.loading ? <SectionOneContainer submitCSV={this.submitCSV} /> : ''}
-        {this.state.section === 2 && !this.state.loading ? <TableContainer data={this.state.data} search_zillow={this.state.search_zillow} changeZillow={this.changeZillow} processCSV={this.processCSV}  /> : ''}
+        {this.state.section === 2 && !this.state.loading ? <SectionTwoContainer jobName={this.state.exportFileName} data={this.state.data} searchZillow={this.state.search_zillow} setZillowFlag={this.changeZillow} processCSV={this.processCSV} selectedFields={this.state.csvExportFields} handleAddExportField={this.handleAddExportField} handleRemoveExportField={this.handleRemoveExportField} /> : ''}
         {this.state.section === 3 && !this.state.loading ? <TableContainer data={this.state.data} keys={this.state.keys} job_id={this.state.job_id} job_complete={this.state.job_complete} finalTable={true} downloadCSV={this.downloadCSV} /> : ''}
       </div>
     )

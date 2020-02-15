@@ -86,6 +86,69 @@
     justify-content: center;
     align-items: center;
 }
+
+#export-field-container {
+    width: 100%;
+    max-width: 80vw;
+    margin-top: 20px;
+
+    .label {
+        font-weight: bold;
+        margin-right: 4px;
+    }
+}
+
+.export-field-form {
+    box-sizing: border-box;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border: 1px solid #eee;
+    box-shadow: 1px 2px 5px 1px #ccc;
+    margin-top: 3px;
+
+    .top-row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 5px;
+
+        .preset-label {
+            margin-right: 10px;
+        }
+    }
+
+    .export-field-controls {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        margin-top: 10px;
+
+        .select {
+            width: 100%;
+            min-width: 200px;
+            margin-right: 20px;
+        }
+
+        button {
+            width: 100%;
+        }
+    }
+}
+.export-field-chip-display{
+    display: flex;
+    flex-grow: 1;
+    justify-content: flex-start;
+    align-items: center;
+    min-width: 300px;
+    min-height: 40px;
+    border: 1px #aaa solid;
+    border-radius: 3px 3px 0 0;
+    margin-right: 10px;
+    padding-bottom: 5px;
+    overflow-x: scroll;
+}
 .chip-section{
     display: flex;
     justify-content: space-around;

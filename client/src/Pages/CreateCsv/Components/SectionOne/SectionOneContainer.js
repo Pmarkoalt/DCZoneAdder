@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import FileDrop from './FileDrop';
 import ChipFilter from './ChipFilter';
-
 import Button from '@material-ui/core/Button';
 
 import './section_one.scss';
@@ -88,7 +87,7 @@ class SectionOneContainer extends Component{
                   <input type="text" onChange={this.handleExportFileNameChange} />
                 </label>
                 <Button className="section-one-button" variant="contained" disabled={!this.state.valid} color="primary" onClick={() => {this.props.submitCSV(this.state.files, this.state.zone_chips, this.state.use_chips, this.state.exportFileName)}}>
-                  Submit
+                  Continue
                 </Button>
               </div>
             </div>

@@ -10,7 +10,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 
 import './list.scss';
 
-import { downloadCsvById, findAllJobs } from './list_api';
+import { downloadCsvById, findAllJobs, deleteJob } from './list_api';
 
 class ListComponent extends Component{
   constructor(props) {
@@ -31,8 +31,25 @@ class ListComponent extends Component{
     })
   }
 
+  async deleteJob(jobId, name) {
+    const shouldDelete = window.confirm(`Are you sure you want to delete Job: ${name ? name : jobId}`);
+    if (!shouldDelete) {
+      return;
+    }
+    const meta = await deleteJob(jobId);
+    console.log(meta);
+    const data = await findAllJobs()
+    this.setState({
+      ...this.state,
+      jobs: data.jobs
+    });
+  }
+
   downloadCsv(job_id, fileName) {
-    const _fileName = fileName.endsWith(".csv") ? fileName : `${fileName}.csv`;
+    let _fileName = undefined;
+    if (fileName) {
+      _fileName = fileName.endsWith(".csv") ? fileName : `${fileName}.csv`;
+    }
     downloadCsvById(job_id, _fileName)
     .then(response => {
       console.log(response);
@@ -70,7 +87,7 @@ class ListComponent extends Component{
           secondary={this.formatDate(item.date_modifed)}
         />
         <ListItemSecondaryAction>
-          <IconButton disabled edge="end" aria-label="comments">
+          <IconButton edge="end" aria-label="delete" onClick={() => this.deleteJob(item.job_id, item.export_file_name)}>
             <DeleteIcon />
           </IconButton>
           <IconButton 

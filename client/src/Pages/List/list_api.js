@@ -24,8 +24,8 @@ export function findAllJobs(){
     });
 }
 
-export function deleteCsvByid(job_id) {
-    return axios.get(`/api/addressByJobId/${job_id}`)
+export function deleteJob(jobId) {
+    return axios.delete(`/api/jobs/${jobId}`)
     .then((response) => {
         return response.data;
     })

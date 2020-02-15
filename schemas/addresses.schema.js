@@ -4,6 +4,7 @@ var Schema = mongoose.Schema;
 var addressesSchema = new Schema({
   job_id:  String,
   data: Schema.Types.Mixed,
+  fields: [String],
   complete : {
     type: Boolean,
     default: false

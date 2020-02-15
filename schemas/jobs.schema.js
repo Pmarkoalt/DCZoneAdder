@@ -4,6 +4,7 @@ var Schema = mongoose.Schema;
 var jobsSchema = new Schema({
   job_id:  String,
   export_file_name: String,
+  csv_export_fields: [String],
   total_items: {
     type: Number,
     default: 0
@@ -12,7 +13,7 @@ var jobsSchema = new Schema({
     type: Number,
     default: 0
   },
-  failed_items : {
+  failed_items: {
     type: Number,
     default: 0
   },
