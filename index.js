@@ -64,7 +64,7 @@ const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 
 // Set up CSV Queue
 const csvQueue = new Queue('csv_queue', REDIS_URL);
-// csvQueue.clean(3600 * 1000, "completed");
+csvQueue.clean(3600 * 1000, "completed");
 
 csvQueue.process( async (task) => {
     const current_address = await fetchCurrentAddress(task.data.id);
@@ -89,7 +89,6 @@ io.on('connection', socket => {
       console.log('user disconnected');
     });
 });
-// server.listen(3001);
 
 // Functions
 
