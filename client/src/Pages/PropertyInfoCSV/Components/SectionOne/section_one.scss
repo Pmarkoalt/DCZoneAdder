@@ -1,0 +1,185 @@
+#section-one{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 80%;
+    height: 80%;
+}
+
+#dropzone-container{
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    height: 200px;
+    flex-direction: column;
+}
+
+#dropzone {
+    display: flex;
+    justify-content: center;
+    width : 50%;
+    height : 100%;
+    max-height: 100px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+#dropzone:hover {
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+#dropzoneTextBox{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#dropzoneText{
+    font-weight: 500;
+}
+
+#submit-file-container{
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  margin-top: 20px;
+  min-width : 250px;
+  width: 100%;
+}
+#file-list-container{
+    display: flex;
+    align-items: center;
+}
+.file-name{
+    margin: 5px;
+}
+#modal-div{
+    position: absolute;
+    width: 400px,;
+    height: 400px;
+    overflow: auto;
+    background-color: white;
+    border: 2px solid #000;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    padding: 20px;
+}
+
+.chip{
+    margin:5px;
+}
+
+#chip-container{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    min-width: 300px;
+    max-width: 300px;
+    min-height: 40px;
+    border: 1px black solid;
+    border-radius: 10px;
+}
+#chip-section-container{
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#export-field-container {
+    width: 100%;
+    max-width: 80vw;
+    margin-top: 20px;
+
+    .label {
+        font-weight: bold;
+        margin-right: 4px;
+    }
+}
+
+.export-field-form {
+    box-sizing: border-box;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border: 1px solid #eee;
+    box-shadow: 1px 2px 5px 1px #ccc;
+    margin-top: 3px;
+
+    .top-row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 5px;
+
+        .preset-label {
+            margin-right: 10px;
+        }
+    }
+
+    .export-field-controls {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        margin-top: 10px;
+
+        .select {
+            width: 100%;
+            min-width: 200px;
+            margin-right: 20px;
+        }
+
+        button {
+            width: 100%;
+        }
+    }
+}
+.export-field-chip-display{
+    display: flex;
+    flex-grow: 1;
+    justify-content: flex-start;
+    align-items: center;
+    min-width: 300px;
+    min-height: 40px;
+    border: 1px #aaa solid;
+    border-radius: 3px 3px 0 0;
+    margin-right: 10px;
+    padding-bottom: 5px;
+    overflow-x: scroll;
+}
+.chip-section{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 75%;
+    max-width: 900px;
+    margin-top: 20px;
+}
+
+.section-one-button{
+    margin: 5px;
+    max-height: 40px;
+    width: 110px;
+}
+
+.label{
+    width: 100px;
+}
+
+.select{
+    min-width: 200px;
+}
+
+label.export-filename {
+    font-size: 1.5em;
+    * + * {
+        margin-left: 10px;
+    }
+
+    input {
+        height: 1em;
+        font-size: 1em;
+    }
+}

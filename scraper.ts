@@ -38,8 +38,15 @@ interface PropertyFeatures {
 }
 
 interface PropertyTaxInfo {
-  realAccountBalance: string;
-  bidAccountBalance: string;
+  total: string;
+  realProperty: string;
+  homesteadAudit: string;
+  publicSpace: string;
+  specialAssessment: string;
+  bid: string;
+  cleanCity: string;
+  wasa: string;
+  nuisance: string;
 }
 
 const removeWSChars = (input: string): string => {
@@ -125,12 +132,12 @@ const propertyFeaturesURL = `${url}/weblogic/CAMA`;
 const accountSummaryURL = `${url}/RP_AcctSum.jsp`;
 
 const getPropertyDetails = async (
-  id: SquareLot,
+  ssl: string,
   sessionCookie: string,
 ): Promise<PropertyDetails> => {
   const headers = { Cookie: sessionCookie };
   const { data: html } = await axios.get(
-    `${propertyDetailsURL}?ssl=${formatSSL(...id)}`,
+    `${propertyDetailsURL}?ssl=${ssl}`,
     { headers },
   );
   const $ = cheerio.load(html);
@@ -147,12 +154,12 @@ const getPropertyDetails = async (
 };
 
 const getPropertyFeatures = async (
-  id: SquareLot,
+  ssl: string,
   sessionCookie: string,
-): Promise<PropertyFeatures | {}> => {
+): Promise<PropertyFeatures> => {
   const headers = { Cookie: sessionCookie };
   const { data: html } = await axios.get(
-    `${propertyFeaturesURL}?ssl=${formatSSL(...id)}`,
+    `${propertyFeaturesURL}?ssl=${ssl}`,
     { headers },
   );
   const $ = cheerio.load(html);
@@ -163,7 +170,7 @@ const getPropertyFeatures = async (
         .trim();
       return acc;
     },
-    {},
+    { livingArea: "", bathRooms: "", bedRooms: "" },
   );
 };
 
@@ -181,12 +188,12 @@ const TAX_INFO_LABEL_MAPPING = {
 const parseCurrencyStr = (str) => Number(str.replace(/[^0-9.-]+/g, ""));
 
 const getPropertyTaxInfo = async (
-  id: SquareLot,
+  ssl: string,
   address: string,
   sessionCookie: string,
-): Promise<PropertyTaxInfo | {}> => {
+): Promise<PropertyTaxInfo> => {
   const headers = { Cookie: sessionCookie };
-  const url = `${accountSummaryURL}?ssl=${formatSSL(...id)}&propertydetail=${
+  const url = `${accountSummaryURL}?ssl=${ssl}&propertydetail=${
     encodeURI(address)
   }`;
   const { data: html } = await axios.get(url, { headers });
@@ -231,82 +238,210 @@ interface PropertyQuestData {
 }
 
 const PROPQUEST_URLS = {
-  findLocation: (address: string) => `https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?f=json&str=${address}`,
-  identify: ([xCoord, yCoord]: [string, string]) => `https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_APPS/PropertyQuest/MapServer/identify?f=json&tolerance=1&returnGeometry=false&imageDisplay=100%2C100%2C96&geometryType=esriGeometryPoint&sr=26985&mapExtent=400713.2%2C136977.93%2C400715.2%2C136979.93&layers=all%3A25%2C11%2C&geometry=%7B%22x%22%3A${xCoord}%2C%22y%22%3A${yCoord}%7D`,
+  findLocation: (address: string) =>
+    `https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?f=json&str=${address}`,
+  identify: ([xCoord, yCoord]: [string, string]) =>
+    `https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_APPS/PropertyQuest/MapServer/identify?f=json&tolerance=1&returnGeometry=false&imageDisplay=100%2C100%2C96&geometryType=esriGeometryPoint&sr=26985&mapExtent=400713.2%2C136977.93%2C400715.2%2C136979.93&layers=all%3A25%2C11%2C&geometry=%7B%22x%22%3A${xCoord}%2C%22y%22%3A${yCoord}%7D`,
 };
-const scrapePropertyQuest = async (address: string): Promise<PropertyQuestData> => {
-  const {data: locationResp} = await axios.get(PROPQUEST_URLS.findLocation(address));
+const scrapePropertyQuest = async (
+  address: string,
+): Promise<PropertyQuestData> => {
+  const { data: locationResp } = await axios.get(
+    PROPQUEST_URLS.findLocation(address),
+  );
   const locationData = locationResp["returnDataset"]["Table1"][0];
-  const coordinates: [string, string] = [locationData["XCOORD"], locationData["YCOORD"]];
-  const {data: identifyResp} = await axios.get(PROPQUEST_URLS.identify(coordinates));
-  const layers = identifyResp.results.reduce((acc, layer) => ({...acc, [layer.layerId]: layer.attributes}), {});
+  const coordinates: [string, string] = [
+    locationData["XCOORD"],
+    locationData["YCOORD"],
+  ];
+  const { data: identifyResp } = await axios.get(
+    PROPQUEST_URLS.identify(coordinates),
+  );
+  const layers = identifyResp.results.reduce(
+    (acc, layer) => ({ ...acc, [layer.layerId]: layer.attributes }),
+    {},
+  );
   return {
     zone: layers[25]["ZONING"],
     lotSqFt: layers[11]["RECORD_AREA_SF"],
-  }
+  };
 };
 
 const shouldScrapePropertyQuest = (details: PropertyDetails) => {
   const skipList: string[] = [
     "16", // Residential-Condo-Horizontal"
-    "17", // Residential-Condo-Vertical 
+    "17", // Residential-Condo-Vertical
     "18", // Residential-Condo-Garage
-    "26", // Residential-Cooperative-Horizontal 
-    "27", // Residential-Cooperative-Vertical 
-    "48", // Commercial-Retail-Condo 
+    "26", // Residential-Cooperative-Horizontal
+    "27", // Residential-Cooperative-Vertical
+    "48", // Commercial-Retail-Condo
     "56", // Office-Condo-Horizontal
-    "57", // Office-Condo-Vertical 
-    "58", // Commercial-Office-Condo 
-    "78", // Warehouse-Condo 
+    "57", // Office-Condo-Vertical
+    "58", // Commercial-Office-Condo
+    "78", // Warehouse-Condo
     "116", // Condo-Horizontal-Combined
-    "117", // Condo-Vertical-Combined 
-    "126", // Coop-Horizontal-Mixed Use 
-    "127", // Coop-Vertical-Mixed Use 
-    "216", // Condo-Investment-Horizontal 
-    "217", // Condo-Investment-Vertical 
-    "316", // Condo-Duplex 
-    "416", // Condo-Horizontal-Parking-Unid 
-    "417", // Condo-Vertical-Parking-Unid 
-    "516", // Condo-Detached 
+    "117", // Condo-Vertical-Combined
+    "126", // Coop-Horizontal-Mixed Use
+    "127", // Coop-Vertical-Mixed Use
+    "216", // Condo-Investment-Horizontal
+    "217", // Condo-Investment-Vertical
+    "316", // Condo-Duplex
+    "416", // Condo-Horizontal-Parking-Unid
+    "417", // Condo-Vertical-Parking-Unid
+    "516", // Condo-Detached
     "995", // Condo Main (class 1)
   ];
   const code = details.useCode.split(" ")[0];
   return !skipList.includes(code);
-}
+};
 
 interface PropertyData {
+  square: string;
+  lot: string;
   features: PropertyFeatures;
   details: PropertyDetails;
   taxInfo: PropertyTaxInfo;
   propQuest: PropertyQuestData;
 }
 
-const scrapePropertyData = async (
-  ids: SquareLot[],
-): Promise<PropertyData[] | {}[]> => {
+interface TPSCCSV {
+  "Owner Name": string;
+  "Mailing Address": string;
+  "Square": string;
+  "Lot": string;
+  "Address": string;
+  "Zoning": string;
+  "Lot Sq Ft Total": string;
+  "Living Area": string;
+  "Bedrooms": string;
+  "Bathrooms": string;
+  "Use Code": string;
+  "Neighborhood": string;
+  "Homestead Status": string;
+  "Tax Class": string;
+  "Sale Price": string;
+  "Recordation": string;
+  "Proposed New Value (2021)": string;
+  "Doc Type": string;
+  "Doc Number": string;
+  "Name": string;
+  "Other Name": string;
+  "Total Balance": string;
+  "Real Property Assessment": string;
+  "Homestead Audit": string;
+  "Public Space": string;
+  "Special Assessment": string;
+  "BID Tax": string;
+  "Clean City": string;
+  "WASA Tax": string;
+  "Nuisance Tax": string;
+}
+
+interface Deed {
+  Square: string;
+  Lot: string;
+  "Doc Type": string;
+  "Document Number": string;
+  Name: string;
+  "Other Name": string;
+  Recorded: string;
+}
+
+const createCSVObj = (property: PropertyData, deed: Deed): TPSCCSV => {
+  return {
+    "Owner Name": property.details.ownerName,
+    "Mailing Address": property.details.mailingAddress,
+    "Square": property.square,
+    "Lot": property.square,
+    "Address": property.details.address,
+    "Zoning": property.propQuest.zone,
+    "Lot Sq Ft Total": property.propQuest.lotSqFt,
+    "Living Area": property.features.livingArea,
+    "Bedrooms": property.features.bedRooms,
+    "Bathrooms": property.features.bedRooms,
+    "Use Code": property.details.useCode,
+    "Neighborhood": property.details.neighborhood,
+    "Homestead Status": property.details.homesteadStatus,
+    "Tax Class": property.details.taxClass,
+    "Sale Price": property.details.salePrice,
+    "Recordation": property.details.recordationDate,
+    "Proposed New Value (2021)": property.details.proposedNewValue,
+    "Doc Type": deed["Doc Type"],
+    "Doc Number": deed["Document Number"],
+    "Name": deed["Name"],
+    "Other Name": deed["Other Name"],
+    "Total Balance": property.taxInfo.total,
+    "Real Property Assessment": property.taxInfo.realProperty,
+    "Homestead Audit": property.taxInfo.homesteadAudit,
+    "Public Space": property.taxInfo.publicSpace,
+    "Special Assessment": property.taxInfo.specialAssessment,
+    "BID Tax": property.taxInfo.bid,
+    "Clean City": property.taxInfo.cleanCity,
+    "WASA Tax": property.taxInfo.wasa,
+    "Nuisance Tax": property.taxInfo.nuisance,
+  };
+};
+
+// const dedupDeedList = ()
+//     let sslList = rows.map(row => [row["Square"], row["Lot"]]);
+//     // de-duplicate
+//     sslList = sslList.reduce((acc, [square, lot]) => {
+//         const ssl = `${square}:${lot}`;
+//         if (!acc.includes(ssl)) {
+//             acc.push(ssl);
+//         }
+//         return acc;
+//     }, []).map(ssl => ssl.split(":"));
+
+export const scrapePropertyData = async (
+  deeds: Deed[],
+): Promise<PropertyData[]> => {
   const resp = await axios.get(propertyDetailsURL);
   const sessionCookie: string = resp.headers["set-cookie"][0];
   // return Promise.all(ids.map(id => getPropertyTaxData(id, sessionCookie)));
   const list = [];
-  for (const id of ids) {
-    const details = await getPropertyDetails(id, sessionCookie);
-    const features = await getPropertyFeatures(id, sessionCookie)
-    const taxInfo = await getPropertyTaxInfo(
-      id,
-      details.address,
-      sessionCookie,
-    );
-    let propQuest: PropertyQuestData = {zone: "", lotSqFt: ""};
-    if (shouldScrapePropertyQuest(details)) {
-      propQuest = await scrapePropertyQuest(details.address);
+  const failed = [];
+  const cache = {};
+  for (const deed of deeds) {
+    const { Square: square } = deed;
+    const { Lot: lot } = deed;
+    const ssl = formatSSL(square, lot);
+    let property: PropertyData = cache[ssl];
+    if (property === undefined) {
+      try {
+        const details = await getPropertyDetails(ssl, sessionCookie);
+        const features = await getPropertyFeatures(ssl, sessionCookie);
+        const taxInfo = await getPropertyTaxInfo(
+          ssl,
+          details.address,
+          sessionCookie,
+        );
+        let propQuest: PropertyQuestData = { zone: "", lotSqFt: "" };
+        if (shouldScrapePropertyQuest(details)) {
+          propQuest = await scrapePropertyQuest(details.address);
+        }
+        property = {
+          square,
+          lot,
+          details,
+          features,
+          taxInfo,
+          propQuest,
+        };
+      } catch {
+        failed.push(ssl);
+        property = null;
+      }
+      cache[ssl] = property;
     }
-    list.push({details, features, taxInfo, propQuest});
+    if (property) {
+      list.push(createCSVObj(property, deed));
+    }
   }
   return list;
 };
 
-
-(async () => {
-  const ids: SquareLot[] = [["S2827", "2039"], ["0207", "2162"], ["W2720", "0002"]];
-  console.log(await scrapePropertyData(ids));
-})();
+// (async () => {
+//   const ids: SquareLot[] = [["S2827", "2039"], ["0207", "2162"], ["W2720", "0002"]];
+//   console.log(await scrapePropertyData(ids));
+// })();

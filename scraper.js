@@ -1,3 +1,4 @@
+"use strict";
 // import cheerio from "https://cdn.pika.dev/cheerio";
 // console.log(cheerio);
 var __assign = (this && this.__assign) || function () {
@@ -47,7 +48,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
+exports.__esModule = true;
+exports.scrapePropertyData = void 0;
 var axios = require("axios");
 // const puppeteer = require("puppeteer");
 var cheerio = require("cheerio");
@@ -139,13 +141,13 @@ var url = "https://www.taxpayerservicecenter.com";
 var propertyDetailsURL = url + "/RP_Detail.jsp";
 var propertyFeaturesURL = url + "/weblogic/CAMA";
 var accountSummaryURL = url + "/RP_AcctSum.jsp";
-var getPropertyDetails = function (id, sessionCookie) { return __awaiter(_this, void 0, void 0, function () {
+var getPropertyDetails = function (ssl, sessionCookie) { return __awaiter(void 0, void 0, void 0, function () {
     var headers, html, $, rows, data;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 headers = { Cookie: sessionCookie };
-                return [4 /*yield*/, axios.get(propertyDetailsURL + "?ssl=" + formatSSL.apply(void 0, id), { headers: headers })];
+                return [4 /*yield*/, axios.get(propertyDetailsURL + "?ssl=" + ssl, { headers: headers })];
             case 1:
                 html = (_a.sent()).data;
                 $ = cheerio.load(html);
@@ -160,13 +162,13 @@ var getPropertyDetails = function (id, sessionCookie) { return __awaiter(_this, 
         }
     });
 }); };
-var getPropertyFeatures = function (id, sessionCookie) { return __awaiter(_this, void 0, void 0, function () {
+var getPropertyFeatures = function (ssl, sessionCookie) { return __awaiter(void 0, void 0, void 0, function () {
     var headers, html, $, rows;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 headers = { Cookie: sessionCookie };
-                return [4 /*yield*/, axios.get(propertyFeaturesURL + "?ssl=" + formatSSL.apply(void 0, id), { headers: headers })];
+                return [4 /*yield*/, axios.get(propertyFeaturesURL + "?ssl=" + ssl, { headers: headers })];
             case 1:
                 html = (_a.sent()).data;
                 $ = cheerio.load(html);
@@ -176,7 +178,7 @@ var getPropertyFeatures = function (id, sessionCookie) { return __awaiter(_this,
                         acc[field] = removeWSChars($(rows[rowIndex]).find(selector).text())
                             .trim();
                         return acc;
-                    }, {})];
+                    }, { livingArea: "", bathRooms: "", bedRooms: "" })];
         }
     });
 }); };
@@ -191,13 +193,13 @@ var TAX_INFO_LABEL_MAPPING = {
     "Nuisance Tax": "nuisance"
 };
 var parseCurrencyStr = function (str) { return Number(str.replace(/[^0-9.-]+/g, "")); };
-var getPropertyTaxInfo = function (id, address, sessionCookie) { return __awaiter(_this, void 0, void 0, function () {
+var getPropertyTaxInfo = function (ssl, address, sessionCookie) { return __awaiter(void 0, void 0, void 0, function () {
     var headers, url, html, $, tables, rows, taxInfo, total, i, row, _a, label, balance, date, fieldName, currencyFormatter;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 headers = { Cookie: sessionCookie };
-                url = accountSummaryURL + "?ssl=" + formatSSL.apply(void 0, id) + "&propertydetail=" + encodeURI(address);
+                url = accountSummaryURL + "?ssl=" + ssl + "&propertydetail=" + encodeURI(address);
                 return [4 /*yield*/, axios.get(url, { headers: headers })];
             case 1:
                 html = (_b.sent()).data;
@@ -221,7 +223,7 @@ var getPropertyTaxInfo = function (id, address, sessionCookie) { return __awaite
                     _a = $(row).text().split("\n").map(removeWSChars).filter(function (x) { return x !== ""; }), label = _a[0], balance = _a[1], date = _a[2];
                     fieldName = TAX_INFO_LABEL_MAPPING[label];
                     if (!fieldName) {
-                        throw new Error(label + " is not a recognized tax label.");
+                        throw new Error("\"" + label + "\" is not a recognized tax label.");
                     }
                     taxInfo[fieldName] = balance;
                     total += parseCurrencyStr(balance);
@@ -233,13 +235,15 @@ var getPropertyTaxInfo = function (id, address, sessionCookie) { return __awaite
     });
 }); };
 var PROPQUEST_URLS = {
-    findLocation: function (address) { return "https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?f=json&str=" + address; },
+    findLocation: function (address) {
+        return "https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?f=json&str=" + address;
+    },
     identify: function (_a) {
         var xCoord = _a[0], yCoord = _a[1];
         return "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_APPS/PropertyQuest/MapServer/identify?f=json&tolerance=1&returnGeometry=false&imageDisplay=100%2C100%2C96&geometryType=esriGeometryPoint&sr=26985&mapExtent=400713.2%2C136977.93%2C400715.2%2C136979.93&layers=all%3A25%2C11%2C&geometry=%7B%22x%22%3A" + xCoord + "%2C%22y%22%3A" + yCoord + "%7D";
     }
 };
-var scrapePropertyQuest = function (address) { return __awaiter(_this, void 0, void 0, function () {
+var scrapePropertyQuest = function (address) { return __awaiter(void 0, void 0, void 0, function () {
     var locationResp, locationData, coordinates, identifyResp, layers;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -247,7 +251,10 @@ var scrapePropertyQuest = function (address) { return __awaiter(_this, void 0, v
             case 1:
                 locationResp = (_a.sent()).data;
                 locationData = locationResp["returnDataset"]["Table1"][0];
-                coordinates = [locationData["XCOORD"], locationData["YCOORD"]];
+                coordinates = [
+                    locationData["XCOORD"],
+                    locationData["YCOORD"],
+                ];
                 return [4 /*yield*/, axios.get(PROPQUEST_URLS.identify(coordinates))];
             case 2:
                 identifyResp = (_a.sent()).data;
@@ -287,59 +294,122 @@ var shouldScrapePropertyQuest = function (details) {
         "995",
     ];
     var code = details.useCode.split(" ")[0];
-    console.log(encodeURI(details.useCode), details.useCode.split(" "), code);
     return !skipList.includes(code);
 };
-var scrapePropertyData = function (ids) { return __awaiter(_this, void 0, void 0, function () {
-    var resp, sessionCookie, list, _i, ids_1, id, details, features, taxInfo, propQuest;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+var createCSVObj = function (property, deed) {
+    return {
+        "Owner Name": property.details.ownerName,
+        "Mailing Address": property.details.mailingAddress,
+        "Square": property.square,
+        "Lot": property.square,
+        "Address": property.details.address,
+        "Zoning": property.propQuest.zone,
+        "Lot Sq Ft Total": property.propQuest.lotSqFt,
+        "Living Area": property.features.livingArea,
+        "Bedrooms": property.features.bedRooms,
+        "Bathrooms": property.features.bedRooms,
+        "Use Code": property.details.useCode,
+        "Neighborhood": property.details.neighborhood,
+        "Homestead Status": property.details.homesteadStatus,
+        "Tax Class": property.details.taxClass,
+        "Sale Price": property.details.salePrice,
+        "Recordation": property.details.recordationDate,
+        "Proposed New Value (2021)": property.details.proposedNewValue,
+        "Doc Type": deed["Doc Type"],
+        "Doc Number": deed["Document Number"],
+        "Name": deed["Name"],
+        "Other Name": deed["Other Name"],
+        "Total Balance": property.taxInfo.total,
+        "Real Property Assessment": property.taxInfo.realProperty,
+        "Homestead Audit": property.taxInfo.homesteadAudit,
+        "Public Space": property.taxInfo.publicSpace,
+        "Special Assessment": property.taxInfo.specialAssessment,
+        "BID Tax": property.taxInfo.bid,
+        "Clean City": property.taxInfo.cleanCity,
+        "WASA Tax": property.taxInfo.wasa,
+        "Nuisance Tax": property.taxInfo.nuisance
+    };
+};
+// const dedupDeedList = ()
+//     let sslList = rows.map(row => [row["Square"], row["Lot"]]);
+//     // de-duplicate
+//     sslList = sslList.reduce((acc, [square, lot]) => {
+//         const ssl = `${square}:${lot}`;
+//         if (!acc.includes(ssl)) {
+//             acc.push(ssl);
+//         }
+//         return acc;
+//     }, []).map(ssl => ssl.split(":"));
+exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0, void 0, function () {
+    var resp, sessionCookie, list, failed, cache, _i, deeds_1, deed, square, lot, ssl, property, details, features, taxInfo, propQuest, _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0: return [4 /*yield*/, axios.get(propertyDetailsURL)];
             case 1:
-                resp = _a.sent();
+                resp = _b.sent();
                 sessionCookie = resp.headers["set-cookie"][0];
                 list = [];
-                _i = 0, ids_1 = ids;
-                _a.label = 2;
+                failed = [];
+                cache = {};
+                _i = 0, deeds_1 = deeds;
+                _b.label = 2;
             case 2:
-                if (!(_i < ids_1.length)) return [3 /*break*/, 9];
-                id = ids_1[_i];
-                return [4 /*yield*/, getPropertyDetails(id, sessionCookie)];
+                if (!(_i < deeds_1.length)) return [3 /*break*/, 13];
+                deed = deeds_1[_i];
+                square = deed.Square;
+                lot = deed.Lot;
+                ssl = formatSSL(square, lot);
+                property = cache[ssl];
+                if (!(property === undefined)) return [3 /*break*/, 11];
+                _b.label = 3;
             case 3:
-                details = _a.sent();
-                return [4 /*yield*/, getPropertyFeatures(id, sessionCookie)];
+                _b.trys.push([3, 9, , 10]);
+                return [4 /*yield*/, getPropertyDetails(ssl, sessionCookie)];
             case 4:
-                features = _a.sent();
-                return [4 /*yield*/, getPropertyTaxInfo(id, details.address, sessionCookie)];
+                details = _b.sent();
+                return [4 /*yield*/, getPropertyFeatures(ssl, sessionCookie)];
             case 5:
-                taxInfo = _a.sent();
-                propQuest = { zone: "", lotSqFt: "" };
-                if (!shouldScrapePropertyQuest(details)) return [3 /*break*/, 7];
-                return [4 /*yield*/, scrapePropertyQuest(details.address)];
+                features = _b.sent();
+                return [4 /*yield*/, getPropertyTaxInfo(ssl, details.address, sessionCookie)];
             case 6:
-                propQuest = _a.sent();
-                _a.label = 7;
+                taxInfo = _b.sent();
+                propQuest = { zone: "", lotSqFt: "" };
+                if (!shouldScrapePropertyQuest(details)) return [3 /*break*/, 8];
+                return [4 /*yield*/, scrapePropertyQuest(details.address)];
             case 7:
-                list.push({ details: details, features: features, taxInfo: taxInfo, propQuest: propQuest });
-                _a.label = 8;
+                propQuest = _b.sent();
+                _b.label = 8;
             case 8:
+                property = {
+                    square: square,
+                    lot: lot,
+                    details: details,
+                    features: features,
+                    taxInfo: taxInfo,
+                    propQuest: propQuest
+                };
+                return [3 /*break*/, 10];
+            case 9:
+                _a = _b.sent();
+                failed.push(ssl);
+                property = null;
+                return [3 /*break*/, 10];
+            case 10:
+                cache[ssl] = property;
+                _b.label = 11;
+            case 11:
+                if (property) {
+                    list.push(createCSVObj(property, deed));
+                }
+                _b.label = 12;
+            case 12:
                 _i++;
                 return [3 /*break*/, 2];
-            case 9: return [2 /*return*/, list];
+            case 13: return [2 /*return*/, list];
         }
     });
 }); };
-(function () { return __awaiter(_this, void 0, void 0, function () {
-    var ids, _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
-            case 0:
-                ids = [["S2827", "2039"], ["0207", "2162"], ["W2720", "0002"]];
-                _b = (_a = console).log;
-                return [4 /*yield*/, scrapePropertyData(ids)];
-            case 1:
-                _b.apply(_a, [_c.sent()]);
-                return [2 /*return*/];
-        }
-    });
-}); })();
+// (async () => {
+//   const ids: SquareLot[] = [["S2827", "2039"], ["0207", "2162"], ["W2720", "0002"]];
+//   console.log(await scrapePropertyData(ids));
+// })();

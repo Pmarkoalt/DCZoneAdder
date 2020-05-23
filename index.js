@@ -28,6 +28,7 @@ const parser = new xml2js.Parser({trim: true});
 const fs = require('fs');
 const mongoose = require('mongoose');
 const Schemas = require('./schemas');
+const {scrapePropertyData} = require('./scraper.js');
 
 // ENV Variables
 const cluster_user = process.env.CLUSTER_USER;
@@ -530,6 +531,20 @@ function splitAddressDash(csv_array) {
 }
 
 // End Points
+app.post('/api/process-tpsc-csv', async (req, res) => {
+    const rows = req.body.csv_array;
+    const csvObjData = await scrapePropertyData(rows);
+    let csv = "";
+    if (csvObjData.length) {
+        const keys = Object.keys(csvObjData[0]);
+        const json2csvParser = new Parser({keys});
+        csv = json2csvParser.parse(csvObjData);
+    }
+    res.setHeader('Content-disposition', 'attachment; filename=data.csv');
+    res.set('Content-Type', 'text/csv');
+    return res.status(200).send(csv);
+});
+
 app.post('/api/processCsv', (req, res) => {
     // Creating Job ID
     const job_id = generateId();
