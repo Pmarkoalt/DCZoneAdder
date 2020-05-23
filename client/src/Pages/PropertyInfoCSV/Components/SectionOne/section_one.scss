@@ -183,3 +183,22 @@ label.export-filename {
         font-size: 1em;
     }
 }
+
+.csv-upload-error {
+    background-color: tomato;
+    color: white;
+    font-weight: 600;
+    padding: 0.5em 1em;
+    border-radius: 0.25em;
+    margin-right: 0.5em;
+}
+
+.csv-upload-error-clear {
+    box-sizing: border-box;
+    border-radius: 0.5em;
+    border: 1px solid black;
+    padding: 0.25em 1em;
+    &:hover {
+        cursor: pointer;
+    }
+}

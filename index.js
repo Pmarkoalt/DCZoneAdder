@@ -534,14 +534,15 @@ function splitAddressDash(csv_array) {
 app.post('/api/process-tpsc-csv', async (req, res) => {
     const rows = req.body.csv_array;
     const csvObjData = await scrapePropertyData(rows);
-    let csv = "";
-    if (csvObjData.length) {
-        const keys = Object.keys(csvObjData[0]);
-        const json2csvParser = new Parser({keys});
-        csv = json2csvParser.parse(csvObjData);
+    if (!csvObjData.length) {
+        res.set('Content-Type', 'application/json');
+        return res.status(400).send("There were no results");
     }
-    res.setHeader('Content-disposition', 'attachment; filename=data.csv');
+    const keys = Object.keys(csvObjData[0]);
+    const json2csvParser = new Parser({keys});
+    const csv = json2csvParser.parse(csvObjData);
     res.set('Content-Type', 'text/csv');
+    res.setHeader('Content-disposition', 'attachment; filename=data.csv');
     return res.status(200).send(csv);
 });
 

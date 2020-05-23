@@ -1,20 +1,18 @@
 import axios from "axios";
 import fileDownload from 'js-file-download';
 
-export function processCsv(csv_array, exportFileName, csvExportFields){
+export function processCsv(csv_array, exportFileName){
     const params = {
         csv_array,
         export_file_name: exportFileName,
-        csv_export_fields: csvExportFields,
     }
     return axios.post('/api/process-tpsc-csv', params)
-    .then((response)=> {
-        return response;
-    })
-    .catch((err) => {
-        console.log(err);
-        return [{id: 0, error: "Unknown Error Occured on backend. Please contact System Admin"}];
-    });
+        .then((response)=> {
+            let filename = exportFileName || "export.csv";
+            filename = filename.endsWith(".csv") ? filename : `${filename}.csv`;
+            fileDownload(response.data, filename);
+            return response;
+        })
 }
 
 export function downloadCurrentCsv(csv_array, filename=`processed-properties-${createDate()}.csv`){

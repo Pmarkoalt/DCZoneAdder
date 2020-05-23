@@ -68,22 +68,11 @@ class CreateCsv extends Component{
     });
   }
 
-  submitCSV(files, exportFileName, csvExportFields) {
+  submitCSV(files, exportFileName) {
     this.setState({
       ...this.state,
       loading: true
     });
-    const transform = (_value) => {
-      let value = _value;
-      if (value.startsWith("=")) {
-        value = value.substr(1);
-      }
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.substr(1, value.length - 1);
-      }
-      console.log(value);
-      return value;
-    }
     const data = files.reduce(
       (acc, file) => acc.concat(csvparse(file.data.replace(/=/g, ""), {columns: true})), []
     );
@@ -93,9 +82,8 @@ class CreateCsv extends Component{
       // section: 2,
       loading: false,
       exportFileName,
-      csvExportFields
     });
-    processCsv(data);
+    return processCsv(data, exportFileName);
   }
   processCSV() {
     this.setState({
