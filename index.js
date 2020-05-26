@@ -539,8 +539,8 @@ app.post('/api/process-tpsc-csv', async (req, res) => {
         return res.status(400).send("There were no results");
     }
     const keys = Object.keys(csvObjData[0]);
-    const json2csvParser = new Parser({keys});
-    const csv = json2csvParser.parse(csvObjData);
+    const parser = new Parser({fields: keys, excelStrings: true});
+    const csv = parser.parse(csvObjData);
     res.set('Content-Type', 'text/csv');
     res.setHeader('Content-disposition', 'attachment; filename=data.csv');
     return res.status(200).send(csv);

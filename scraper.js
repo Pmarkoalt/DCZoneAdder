@@ -301,13 +301,13 @@ var createCSVObj = function (property, deed) {
         "Owner Name": property.details.ownerName,
         "Mailing Address": property.details.mailingAddress,
         "Square": property.square,
-        "Lot": property.square,
+        "Lot": property.lot,
         "Address": property.details.address,
         "Zoning": property.propQuest.zone,
         "Lot Sq Ft Total": property.propQuest.lotSqFt,
         "Living Area": property.features.livingArea,
         "Bedrooms": property.features.bedRooms,
-        "Bathrooms": property.features.bedRooms,
+        "Bathrooms": property.features.bathRooms,
         "Use Code": property.details.useCode,
         "Neighborhood": property.details.neighborhood,
         "Homestead Status": property.details.homesteadStatus,
@@ -330,16 +330,6 @@ var createCSVObj = function (property, deed) {
         "Nuisance Tax": property.taxInfo.nuisance
     };
 };
-// const dedupDeedList = ()
-//     let sslList = rows.map(row => [row["Square"], row["Lot"]]);
-//     // de-duplicate
-//     sslList = sslList.reduce((acc, [square, lot]) => {
-//         const ssl = `${square}:${lot}`;
-//         if (!acc.includes(ssl)) {
-//             acc.push(ssl);
-//         }
-//         return acc;
-//     }, []).map(ssl => ssl.split(":"));
 exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0, void 0, function () {
     var resp, sessionCookie, list, failed, cache, _i, deeds_1, deed, square, lot, ssl, property, details, features, taxInfo, propQuest, _a;
     return __generator(this, function (_b) {

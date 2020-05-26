@@ -27,3 +27,5 @@ chrome-user-data
 .env.example
 .env.local
 .env.staging
+
+dump.rdb

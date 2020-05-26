@@ -124,8 +124,6 @@ const formatSSL = (square: string, lot: string): string => {
   return `${s}${spaces}${lot}`;
 };
 
-type SquareLot = [string, string];
-
 const url = "https://www.taxpayerservicecenter.com";
 const propertyDetailsURL = `${url}/RP_Detail.jsp`;
 const propertyFeaturesURL = `${url}/weblogic/CAMA`;
@@ -352,13 +350,13 @@ const createCSVObj = (property: PropertyData, deed: Deed): TPSCCSV => {
     "Owner Name": property.details.ownerName,
     "Mailing Address": property.details.mailingAddress,
     "Square": property.square,
-    "Lot": property.square,
+    "Lot": property.lot,
     "Address": property.details.address,
     "Zoning": property.propQuest.zone,
     "Lot Sq Ft Total": property.propQuest.lotSqFt,
     "Living Area": property.features.livingArea,
     "Bedrooms": property.features.bedRooms,
-    "Bathrooms": property.features.bedRooms,
+    "Bathrooms": property.features.bathRooms,
     "Use Code": property.details.useCode,
     "Neighborhood": property.details.neighborhood,
     "Homestead Status": property.details.homesteadStatus,
@@ -381,17 +379,6 @@ const createCSVObj = (property: PropertyData, deed: Deed): TPSCCSV => {
     "Nuisance Tax": property.taxInfo.nuisance,
   };
 };
-
-// const dedupDeedList = ()
-//     let sslList = rows.map(row => [row["Square"], row["Lot"]]);
-//     // de-duplicate
-//     sslList = sslList.reduce((acc, [square, lot]) => {
-//         const ssl = `${square}:${lot}`;
-//         if (!acc.includes(ssl)) {
-//             acc.push(ssl);
-//         }
-//         return acc;
-//     }, []).map(ssl => ssl.split(":"));
 
 export const scrapePropertyData = async (
   deeds: Deed[],
