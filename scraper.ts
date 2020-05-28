@@ -235,6 +235,58 @@ interface PropertyQuestData {
   lotSqFt: string;
 }
 
+interface DCGISData {
+  grossBuildingArea: string;
+  livingGrossBuildingArea: string;
+}
+
+const getDCGISData = async (
+  ssl: string,
+  details: PropertyDetails,
+): Promise<DCGISData> => {
+  let type;
+  if (details.taxClass.startsWith("001")) {
+    if (details.useCode.toUpperCase().includes("CONDO")) {
+      type = "condo";
+    } else {
+      type = "residential";
+    }
+  } else if (details.taxClass.startsWith("002")) {
+    type = "commercial";
+  }
+  if (!type) {
+    return {
+      grossBuildingArea: "",
+      livingGrossBuildingArea: "",
+    };
+  }
+  const urls = {
+    residential:
+      `https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Property_and_Land_WebMercator/MapServer/25/query?f=json&where=SSL%20%3D%20'${ssl}'&outFields=*`,
+    condo:
+      `https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Property_and_Land_WebMercator/MapServer/24/query?f=json&where=SSL%20%3D%20'${ssl}'&outFields=*`,
+    commercial:
+      `https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Property_and_Land_WebMercator/MapServer/23/query?f=json&where=SSL%20%3D%20'${ssl}'&outFields=*`,
+  };
+  let { data } = await axios.get(urls[type]);
+  if (data.features.length === 0) {
+    // Sometimes properties are marked as residential but are really commercial?
+    const resp = await axios.get(urls.commercial);
+    data = resp.data;
+  }
+  if (data.features.length) {
+    return {
+      grossBuildingArea: data.features[0].attributes["GBA"],
+      livingGrossBuildingArea: data.features[0].attributes["LIVING_GBA"],
+    };
+  } else {
+    return {
+      grossBuildingArea: "",
+      livingGrossBuildingArea: "",
+    };
+  }
+};
+
 const PROPQUEST_URLS = {
   findLocation: (address: string) =>
     `https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?f=json&str=${address}`,
@@ -300,6 +352,7 @@ interface PropertyData {
   details: PropertyDetails;
   taxInfo: PropertyTaxInfo;
   propQuest: PropertyQuestData;
+  dcgis: DCGISData;
 }
 
 interface TPSCCSV {
@@ -311,6 +364,8 @@ interface TPSCCSV {
   "Zoning": string;
   "Lot Sq Ft Total": string;
   "Living Area": string;
+  "Gross Building Area": string;
+  "Living Gross Building Area": string;
   "Bedrooms": string;
   "Bathrooms": string;
   "Use Code": string;
@@ -355,6 +410,8 @@ const createCSVObj = (property: PropertyData, deed: Deed): TPSCCSV => {
     "Zoning": property.propQuest.zone,
     "Lot Sq Ft Total": property.propQuest.lotSqFt,
     "Living Area": property.features.livingArea,
+    "Gross Building Area": property.dcgis.grossBuildingArea,
+    "Living Gross Building Area": property.dcgis.livingGrossBuildingArea,
     "Bedrooms": property.features.bedRooms,
     "Bathrooms": property.features.bathRooms,
     "Use Code": property.details.useCode,
@@ -385,7 +442,6 @@ export const scrapePropertyData = async (
 ): Promise<PropertyData[]> => {
   const resp = await axios.get(propertyDetailsURL);
   const sessionCookie: string = resp.headers["set-cookie"][0];
-  // return Promise.all(ids.map(id => getPropertyTaxData(id, sessionCookie)));
   const list = [];
   const failed = [];
   const cache = {};
@@ -403,6 +459,7 @@ export const scrapePropertyData = async (
           details.address,
           sessionCookie,
         );
+        const dcgis = await getDCGISData(ssl, details);
         let propQuest: PropertyQuestData = { zone: "", lotSqFt: "" };
         if (shouldScrapePropertyQuest(details)) {
           propQuest = await scrapePropertyQuest(details.address);
@@ -414,6 +471,7 @@ export const scrapePropertyData = async (
           features,
           taxInfo,
           propQuest,
+          dcgis,
         };
       } catch {
         failed.push(ssl);
@@ -429,6 +487,14 @@ export const scrapePropertyData = async (
 };
 
 // (async () => {
-//   const ids: SquareLot[] = [["S2827", "2039"], ["0207", "2162"], ["W2720", "0002"]];
+//   const ids: Deed[] = [{
+//     Square: "0517",
+//     Lot: "2084",
+//     "Doc Type": "",
+//     "Name": "",
+//     "Other Name": "",
+//     "Recorded": "",
+//     "Document Number": "",
+//   }]
 //   console.log(await scrapePropertyData(ids));
 // })();

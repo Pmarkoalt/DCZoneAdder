@@ -234,6 +234,59 @@ var getPropertyTaxInfo = function (ssl, address, sessionCookie) { return __await
         }
     });
 }); };
+var getDCGISData = function (ssl, details) { return __awaiter(void 0, void 0, void 0, function () {
+    var type, urls, data, resp;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                if (details.taxClass.startsWith("001")) {
+                    if (details.useCode.toUpperCase().includes("CONDO")) {
+                        type = "condo";
+                    }
+                    else {
+                        type = "residential";
+                    }
+                }
+                else if (details.taxClass.startsWith("002")) {
+                    type = "commercial";
+                }
+                if (!type) {
+                    return [2 /*return*/, {
+                            grossBuildingArea: "",
+                            livingGrossBuildingArea: ""
+                        }];
+                }
+                urls = {
+                    residential: "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Property_and_Land_WebMercator/MapServer/25/query?f=json&where=SSL%20%3D%20'" + ssl + "'&outFields=*",
+                    condo: "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Property_and_Land_WebMercator/MapServer/24/query?f=json&where=SSL%20%3D%20'" + ssl + "'&outFields=*",
+                    commercial: "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Property_and_Land_WebMercator/MapServer/23/query?f=json&where=SSL%20%3D%20'" + ssl + "'&outFields=*"
+                };
+                return [4 /*yield*/, axios.get(urls[type])];
+            case 1:
+                data = (_a.sent()).data;
+                if (!(data.features.length === 0)) return [3 /*break*/, 3];
+                return [4 /*yield*/, axios.get(urls.commercial)];
+            case 2:
+                resp = _a.sent();
+                data = resp.data;
+                _a.label = 3;
+            case 3:
+                if (data.features.length) {
+                    return [2 /*return*/, {
+                            grossBuildingArea: data.features[0].attributes["GBA"],
+                            livingGrossBuildingArea: data.features[0].attributes["LIVING_GBA"]
+                        }];
+                }
+                else {
+                    return [2 /*return*/, {
+                            grossBuildingArea: "",
+                            livingGrossBuildingArea: ""
+                        }];
+                }
+                return [2 /*return*/];
+        }
+    });
+}); };
 var PROPQUEST_URLS = {
     findLocation: function (address) {
         return "https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?f=json&str=" + address;
@@ -306,6 +359,8 @@ var createCSVObj = function (property, deed) {
         "Zoning": property.propQuest.zone,
         "Lot Sq Ft Total": property.propQuest.lotSqFt,
         "Living Area": property.features.livingArea,
+        "Gross Building Area": property.dcgis.grossBuildingArea,
+        "Living Gross Building Area": property.dcgis.livingGrossBuildingArea,
         "Bedrooms": property.features.bedRooms,
         "Bathrooms": property.features.bathRooms,
         "Use Code": property.details.useCode,
@@ -331,7 +386,7 @@ var createCSVObj = function (property, deed) {
     };
 };
 exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0, void 0, function () {
-    var resp, sessionCookie, list, failed, cache, _i, deeds_1, deed, square, lot, ssl, property, details, features, taxInfo, propQuest, _a;
+    var resp, sessionCookie, list, failed, cache, _i, deeds_1, deed, square, lot, ssl, property, details, features, taxInfo, dcgis, propQuest, _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0: return [4 /*yield*/, axios.get(propertyDetailsURL)];
@@ -344,16 +399,16 @@ exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0,
                 _i = 0, deeds_1 = deeds;
                 _b.label = 2;
             case 2:
-                if (!(_i < deeds_1.length)) return [3 /*break*/, 13];
+                if (!(_i < deeds_1.length)) return [3 /*break*/, 14];
                 deed = deeds_1[_i];
                 square = deed.Square;
                 lot = deed.Lot;
                 ssl = formatSSL(square, lot);
                 property = cache[ssl];
-                if (!(property === undefined)) return [3 /*break*/, 11];
+                if (!(property === undefined)) return [3 /*break*/, 12];
                 _b.label = 3;
             case 3:
-                _b.trys.push([3, 9, , 10]);
+                _b.trys.push([3, 10, , 11]);
                 return [4 /*yield*/, getPropertyDetails(ssl, sessionCookie)];
             case 4:
                 details = _b.sent();
@@ -363,43 +418,55 @@ exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, getPropertyTaxInfo(ssl, details.address, sessionCookie)];
             case 6:
                 taxInfo = _b.sent();
-                propQuest = { zone: "", lotSqFt: "" };
-                if (!shouldScrapePropertyQuest(details)) return [3 /*break*/, 8];
-                return [4 /*yield*/, scrapePropertyQuest(details.address)];
+                return [4 /*yield*/, getDCGISData(ssl, details)];
             case 7:
-                propQuest = _b.sent();
-                _b.label = 8;
+                dcgis = _b.sent();
+                propQuest = { zone: "", lotSqFt: "" };
+                if (!shouldScrapePropertyQuest(details)) return [3 /*break*/, 9];
+                return [4 /*yield*/, scrapePropertyQuest(details.address)];
             case 8:
+                propQuest = _b.sent();
+                _b.label = 9;
+            case 9:
                 property = {
                     square: square,
                     lot: lot,
                     details: details,
                     features: features,
                     taxInfo: taxInfo,
-                    propQuest: propQuest
+                    propQuest: propQuest,
+                    dcgis: dcgis
                 };
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 11];
+            case 10:
                 _a = _b.sent();
                 failed.push(ssl);
                 property = null;
-                return [3 /*break*/, 10];
-            case 10:
-                cache[ssl] = property;
-                _b.label = 11;
+                return [3 /*break*/, 11];
             case 11:
+                cache[ssl] = property;
+                _b.label = 12;
+            case 12:
                 if (property) {
                     list.push(createCSVObj(property, deed));
                 }
-                _b.label = 12;
-            case 12:
+                _b.label = 13;
+            case 13:
                 _i++;
                 return [3 /*break*/, 2];
-            case 13: return [2 /*return*/, list];
+            case 14: return [2 /*return*/, list];
         }
     });
 }); };
 // (async () => {
-//   const ids: SquareLot[] = [["S2827", "2039"], ["0207", "2162"], ["W2720", "0002"]];
+//   const ids: Deed[] = [{
+//     Square: "0517",
+//     Lot: "2084",
+//     "Doc Type": "",
+//     "Name": "",
+//     "Other Name": "",
+//     "Recorded": "",
+//     "Document Number": "",
+//   }]
 //   console.log(await scrapePropertyData(ids));
 // })();
