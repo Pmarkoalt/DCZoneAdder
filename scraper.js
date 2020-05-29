@@ -127,6 +127,14 @@ var MAPPINGS = {
         }
     }
 };
+var pad = function (input) {
+    var paddedInput = input;
+    var zeroCount = 4 - input.length;
+    for (var i = 0; i < zeroCount; i++) {
+        paddedInput = "0" + paddedInput;
+    }
+    return paddedInput;
+};
 var formatSSL = function (square, lot) {
     var suffix = isNaN(parseInt(square.charAt(0))) ? square.charAt(0) : null;
     var s = square;
@@ -135,7 +143,7 @@ var formatSSL = function (square, lot) {
         s = s.replace(suffix, "") + suffix;
         spaces = "%20%20%20";
     }
-    return "" + s + spaces + lot;
+    return "" + pad(s) + spaces + pad(lot);
 };
 var url = "https://www.taxpayerservicecenter.com";
 var propertyDetailsURL = url + "/RP_Detail.jsp";
@@ -187,7 +195,7 @@ var TAX_INFO_LABEL_MAPPING = {
     "Homestead Audit": "homesteadAudit",
     "Public Space": "publicSpace",
     "Special Assessment": "specialAssessment",
-    "Business Improvement Distric (BID Tax)": "bid",
+    "Business Improvement District (BID Tax)": "bid",
     "Clean City": "cleanCity",
     "Water & Sewer Authority (WASA)": "wasa",
     "Nuisance Tax": "nuisance"
@@ -386,18 +394,18 @@ var createCSVObj = function (property, deed) {
     };
 };
 exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0, void 0, function () {
-    var resp, sessionCookie, list, failed, cache, _i, deeds_1, deed, square, lot, ssl, property, details, features, taxInfo, dcgis, propQuest, _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var resp, sessionCookie, list, failed, cache, _i, deeds_1, deed, square, lot, ssl, property, details, features, taxInfo, dcgis, propQuest, e_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0: return [4 /*yield*/, axios.get(propertyDetailsURL)];
             case 1:
-                resp = _b.sent();
+                resp = _a.sent();
                 sessionCookie = resp.headers["set-cookie"][0];
                 list = [];
                 failed = [];
                 cache = {};
                 _i = 0, deeds_1 = deeds;
-                _b.label = 2;
+                _a.label = 2;
             case 2:
                 if (!(_i < deeds_1.length)) return [3 /*break*/, 14];
                 deed = deeds_1[_i];
@@ -406,27 +414,27 @@ exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0,
                 ssl = formatSSL(square, lot);
                 property = cache[ssl];
                 if (!(property === undefined)) return [3 /*break*/, 12];
-                _b.label = 3;
+                _a.label = 3;
             case 3:
-                _b.trys.push([3, 10, , 11]);
+                _a.trys.push([3, 10, , 11]);
                 return [4 /*yield*/, getPropertyDetails(ssl, sessionCookie)];
             case 4:
-                details = _b.sent();
+                details = _a.sent();
                 return [4 /*yield*/, getPropertyFeatures(ssl, sessionCookie)];
             case 5:
-                features = _b.sent();
+                features = _a.sent();
                 return [4 /*yield*/, getPropertyTaxInfo(ssl, details.address, sessionCookie)];
             case 6:
-                taxInfo = _b.sent();
+                taxInfo = _a.sent();
                 return [4 /*yield*/, getDCGISData(ssl, details)];
             case 7:
-                dcgis = _b.sent();
+                dcgis = _a.sent();
                 propQuest = { zone: "", lotSqFt: "" };
                 if (!shouldScrapePropertyQuest(details)) return [3 /*break*/, 9];
                 return [4 /*yield*/, scrapePropertyQuest(details.address)];
             case 8:
-                propQuest = _b.sent();
-                _b.label = 9;
+                propQuest = _a.sent();
+                _a.label = 9;
             case 9:
                 property = {
                     square: square,
@@ -439,18 +447,19 @@ exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0,
                 };
                 return [3 /*break*/, 11];
             case 10:
-                _a = _b.sent();
+                e_1 = _a.sent();
+                console.log(e_1);
                 failed.push(ssl);
                 property = null;
                 return [3 /*break*/, 11];
             case 11:
                 cache[ssl] = property;
-                _b.label = 12;
+                _a.label = 12;
             case 12:
                 if (property) {
                     list.push(createCSVObj(property, deed));
                 }
-                _b.label = 13;
+                _a.label = 13;
             case 13:
                 _i++;
                 return [3 /*break*/, 2];

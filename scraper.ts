@@ -113,6 +113,15 @@ const MAPPINGS = {
   },
 };
 
+const pad = (input: string): string => {
+  let paddedInput = input;
+  const zeroCount = 4 - input.length;
+  for (let i = 0; i < zeroCount; i++) {
+    paddedInput = "0" + paddedInput;
+  }
+  return paddedInput; 
+}
+
 const formatSSL = (square: string, lot: string): string => {
   const suffix = isNaN(parseInt(square.charAt(0))) ? square.charAt(0) : null;
   let s = square;
@@ -121,7 +130,7 @@ const formatSSL = (square: string, lot: string): string => {
     s = s.replace(suffix, "") + suffix;
     spaces = "%20%20%20";
   }
-  return `${s}${spaces}${lot}`;
+  return `${pad(s)}${spaces}${pad(lot)}`;
 };
 
 const url = "https://www.taxpayerservicecenter.com";
@@ -177,7 +186,7 @@ const TAX_INFO_LABEL_MAPPING = {
   "Homestead Audit": "homesteadAudit",
   "Public Space": "publicSpace",
   "Special Assessment": "specialAssessment",
-  "Business Improvement Distric (BID Tax)": "bid",
+  "Business Improvement District (BID Tax)": "bid",
   "Clean City": "cleanCity",
   "Water & Sewer Authority (WASA)": "wasa",
   "Nuisance Tax": "nuisance",
@@ -473,7 +482,8 @@ export const scrapePropertyData = async (
           propQuest,
           dcgis,
         };
-      } catch {
+      } catch (e) {
+        console.log(e);
         failed.push(ssl);
         property = null;
       }
