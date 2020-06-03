@@ -398,8 +398,8 @@ var createCSVObj = function (property, deed) {
     return {
         "Owner Name": null,
         "Mailing Address": "",
-        "Square": "",
-        "Lot": "",
+        "Square": deed["Square"],
+        "Lot": deed["Lot"],
         "Address": "",
         "Zoning": "",
         "Lot Sq Ft Total": "",
