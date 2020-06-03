@@ -1,6 +1,7 @@
 #section-two{
   height: 80%;
   position: relative;
+  margin: auto;
 }
 
 #table-container{
@@ -14,6 +15,10 @@
 }
 #table{
   min-width: 650px;
+}
+
+#section-two-submit {
+  float: right;
 }
 .section-actions {
   position: relative;
@@ -31,4 +36,16 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 50px;
+  border: 1px solid limegreen;
+  margin-bottom: 10px;
+}
+
+.progress-bar {
+  background-color: limegreen;
+  height: 100%;
 }

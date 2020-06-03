@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import './App.scss';
-import {CreateCsv, DocumentDetails, Home, ListComponent, PropertyInfoCSV} from './Pages';
+import {CreateCsv, DocumentDetails, Home, ListComponent} from './Pages';
+import {JobsList, JobDetails, CSVUpload} from './Pages/CSVJobs';
 import {Footer, Header} from './Components';
 
 
@@ -12,8 +13,10 @@ class App extends Component {
         <Header/>
         <Switch>
           <Route exact path='/' component={Home}/>
+          <Route path='/jobs/:id' component={JobDetails} />
+          <Route path='/jobs' component={JobsList} />
+          <Route path='/create-job' component={CSVUpload}/>
           <Route path='/create' component={CreateCsv}/>
-          <Route path='/tpsc' component={PropertyInfoCSV}/>
           <Route path='/list' component={ListComponent}/>
           <Route path='/details/:id' component={DocumentDetails}/>
           <Route path='/job/:id' component={CreateCsv}/>

@@ -34,8 +34,9 @@ function Header(props){
             onClose={handleClose}
           >
             <Link to="/"><MenuItem onClick={handleClose}>Home</MenuItem></Link>
+            <Link to="/jobs"><MenuItem onClick={handleClose}>View Job List</MenuItem></Link>
+            <Link to="/create-job"><MenuItem onClick={handleClose}>Create TPSC CSV</MenuItem></Link>
             <Link to="/create"><MenuItem onClick={handleClose}>Create New CSV</MenuItem> </Link>
-            <Link to="/tpsc"><MenuItem onClick={handleClose}>Create TPSC CSV</MenuItem></Link>
             <Link to="/list"><MenuItem onClick={handleClose}>View All CSVs</MenuItem></Link>
           </Menu>
           <Typography variant="h6" id="title">

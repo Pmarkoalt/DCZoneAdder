@@ -49,7 +49,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.scrapePropertyData = void 0;
+exports.scrapePropertyData = exports.processProperty = exports.getSSL = void 0;
 var axios = require("axios");
 // const puppeteer = require("puppeteer");
 var cheerio = require("cheerio");
@@ -134,16 +134,6 @@ var pad = function (input) {
         paddedInput = "0" + paddedInput;
     }
     return paddedInput;
-};
-var formatSSL = function (square, lot) {
-    var suffix = isNaN(parseInt(square.charAt(0))) ? square.charAt(0) : null;
-    var s = square;
-    var spaces = "%20%20%20%20";
-    if (suffix) {
-        s = s.replace(suffix, "") + suffix;
-        spaces = "%20%20%20";
-    }
-    return "" + pad(s) + spaces + pad(lot);
 };
 var url = "https://www.taxpayerservicecenter.com";
 var propertyDetailsURL = url + "/RP_Detail.jsp";
@@ -357,44 +347,142 @@ var shouldScrapePropertyQuest = function (details) {
     var code = details.useCode.split(" ")[0];
     return !skipList.includes(code);
 };
+exports.getSSL = function (deed) {
+    var square = deed.Square, lot = deed.Lot;
+    var suffix = isNaN(parseInt(square.charAt(0))) ? square.charAt(0) : null;
+    var s = square;
+    var spaces = "%20%20%20%20";
+    if (suffix) {
+        s = s.replace(suffix, "") + suffix;
+        spaces = "%20%20%20";
+    }
+    return "" + pad(s) + spaces + pad(lot);
+};
 var createCSVObj = function (property, deed) {
+    if (property) {
+        return {
+            "Owner Name": property.details.ownerName,
+            "Mailing Address": property.details.mailingAddress,
+            "Square": property.square,
+            "Lot": property.lot,
+            "Address": property.details.address,
+            "Zoning": property.propQuest.zone,
+            "Lot Sq Ft Total": property.propQuest.lotSqFt,
+            "Living Area": property.features.livingArea,
+            "Gross Building Area": property.dcgis.grossBuildingArea,
+            "Living Gross Building Area": property.dcgis.livingGrossBuildingArea,
+            "Bedrooms": property.features.bedRooms,
+            "Bathrooms": property.features.bathRooms,
+            "Use Code": property.details.useCode,
+            "Neighborhood": property.details.neighborhood,
+            "Homestead Status": property.details.homesteadStatus,
+            "Tax Class": property.details.taxClass,
+            "Sale Price": property.details.salePrice,
+            "Recordation": property.details.recordationDate,
+            "Proposed New Value (2021)": property.details.proposedNewValue,
+            "Doc Type": deed["Doc Type"],
+            "Doc Number": deed["Document Number"],
+            "Name": deed["Name"],
+            "Other Name": deed["Other Name"],
+            "Total Balance": property.taxInfo.total,
+            "Real Property Assessment": property.taxInfo.realProperty,
+            "Homestead Audit": property.taxInfo.homesteadAudit,
+            "Public Space": property.taxInfo.publicSpace,
+            "Special Assessment": property.taxInfo.specialAssessment,
+            "BID Tax": property.taxInfo.bid,
+            "Clean City": property.taxInfo.cleanCity,
+            "WASA Tax": property.taxInfo.wasa,
+            "Nuisance Tax": property.taxInfo.nuisance
+        };
+    }
     return {
-        "Owner Name": property.details.ownerName,
-        "Mailing Address": property.details.mailingAddress,
-        "Square": property.square,
-        "Lot": property.lot,
-        "Address": property.details.address,
-        "Zoning": property.propQuest.zone,
-        "Lot Sq Ft Total": property.propQuest.lotSqFt,
-        "Living Area": property.features.livingArea,
-        "Gross Building Area": property.dcgis.grossBuildingArea,
-        "Living Gross Building Area": property.dcgis.livingGrossBuildingArea,
-        "Bedrooms": property.features.bedRooms,
-        "Bathrooms": property.features.bathRooms,
-        "Use Code": property.details.useCode,
-        "Neighborhood": property.details.neighborhood,
-        "Homestead Status": property.details.homesteadStatus,
-        "Tax Class": property.details.taxClass,
-        "Sale Price": property.details.salePrice,
-        "Recordation": property.details.recordationDate,
-        "Proposed New Value (2021)": property.details.proposedNewValue,
+        "Owner Name": null,
+        "Mailing Address": "",
+        "Square": "",
+        "Lot": "",
+        "Address": "",
+        "Zoning": "",
+        "Lot Sq Ft Total": "",
+        "Living Area": "",
+        "Gross Building Area": "",
+        "Living Gross Building Area": "",
+        "Bedrooms": "",
+        "Bathrooms": "",
+        "Use Code": "",
+        "Neighborhood": "",
+        "Homestead Status": "",
+        "Tax Class": "",
+        "Sale Price": "",
+        "Recordation": "",
+        "Proposed New Value (2021)": "",
         "Doc Type": deed["Doc Type"],
         "Doc Number": deed["Document Number"],
         "Name": deed["Name"],
         "Other Name": deed["Other Name"],
-        "Total Balance": property.taxInfo.total,
-        "Real Property Assessment": property.taxInfo.realProperty,
-        "Homestead Audit": property.taxInfo.homesteadAudit,
-        "Public Space": property.taxInfo.publicSpace,
-        "Special Assessment": property.taxInfo.specialAssessment,
-        "BID Tax": property.taxInfo.bid,
-        "Clean City": property.taxInfo.cleanCity,
-        "WASA Tax": property.taxInfo.wasa,
-        "Nuisance Tax": property.taxInfo.nuisance
+        "Total Balance": "",
+        "Real Property Assessment": "",
+        "Homestead Audit": "",
+        "Public Space": "",
+        "Special Assessment": "",
+        "BID Tax": "",
+        "Clean City": "",
+        "WASA Tax": "",
+        "Nuisance Tax": ""
     };
 };
+exports.processProperty = function (deed) { return __awaiter(void 0, void 0, void 0, function () {
+    var square, lot, ssl, resp, sessionCookie, details, features, taxInfo, dcgis, propQuest, propertyData, e_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                square = deed.Square, lot = deed.Lot;
+                ssl = exports.getSSL(deed);
+                return [4 /*yield*/, axios.get(propertyDetailsURL)];
+            case 1:
+                resp = _a.sent();
+                sessionCookie = resp.headers["set-cookie"][0];
+                _a.label = 2;
+            case 2:
+                _a.trys.push([2, 9, , 10]);
+                return [4 /*yield*/, getPropertyDetails(ssl, sessionCookie)];
+            case 3:
+                details = _a.sent();
+                return [4 /*yield*/, getPropertyFeatures(ssl, sessionCookie)];
+            case 4:
+                features = _a.sent();
+                return [4 /*yield*/, getPropertyTaxInfo(ssl, details.address, sessionCookie)];
+            case 5:
+                taxInfo = _a.sent();
+                return [4 /*yield*/, getDCGISData(ssl, details)];
+            case 6:
+                dcgis = _a.sent();
+                propQuest = { zone: "", lotSqFt: "" };
+                if (!shouldScrapePropertyQuest(details)) return [3 /*break*/, 8];
+                return [4 /*yield*/, scrapePropertyQuest(details.address)];
+            case 7:
+                propQuest = _a.sent();
+                _a.label = 8;
+            case 8:
+                propertyData = {
+                    square: square,
+                    lot: lot,
+                    details: details,
+                    features: features,
+                    taxInfo: taxInfo,
+                    propQuest: propQuest,
+                    dcgis: dcgis
+                };
+                return [2 /*return*/, createCSVObj(propertyData, deed)];
+            case 9:
+                e_1 = _a.sent();
+                console.log(e_1);
+                return [2 /*return*/, createCSVObj(null, deed)];
+            case 10: return [2 /*return*/];
+        }
+    });
+}); };
 exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0, void 0, function () {
-    var resp, sessionCookie, list, failed, cache, _i, deeds_1, deed, square, lot, ssl, property, details, features, taxInfo, dcgis, propQuest, e_1;
+    var resp, sessionCookie, list, failed, cache, _i, deeds_1, deed, ssl, property, details, features, taxInfo, dcgis, propQuest, e_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, axios.get(propertyDetailsURL)];
@@ -409,9 +497,8 @@ exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0,
             case 2:
                 if (!(_i < deeds_1.length)) return [3 /*break*/, 14];
                 deed = deeds_1[_i];
-                square = deed.Square;
-                lot = deed.Lot;
-                ssl = formatSSL(square, lot);
+                ssl = exports.getSSL(deed);
+                console.log("Processing " + ssl);
                 property = cache[ssl];
                 if (!(property === undefined)) return [3 /*break*/, 12];
                 _a.label = 3;
@@ -437,8 +524,8 @@ exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0,
                 _a.label = 9;
             case 9:
                 property = {
-                    square: square,
-                    lot: lot,
+                    square: deed.Square,
+                    lot: deed.Lot,
                     details: details,
                     features: features,
                     taxInfo: taxInfo,
@@ -447,8 +534,8 @@ exports.scrapePropertyData = function (deeds) { return __awaiter(void 0, void 0,
                 };
                 return [3 /*break*/, 11];
             case 10:
-                e_1 = _a.sent();
-                console.log(e_1);
+                e_2 = _a.sent();
+                // console.log(e);
                 failed.push(ssl);
                 property = null;
                 return [3 /*break*/, 11];

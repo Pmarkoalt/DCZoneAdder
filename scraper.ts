@@ -119,18 +119,7 @@ const pad = (input: string): string => {
   for (let i = 0; i < zeroCount; i++) {
     paddedInput = "0" + paddedInput;
   }
-  return paddedInput; 
-}
-
-const formatSSL = (square: string, lot: string): string => {
-  const suffix = isNaN(parseInt(square.charAt(0))) ? square.charAt(0) : null;
-  let s = square;
-  let spaces = "%20%20%20%20";
-  if (suffix) {
-    s = s.replace(suffix, "") + suffix;
-    spaces = "%20%20%20";
-  }
-  return `${pad(s)}${spaces}${pad(lot)}`;
+  return paddedInput;
 };
 
 const url = "https://www.taxpayerservicecenter.com";
@@ -409,41 +398,123 @@ interface Deed {
   Recorded: string;
 }
 
-const createCSVObj = (property: PropertyData, deed: Deed): TPSCCSV => {
+export const getSSL = (deed: Deed): string => {
+  const { Square: square, Lot: lot } = deed;
+  const suffix = isNaN(parseInt(square.charAt(0))) ? square.charAt(0) : null;
+  let s = square;
+  let spaces = "%20%20%20%20";
+  if (suffix) {
+    s = s.replace(suffix, "") + suffix;
+    spaces = "%20%20%20";
+  }
+  return `${pad(s)}${spaces}${pad(lot)}`;
+};
+
+const createCSVObj = (property: PropertyData | null, deed: Deed): TPSCCSV => {
+  if (property) {
+    return {
+      "Owner Name": property.details.ownerName,
+      "Mailing Address": property.details.mailingAddress,
+      "Square": property.square,
+      "Lot": property.lot,
+      "Address": property.details.address,
+      "Zoning": property.propQuest.zone,
+      "Lot Sq Ft Total": property.propQuest.lotSqFt,
+      "Living Area": property.features.livingArea,
+      "Gross Building Area": property.dcgis.grossBuildingArea,
+      "Living Gross Building Area": property.dcgis.livingGrossBuildingArea,
+      "Bedrooms": property.features.bedRooms,
+      "Bathrooms": property.features.bathRooms,
+      "Use Code": property.details.useCode,
+      "Neighborhood": property.details.neighborhood,
+      "Homestead Status": property.details.homesteadStatus,
+      "Tax Class": property.details.taxClass,
+      "Sale Price": property.details.salePrice,
+      "Recordation": property.details.recordationDate,
+      "Proposed New Value (2021)": property.details.proposedNewValue,
+      "Doc Type": deed["Doc Type"],
+      "Doc Number": deed["Document Number"],
+      "Name": deed["Name"],
+      "Other Name": deed["Other Name"],
+      "Total Balance": property.taxInfo.total,
+      "Real Property Assessment": property.taxInfo.realProperty,
+      "Homestead Audit": property.taxInfo.homesteadAudit,
+      "Public Space": property.taxInfo.publicSpace,
+      "Special Assessment": property.taxInfo.specialAssessment,
+      "BID Tax": property.taxInfo.bid,
+      "Clean City": property.taxInfo.cleanCity,
+      "WASA Tax": property.taxInfo.wasa,
+      "Nuisance Tax": property.taxInfo.nuisance,
+    };
+  }
   return {
-    "Owner Name": property.details.ownerName,
-    "Mailing Address": property.details.mailingAddress,
-    "Square": property.square,
-    "Lot": property.lot,
-    "Address": property.details.address,
-    "Zoning": property.propQuest.zone,
-    "Lot Sq Ft Total": property.propQuest.lotSqFt,
-    "Living Area": property.features.livingArea,
-    "Gross Building Area": property.dcgis.grossBuildingArea,
-    "Living Gross Building Area": property.dcgis.livingGrossBuildingArea,
-    "Bedrooms": property.features.bedRooms,
-    "Bathrooms": property.features.bathRooms,
-    "Use Code": property.details.useCode,
-    "Neighborhood": property.details.neighborhood,
-    "Homestead Status": property.details.homesteadStatus,
-    "Tax Class": property.details.taxClass,
-    "Sale Price": property.details.salePrice,
-    "Recordation": property.details.recordationDate,
-    "Proposed New Value (2021)": property.details.proposedNewValue,
+    "Owner Name": null,
+    "Mailing Address": "",
+    "Square": "",
+    "Lot": "",
+    "Address": "",
+    "Zoning": "",
+    "Lot Sq Ft Total": "",
+    "Living Area": "",
+    "Gross Building Area": "",
+    "Living Gross Building Area": "",
+    "Bedrooms": "",
+    "Bathrooms": "",
+    "Use Code": "",
+    "Neighborhood": "",
+    "Homestead Status": "",
+    "Tax Class": "",
+    "Sale Price": "",
+    "Recordation": "",
+    "Proposed New Value (2021)": "",
     "Doc Type": deed["Doc Type"],
     "Doc Number": deed["Document Number"],
     "Name": deed["Name"],
     "Other Name": deed["Other Name"],
-    "Total Balance": property.taxInfo.total,
-    "Real Property Assessment": property.taxInfo.realProperty,
-    "Homestead Audit": property.taxInfo.homesteadAudit,
-    "Public Space": property.taxInfo.publicSpace,
-    "Special Assessment": property.taxInfo.specialAssessment,
-    "BID Tax": property.taxInfo.bid,
-    "Clean City": property.taxInfo.cleanCity,
-    "WASA Tax": property.taxInfo.wasa,
-    "Nuisance Tax": property.taxInfo.nuisance,
+    "Total Balance": "",
+    "Real Property Assessment": "",
+    "Homestead Audit": "",
+    "Public Space": "",
+    "Special Assessment": "",
+    "BID Tax": "",
+    "Clean City": "",
+    "WASA Tax": "",
+    "Nuisance Tax": "",
   };
+};
+
+export const processProperty = async (deed: Deed): Promise<TPSCCSV> => {
+  const { Square: square, Lot: lot } = deed;
+  const ssl = getSSL(deed);
+  const resp = await axios.get(propertyDetailsURL);
+  const sessionCookie: string = resp.headers["set-cookie"][0];
+  try {
+    const details = await getPropertyDetails(ssl, sessionCookie);
+    const features = await getPropertyFeatures(ssl, sessionCookie);
+    const taxInfo = await getPropertyTaxInfo(
+      ssl,
+      details.address,
+      sessionCookie,
+    );
+    const dcgis = await getDCGISData(ssl, details);
+    let propQuest: PropertyQuestData = { zone: "", lotSqFt: "" };
+    if (shouldScrapePropertyQuest(details)) {
+      propQuest = await scrapePropertyQuest(details.address);
+    }
+    const propertyData: PropertyData = {
+      square,
+      lot,
+      details,
+      features,
+      taxInfo,
+      propQuest,
+      dcgis,
+    };
+    return createCSVObj(propertyData, deed);
+  } catch (e) {
+    console.log(e);
+    return createCSVObj(null, deed);
+  }
 };
 
 export const scrapePropertyData = async (
@@ -455,9 +526,8 @@ export const scrapePropertyData = async (
   const failed = [];
   const cache = {};
   for (const deed of deeds) {
-    const { Square: square } = deed;
-    const { Lot: lot } = deed;
-    const ssl = formatSSL(square, lot);
+    const ssl = getSSL(deed);
+    console.log(`Processing ${ssl}`);
     let property: PropertyData = cache[ssl];
     if (property === undefined) {
       try {
@@ -474,8 +544,8 @@ export const scrapePropertyData = async (
           propQuest = await scrapePropertyQuest(details.address);
         }
         property = {
-          square,
-          lot,
+          square: deed.Square,
+          lot: deed.Lot,
           details,
           features,
           taxInfo,
@@ -483,7 +553,7 @@ export const scrapePropertyData = async (
           dcgis,
         };
       } catch (e) {
-        console.log(e);
+        // console.log(e);
         failed.push(ssl);
         property = null;
       }

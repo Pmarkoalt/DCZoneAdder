@@ -28,7 +28,7 @@ const parser = new xml2js.Parser({trim: true});
 const fs = require('fs');
 const mongoose = require('mongoose');
 const Schemas = require('./schemas');
-const {scrapePropertyData} = require('./scraper.js');
+const {processProperty, getSSL} = require('./scraper.js');
 
 // ENV Variables
 const cluster_user = process.env.CLUSTER_USER;
@@ -61,17 +61,72 @@ mongoose.connection.on('connected', function(){
 });
 const Jobs = mongoose.model('Jobs', Schemas.jobsSchema);
 const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
+const CSVJob = mongoose.model('CSVJob', Schemas.CSVJobSchema);
 
 
 // Set up CSV Queue
 const csvQueue = new Queue('csv_queue', REDIS_URL);
 csvQueue.clean(3600 * 1000, "completed");
+// csvQueue.clean(1000, "wait");
+// csvQueue.clean(1000, "active");
+// csvQueue.clean(1000, "delayed");
 
-csvQueue.process( async (task) => {
-    const current_address = await fetchCurrentAddress(task.data.id);
-    await processAddress(current_address, task, task.data.search_zillow);
-    await fetchCurrentJob(current_address.job_id);
-    return;
+const TASK_TYPES = {
+    TPSC: "tpsc",
+    ZONE: "zone",
+}
+
+const TASK_CACHE = {
+    [TASK_TYPES.TPSC]: {}
+}
+
+// const createProcess = (config) => {
+//     return new Promise((resolve, reject) => {
+//         Process.create(conifg, (err, process) => {
+//             if (err) reject(err);
+//             resolve(process);
+//         })
+//     })
+// }
+// const findProcess = (match) => {
+//     return new Promise((resolve, reject) => {
+//         Process.findOne(match, (err, process) => {
+//             if (err) reject(err);
+//             resolve(process);
+//         })
+//     })
+// }
+
+const TASK_HANDLERS = {
+    [TASK_TYPES.TPSC]: async (task) => {
+        const {deed, jobId} = task.data;
+        const ssl = getSSL(deed)
+        const job = await CSVJob.findOne({id: jobId}).exec();
+        let result = TASK_CACHE[TASK_TYPES.TPSC][ssl];
+        if (!result) {
+            result = await processProperty(deed);
+            TASK_CACHE[TASK_TYPES.TPSC][ssl] = result;
+        }
+        job.results.push(result);
+        job.completed = job.results.length >= job.total_items;
+        job.last_updated = new Date();
+        return new Promise((resolve, reject) => {
+            job.save((err) => {
+                if (err) return reject(err);
+                io.sockets.emit(`csv-job-update-${job.id}`, result);
+                resolve();
+            })
+        })
+    },
+    [TASK_TYPES.ZONE]: async (task) => {
+        const current_address = await fetchCurrentAddress(task.data.id);
+        await processAddress(current_address, task, task.data.search_zillow);
+        await fetchCurrentJob(current_address.job_id);
+    }
+}
+
+csvQueue.process(async (task) => {
+    await TASK_HANDLERS[task.data.type](task);
 });
 
 csvQueue.on('error', (error) => {
@@ -531,20 +586,64 @@ function splitAddressDash(csv_array) {
 }
 
 // End Points
-app.post('/api/process-tpsc-csv', async (req, res) => {
-    const rows = req.body.csv_array;
-    const csvObjData = await scrapePropertyData(rows);
-    if (!csvObjData.length) {
-        res.set('Content-Type', 'application/json');
-        return res.status(400).send("There were no results");
-    }
-    const keys = Object.keys(csvObjData[0]);
+app.get('/api/csv-jobs', (req, res) => {
+    CSVJob.find({}, (err, jobs) => {
+        if (err) return res.status(500).json({message: "Problem with Mongo DB"});
+        return res.json(jobs.map(j => ({...j._doc, results: undefined})));
+    })
+});
+
+app.post('/api/csv-jobs', (req, res) => {
+    const input = req.body.csv_array;
+    const job = new CSVJob({
+        id: generateId(),
+        total_items: input.length,
+        type: req.body.type,
+        results: [],
+        export_file_name: req.body.export_file_name,
+        csv_export_fields: req.body.csv_export_fields,
+    });
+    job.save((err, job) => {
+        if (err) return res.status(500).json("Problem creating CSV job.");
+        input.forEach((item) => {
+            csvQueue.add({
+                jobId: job.id,
+                type: job.type,
+                deed: item,
+            });
+        });
+        return res.json({job_id: job.id});
+    });
+});
+
+app.get('/api/csv-jobs/:id', async (req, res) => {
+    const jobId = req.params.id;
+    if (!jobId) return res.status(400).json({message: "No Job Id provided"});
+    const job = await CSVJob.findOne({id: jobId}).exec();
+    if (!job) return res.status(404).json({message: "Can't find that job."});
+    return res.json(job);
+});
+
+app.get('/api/csv-jobs/:id/download', async (req, res) => {
+    const jobId = req.params.id;
+    if (!jobId) return res.status(400).json({message: "No Job Id provided"});
+    const job = await CSVJob.findOne({id: jobId}).exec();
+    if (!job.completed) return res.status(400).json({message: "Job not completed."});
+    const keys = job.csv_export_fields.length > 0 ?
+        job.csv_export_fields : Object.keys(job.results[0]);
     const parser = new Parser({fields: keys, excelStrings: true});
-    const csv = parser.parse(csvObjData);
+    const csv = parser.parse(job.results);
     res.set('Content-Type', 'text/csv');
     res.setHeader('Content-disposition', 'attachment; filename=data.csv');
     return res.status(200).send(csv);
 });
+
+app.delete('/api/csv-jobs/:id', async (req, res) => {
+    const jobId = req.params.id;
+    if (!jobId) return res.status(400).json({message: "No Job Id provided"});
+    const job = await CSVJob.deleteOne({id: jobId}).exec();
+    return res.json(job);
+})
 
 app.post('/api/processCsv', (req, res) => {
     // Creating Job ID
@@ -576,7 +675,7 @@ app.post('/api/processCsv', (req, res) => {
         Addresses.create(csv_array, (err, csvs) => {
             if (err) return res.status(500).json({message: "Problem creating addresses"});
             for (let i = 0; i < csvs.length; i++) {
-                csvQueue.add({ id: csvs[i]._id, search_zillow: req.body.search_zillow});
+                csvQueue.add({ id: csvs[i]._id, search_zillow: req.body.search_zillow, type: TASK_TYPES.ZONE});
             }
             return res.json({job_id: job_id});
         });
