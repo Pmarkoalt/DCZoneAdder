@@ -1,15 +1,29 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import io from "socket.io-client";
 import Table from './Table';
 
 import Button from '@material-ui/core/Button';
 import './section_two.scss';
-import {downloadJobCSV, getJob} from './utils';
+import {downloadJobCSVFromSocket, getJob} from './utils';
 
 const JobDetails = ({match}) => {
   const jobId = match.params.id;
   const [job, setJob] = useState({});
-  const [data, setData] = useState([]);
+  const [data, setData] = useState(0);
+  const [downloading, setDownloading] = useState(false);
+  const [socket, setSocket] = useState();
+
+  useEffect(() => {
+    const s = io.connect();
+    setSocket(s);
+  }, []);
+
+  const downloadCSV = useCallback(async (jobId, filename) => {
+    setDownloading(true);
+    await downloadJobCSVFromSocket(jobId, filename);
+    setDownloading(false);
+  }, []);
+
   useEffect(() => {
     if (!jobId) {
       return;
@@ -27,14 +41,13 @@ const JobDetails = ({match}) => {
   }, [data, jobId, job.total_items])
 
   useEffect(() => {
-    if (!jobId) {
+    if (!jobId || !socket) {
       return;
     }
-    const socket = io.connect();
     socket.on(`csv-job-update-${jobId}`, () => {
       setData(d => d + 1);
     })
-  }, [jobId]);
+  }, [jobId, socket]);
 
   return (
     <div id="section-two">
@@ -49,7 +62,7 @@ const JobDetails = ({match}) => {
 
 
       <div>
-        <Button id="section-two-submit" variant="contained" color="primary" disabled={!job || !data} onClick={() => downloadJobCSV(jobId, job.export_file_name)}>
+        <Button id="section-two-submit" variant="contained" color="primary" disabled={downloading} onClick={() => downloadCSV(jobId, job.export_file_name)}>
           Download
         </Button>
       </div>

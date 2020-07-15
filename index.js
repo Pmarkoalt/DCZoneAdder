@@ -140,7 +140,16 @@ csvQueue.on('completed', (job, result) => {
 // Set up Socket.io
 io.on('connection', socket => {
     console.log('User connected');
-    
+
+    socket.on("download-csv-job-result", async (jobId, respond) => {
+        const job = await CSVJob.findOne({id: jobId}).exec();
+        const keys = job.csv_export_fields.length > 0 ?
+            job.csv_export_fields : Object.keys(job.results[0]);
+        const parser = new Parser({fields: keys, excelStrings: true});
+        const csv = parser.parse(job.results);
+        respond(csv);
+    })
+
     socket.on('disconnect', () => {
       console.log('user disconnected');
     });
@@ -745,6 +754,3 @@ const port = process.env.PORT || 5000;
 server.listen(port, () => {
     console.log('App is listening on port ' + port);
 });
-
-server.setTimeout(120000);
-

@@ -10,7 +10,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 
 import './list.scss';
 
-import { downloadJobCSV, listJobs, deleteJob, formatDate} from './utils.js';
+import { listJobs, deleteJob, formatDate, downloadJobCSVFromSocket} from './utils.js';
 
 class ListComponent extends Component{
   constructor(props) {
@@ -18,7 +18,8 @@ class ListComponent extends Component{
     this.state = {
       date: new Date(),
       jobs: [],
-      loaded: false
+      loaded: false,
+      downloading: {},
     }
   }
   componentDidMount() {
@@ -43,12 +44,20 @@ class ListComponent extends Component{
     });
   }
 
-  downloadCsv(jobId, fileName) {
-    let _fileName = undefined;
-    if (fileName) {
-      _fileName = fileName.endsWith(".csv") ? fileName : `${fileName}.csv`;
-    }
-    downloadJobCSV(jobId, _fileName);
+  async downloadCsv(jobId, fileName) {
+    this.setState({
+      downloading: {
+        ...this.state.downloading,
+        [jobId]: true,
+      }
+    });
+    await downloadJobCSVFromSocket(jobId, fileName);
+    this.setState({
+      downloading: {
+        ...this.state.downloading,
+        [jobId]: false,
+      }
+    });
   }
 
   job(item) {
@@ -71,6 +80,7 @@ class ListComponent extends Component{
           <IconButton 
             edge="end" 
             aria-label="comments"
+            disabled={this.state.downloading[item.id]}
             onClick={() => this.downloadCsv(item.id, item.export_file_name)}
           >
             <GetAppIcon />

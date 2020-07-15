@@ -1,4 +1,5 @@
 import axios from 'axios';
+import io from "socket.io-client";
 import fileDownload from 'js-file-download';
 
 export async function createCSVJob(csv_array, exportFileName) {
@@ -24,6 +25,23 @@ export async function getJob(id) {
 
 export function deleteJob(id) {
     return axios.delete(`/api/csv-jobs/${id}/`);
+}
+
+export async function downloadJobCSVFromSocket(id, filename="export.csv") {
+    const socket = io.connect();
+    return new Promise((resolve, reject) => {
+        try {
+            socket.emit("download-csv-job-result", id, (data) => {
+                const _filename = filename.endsWith(".csv") ? filename : `${filename}.csv`;
+                fileDownload(data, _filename);
+                resolve();
+                socket.disconnect();
+            });
+        } catch (e) {
+            socket.disconnect();
+            reject(e);
+        }
+    });
 }
 
 export async function downloadJobCSV(id, filename="export.csv") {
