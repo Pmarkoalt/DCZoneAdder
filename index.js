@@ -746,3 +746,5 @@ server.listen(port, () => {
     console.log('App is listening on port ' + port);
 });
 
+server.setTimeout(120000);
+
