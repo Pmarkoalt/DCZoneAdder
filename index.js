@@ -587,9 +587,9 @@ function splitAddressDash(csv_array) {
 
 // End Points
 app.get('/api/csv-jobs', (req, res) => {
-    CSVJob.find({}, (err, jobs) => {
+    CSVJob.find({}, "-results", (err, jobs) => {
         if (err) return res.status(500).json({message: "Problem with Mongo DB"});
-        return res.json(jobs.map(j => ({...j._doc, results: undefined})));
+        return res.json(jobs);
     })
 });
 
