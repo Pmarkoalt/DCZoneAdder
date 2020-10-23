@@ -97,14 +97,18 @@ const TASK_CACHE = {
 //     })
 // }
 
+const JOB_INPUT_PARSERS = {
+    [TASK_TYPES.ZONE]: splitAddressDash,
+}
+
 const TASK_HANDLERS = {
     [TASK_TYPES.TPSC]: async (task) => {
-        const {deed, jobId} = task.data;
-        const ssl = getSSL(deed)
+        const {item, jobId} = task.data;
+        const ssl = getSSL(item)
         const job = await CSVJob.findOne({id: jobId}).exec();
         let result = TASK_CACHE[TASK_TYPES.TPSC][ssl];
         if (!result) {
-            result = await processProperty(deed);
+            result = await processProperty(item);
             TASK_CACHE[TASK_TYPES.TPSC][ssl] = result;
         }
         job.results.push(result);
@@ -122,7 +126,7 @@ const TASK_HANDLERS = {
         const current_address = await fetchCurrentAddress(task.data.id);
         await processAddress(current_address, task, task.data.search_zillow);
         await fetchCurrentJob(current_address.job_id);
-    }
+    },
 }
 
 csvQueue.process(async (task) => {
@@ -148,7 +152,28 @@ io.on('connection', socket => {
         const parser = new Parser({fields: keys, excelStrings: true});
         const csv = parser.parse(job.results);
         respond(csv);
-    })
+    });
+
+    const makeKeysUpper = (obj) => {
+        if (!obj) return obj;
+        return Object.keys(obj).reduce((acc, key) => {
+            acc[key.toUpperCase()] = obj[key];
+            return acc;
+        }, {});
+    }
+
+    socket.on("download-zone-job-result", async (jobId, respond) => {
+        const job = await Jobs.findOne({job_id: jobId}).exec();
+        const query = {job_id: jobId, complete: true, error: false};
+        let addresses = await Addresses.find(query).exec();
+        addresses = addresses.map(a => makeKeysUpper(a.data));
+        let keys = job.csv_export_fields.length > 0 ?
+            job.csv_export_fields : Object.keys(addresses[0]);
+        keys = keys.map(k => k.toUpperCase());
+        const parser = new Parser({fields: keys, excelStrings: false});
+        const csv = parser.parse(addresses);
+        respond(csv);
+    });
 
     socket.on('disconnect', () => {
       console.log('user disconnected');
@@ -603,11 +628,13 @@ app.get('/api/csv-jobs', (req, res) => {
 });
 
 app.post('/api/csv-jobs', (req, res) => {
-    const input = req.body.csv_array;
+    const {type: jobType} = req.body;
+    const parse = JOB_INPUT_PARSERS[jobType];
+    const input = parse ? parse(req.body.csv_array) : req.body.csv_array;
     const job = new CSVJob({
         id: generateId(),
         total_items: input.length,
-        type: req.body.type,
+        type: jobType,
         results: [],
         export_file_name: req.body.export_file_name,
         csv_export_fields: req.body.csv_export_fields,
@@ -618,7 +645,7 @@ app.post('/api/csv-jobs', (req, res) => {
             csvQueue.add({
                 jobId: job.id,
                 type: job.type,
-                deed: item,
+                item,
             });
         });
         return res.json({job_id: job.id});
@@ -727,6 +754,29 @@ app.get('/api/addressByJobId/:id', async (req, res) => {
     const return_data = await fetchCurrentJob(job_id);
     return res.json(return_data);
 });
+
+app.get('/api/jobs/:id', async (req, res) => {
+    const job_id = req.params.id;
+    if (!job_id) return res.status(400).json({message: "No Job Id provided"});
+    try {
+        const job = await Jobs.findOne({job_id}).exec();
+        if (!job) return res.status(404).json({message: "Job not found"});
+        return res.json(job);
+    } catch (e) {
+        return res.status(500).json({message: e});
+    }
+})
+
+app.get('/api/jobs/:id/completed', async (req, res) => {
+    const jobId = req.params.id;
+    try {
+        const count = await Addresses.countDocuments({job_id: jobId, complete: true}).exec();
+        return res.status(200).json({count});
+    } catch (err) {
+        return res.status(500).json({message: e});
+    }
+});
+
 
 app.delete('/api/jobs/:id', async (req, res) => {
     const job_id = req.params.id;

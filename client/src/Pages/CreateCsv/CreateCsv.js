@@ -9,7 +9,6 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { processCsv, downloadCurrentCsv, fetchCurrentJob } from './create_csv_api';
 import SectionOneContainer from './Components/SectionOne/SectionOneContainer';
 import SectionTwoContainer from './Components/SectionTwo/SectionTwoContainer';
-import TableContainer from './Components/Table/TableContainer';
 
 import './create_csv.scss';
 import { zillowFields } from './Components/SectionTwo/export_fields';
@@ -112,13 +111,8 @@ class CreateCsv extends Component{
       this.state.exportFileName,
       this.state.csvExportFields
     ).then((response) => {
-      this.setState({
-        ...this.state,
-        job_id: response.data.job_id,
-        data: [],
-        section: 3,
-        loading: false
-      });
+      const jobId = response.data.job_id;
+      window.location.href = `/job/${jobId}`;
     })
     .catch((err) => {
       console.log('add error notification');
@@ -174,7 +168,6 @@ class CreateCsv extends Component{
         : ''}
         {this.state.section === 1 && !this.state.loading ? <SectionOneContainer submitCSV={this.submitCSV} /> : ''}
         {this.state.section === 2 && !this.state.loading ? <SectionTwoContainer jobName={this.state.exportFileName} data={this.state.data} searchZillow={this.state.search_zillow} setZillowFlag={this.changeZillow} processCSV={this.processCSV} selectedFields={this.state.csvExportFields} handleAddExportField={this.handleAddExportField} handleRemoveExportField={this.handleRemoveExportField} /> : ''}
-        {this.state.section === 3 && !this.state.loading ? <TableContainer data={this.state.data} keys={this.state.keys} job_id={this.state.job_id} job_complete={this.state.job_complete} finalTable={true} downloadCSV={this.downloadCSV} /> : ''}
       </div>
     )
   }
