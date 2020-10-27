@@ -12,6 +12,7 @@ import SectionTwoContainer from './Components/SectionTwo/SectionTwoContainer';
 
 import './create_csv.scss';
 import { zillowFields } from './Components/SectionTwo/export_fields';
+import {createJobFromSocket} from './utils';
 
 class CreateCsv extends Component{
   constructor(props) {
@@ -104,14 +105,14 @@ class CreateCsv extends Component{
     });
     const zone_array = this.state.zone_chips.map(item => item.value);
     const use_array = this.state.use_chips.map(item => item.value);
-    processCsv(
+    createJobFromSocket(
       this.state.data,
-      {zones: zone_array, use: use_array},
+      zone_array,
+      use_array,
       this.state.search_zillow,
       this.state.exportFileName,
       this.state.csvExportFields
-    ).then((response) => {
-      const jobId = response.data.job_id;
+    ).then((jobId) => {
       window.location.href = `/job/${jobId}`;
     })
     .catch((err) => {

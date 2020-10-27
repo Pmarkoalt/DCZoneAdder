@@ -2,6 +2,23 @@ import axios from 'axios';
 import io from "socket.io-client";
 import fileDownload from 'js-file-download';
 
+export async function createJobFromSocket(csvArray, zones, use, searchZillow, exportFileName, csvExportFields) {
+    const socket = io.connect();
+    return new Promise((resolve, reject) => {
+        try {
+            const data = {csvArray, zones, use, exportFileName, csvExportFields, searchZillow};
+            socket.emit("create-zone-job", data, (resp) => {
+                socket.disconnect();
+                if (resp.error) return reject(resp.error);
+                return resolve(resp.jobId);
+            });
+        } catch (e) {
+            socket.disconnect();
+            reject(e);
+        }
+    });
+}
+
 export async function downloadJobCSVFromSocket(id, filename="export.csv") {
     const socket = io.connect();
     return new Promise((resolve, reject) => {

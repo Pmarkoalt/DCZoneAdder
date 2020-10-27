@@ -47,6 +47,14 @@ const CSVJob = mongoose.model('CSVJob', Schemas.CSVJobSchema);
 
 console.log("Running commands...");
 
+async function getQueueCount() {
+    console.log("Setting up queue");
+    const csvQueue = new Queue('csv_queue', REDIS_URL);
+    console.log("Queue set up");
+    const count = await csvQueue.count();
+    console.log("Queue count", count);
+}
+
 async function resetQueue () {
     const csvQueue = new Queue('csv_queue', REDIS_URL);
     console.log("Before count", await csvQueue.count());
@@ -60,12 +68,11 @@ async function resetQueue () {
         console.log("done");
     }, 5000);
 }
-// resetQueue();
 
 async function getJobInfo(jobId) {
     try {
         const result = await Jobs.findOne({job_id: jobId}).exec();
-        console.log(job);
+        console.log(result);
     } catch (e) {
         console.log("SHIT", e);
     }
@@ -77,7 +84,9 @@ async function getJobInfo(jobId) {
     }
     mongoose.disconnect();
 }
-getJobInfo("fY07wTWo");
+// getJobInfo("m8J3pbwS");
+getQueueCount();
+// resetQueue();
 
 // Insert Ad-hoc commands here
 // // const jobId = "nw0ZTCjx";
