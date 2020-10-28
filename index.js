@@ -807,7 +807,7 @@ app.get('/api/jobs/:id', async (req, res) => {
 app.get('/api/jobs/:id/completed', async (req, res) => {
     const jobId = req.params.id;
     try {
-        const count = await Addresses.countDocuments({job_id: jobId, complete: true}).exec();
+        const count = await Addresses.countDocuments({job_id: jobId, $or: [{complete: true}, {error: true}]}).exec();
         return res.status(200).json({count});
     } catch (err) {
         return res.status(500).json({message: e});

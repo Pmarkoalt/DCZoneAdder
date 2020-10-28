@@ -77,15 +77,15 @@ async function getJobInfo(jobId) {
         console.log("SHIT", e);
     }
     try {
-        const addresses = await Addresses.find({job_id: jobId, complete: true}).exec();
+        const addresses = await Addresses.countDocuments({job_id: jobId, $or: [{complete: true}, {error: true}]}).exec();
         console.log("addresses", addresses);
     } catch (e) {
         console.log("SHIT", e);
     }
     mongoose.disconnect();
 }
-// getJobInfo("m8J3pbwS");
-getQueueCount();
+getJobInfo("Fu41d7Q9");
+// getQueueCount();
 // resetQueue();
 
 // Insert Ad-hoc commands here
