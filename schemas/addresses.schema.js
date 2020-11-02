@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var addressesSchema = new Schema({
-  job_id:  String,
+  job_id:  {type: String, index: true},
   data: Schema.Types.Mixed,
   fields: [String],
   complete : {

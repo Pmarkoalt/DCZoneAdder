@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var jobsSchema = new Schema({
-  job_id:  String,
+  job_id:  {type: String, index: true},
   export_file_name: String,
   csv_export_fields: [String],
   total_items: {
