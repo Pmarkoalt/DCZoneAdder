@@ -37,10 +37,11 @@ const ZWSID = process.env.ZWSID;
 const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 const uses = require('./uses_master');
 
-mongoose.connect(`mongodb+srv://${cluster_user}:${cluster_password}@cluster0-dkqdm.mongodb.net/test?retryWrites=true&w=majority`, {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(process.env.MONGO_DB_URL, {useNewUrlParser: true, useUnifiedTopology: true});
 mongoose.connection.on('connected', function(){
     console.log('Mongoose connected with DB');
 });
+
 const Jobs = mongoose.model('Jobs', Schemas.jobsSchema);
 const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
 const CSVJob = mongoose.model('CSVJob', Schemas.CSVJobSchema);
@@ -84,7 +85,7 @@ async function getJobInfo(jobId) {
     }
     mongoose.disconnect();
 }
-getJobInfo("Fu41d7Q9");
+// getJobInfo("Fu41d7Q9");
 // getQueueCount();
 // resetQueue();
 

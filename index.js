@@ -55,7 +55,8 @@ app.use(cors());
 // });
 
 // // Set up Mongoose
-mongoose.connect(`mongodb+srv://${cluster_user}:${cluster_password}@cluster0-dkqdm.mongodb.net/test?retryWrites=true&w=majority`, {useNewUrlParser: true, useUnifiedTopology: true});
+//mongoose.connect(`mongodb+srv://${cluster_user}:${cluster_password}@cluster0-dkqdm.mongodb.net/test?retryWrites=true&w=majority`, {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(process.env.MONGO_DB_URL, {useNewUrlParser: true, useUnifiedTopology: true});
 mongoose.connection.on('connected', function(){
     console.log('Mongoose connected with DB');
 });
@@ -420,7 +421,6 @@ function processAddress(item, task, searchZillow) {
         } else {
             reject({message: "no valid address"});
         }
-        
         return superagent.get(prop.address_url)
             .then(checkRes)
             .then(checkPropData)
@@ -575,15 +575,11 @@ async function fetchCurrentJob(job_id) {
 }
 
 async function fetchAddress(job_id) {
-    return new Promise((resolve, reject) => {
-        return Addresses.find(
-            {job_id, complete: true}, 
-            (err, docs) => {
-                if (err) console.log(err);
-                return resolve(docs);
-            }
-        )
-    })
+    try {
+        return Addresses.find({job_id, complete: true}).lean();
+    } catch (err) {
+        console.log(err);
+    }
 }
 
 async function fetchJobData(job_id) {

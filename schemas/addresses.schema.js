@@ -24,4 +24,7 @@ var addressesSchema = new Schema({
   }
 });
 
+addressesSchema.index({job_id: 'hashed'});
+addressesSchema.index({job_id: 'hashed', complete: 1});
+
 module.exports = addressesSchema;

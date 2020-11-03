@@ -36,7 +36,7 @@ const ZoneJobDetails = ({match}) => {
     }
     const intervalId = setInterval(() => {
       getCompletedCount(jobId).then(setCompletedCount);
-    }, 2000);
+    }, 5000);
     return () => clearInterval(intervalId);
   }, [jobId]);
 
