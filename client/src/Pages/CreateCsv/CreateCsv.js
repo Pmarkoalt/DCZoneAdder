@@ -6,7 +6,7 @@ import io from "socket.io-client";
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import { processCsv, downloadCurrentCsv, fetchCurrentJob } from './create_csv_api';
+import { downloadCurrentCsv, fetchCurrentJob } from './create_csv_api';
 import SectionOneContainer from './Components/SectionOne/SectionOneContainer';
 import SectionTwoContainer from './Components/SectionTwo/SectionTwoContainer';
 

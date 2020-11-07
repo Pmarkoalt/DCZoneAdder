@@ -68,9 +68,8 @@ const CSVJob = mongoose.model('CSVJob', Schemas.CSVJobSchema);
 // Set up CSV Queue
 const csvQueue = new Queue('csv_queue', REDIS_URL);
 csvQueue.clean(3600 * 1000, "completed");
-// csvQueue.clean(1000, "wait");
-// csvQueue.clean(1000, "active");
-// csvQueue.clean(1000, "delayed");
+const zoneQueue = new Queue('zone-jobs', REDIS_URL);
+zoneQueue.clean(3600 * 1000, "completed");
 
 const TASK_TYPES = {
     TPSC: "tpsc",
@@ -130,6 +129,17 @@ const TASK_HANDLERS = {
     },
 }
 
+zoneQueue.process(5, async (task) => {
+    await TASK_HANDLERS[task.data.type](task);
+})
+zoneQueue.on('error', (error) => {
+    console.log("Zone Queue Error:", error);
+})
+zoneQueue.on('completed', (job) => {
+    console.log('zone job complete', job.id);
+});
+
+
 csvQueue.process(async (task) => {
     await TASK_HANDLERS[task.data.type](task);
 });
@@ -185,7 +195,7 @@ io.on('connection', socket => {
             Addresses.create(csv_array, (err, csvs) => {
                 if (err) return respond({error: "Problem creating addresses"});
                 for (let i = 0; i < csvs.length; i++) {
-                    csvQueue.add({ id: csvs[i]._id, search_zillow: searchZillow, type: TASK_TYPES.ZONE});
+                    zoneQueue.add({ id: csvs[i]._id, search_zillow: searchZillow, type: TASK_TYPES.ZONE});
                 }
                 return respond({jobId: job_id});
             });
@@ -744,7 +754,7 @@ app.post('/api/processCsv', (req, res) => {
         Addresses.create(csv_array, (err, csvs) => {
             if (err) return res.status(500).json({message: "Problem creating addresses"});
             for (let i = 0; i < csvs.length; i++) {
-                csvQueue.add({ id: csvs[i]._id, search_zillow: req.body.search_zillow, type: TASK_TYPES.ZONE});
+                zoneQueue.add({ id: csvs[i]._id, search_zillow: req.body.search_zillow, type: TASK_TYPES.ZONE});
             }
             return res.json({job_id: job_id});
         });

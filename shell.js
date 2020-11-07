@@ -56,18 +56,17 @@ async function getQueueCount() {
     console.log("Queue count", count);
 }
 
-async function resetQueue () {
-    const csvQueue = new Queue('csv_queue', REDIS_URL);
+async function resetQueue (queueName="csv_queue") {
+    const csvQueue = new Queue(queueName, REDIS_URL);
     console.log("Before count", await csvQueue.count());
-    csvQueue.clean(3600 * 1000, "completed");
-    csvQueue.clean(1000, "wait");
-    csvQueue.clean(1000, "active");
-    csvQueue.clean(1000, "delayed");
-    setTimeout(async () => {
-        console.log("After count", await csvQueue.count());
-        mongoose.disconnect();
-        console.log("done");
-    }, 5000);
+    await Promise.all([
+        csvQueue.clean(3600 * 1000, "completed"),
+        csvQueue.clean(1000, "wait"),
+        csvQueue.clean(1000, "active"),
+        csvQueue.clean(1000, "delayed"),
+    ]);
+    console.log("After count", await csvQueue.count());
+    mongoose.disconnect();
 }
 
 async function getJobInfo(jobId) {
@@ -87,7 +86,7 @@ async function getJobInfo(jobId) {
 }
 // getJobInfo("Fu41d7Q9");
 // getQueueCount();
-// resetQueue();
+// resetQueue("zone-jobs");
 
 // Insert Ad-hoc commands here
 // // const jobId = "nw0ZTCjx";
