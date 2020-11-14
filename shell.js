@@ -35,7 +35,6 @@ const cluster_user = process.env.CLUSTER_USER;
 const cluster_password = process.env.CLUSTER_PASSWORD;
 const ZWSID = process.env.ZWSID;
 const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-const uses = require('./uses_master');
 
 mongoose.connect(process.env.MONGO_DB_URL, {useNewUrlParser: true, useUnifiedTopology: true});
 mongoose.connection.on('connected', function(){
