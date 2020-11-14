@@ -230,7 +230,7 @@ function parseZillowData(data) {
   }
 }
 
-function processAddress(item, task, searchZillow) {
+function processAddress(item, task) {
   const basePropURL = 'https://citizenatlas.dc.gov/newwebservices/locationverifier.asmx/findLocation2?str=';
   const baseDataURL1 =
     'https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_APPS/PropertyQuest/MapServer/identify?f=json&tolerance=1&';
@@ -283,7 +283,7 @@ function processAddress(item, task, searchZillow) {
         });
     })
     .then((prop) => {
-      if (searchZillow) {
+      if (item.searchZillow) {
         const address = encodeURI(prop['Full Address']);
         const cityStateZip = `${prop['City']} ${prop['State']} ${prop['Zip Code']}`;
         prop.zillowPropsURL = `http://www.zillow.com/webservice/GetSearchResults.htm?zws-id=${ZWSID}&address=${address}&citystatezip=${cityStateZip}`;
@@ -312,79 +312,7 @@ function processAddress(item, task, searchZillow) {
       }
     })
     .then((prop) => {
-      const final_data = cleanData(prop);
-      // console.log(final_data);
-      // console.log("fifth", task.id);
-      // console.log
-      return Addresses.findOneAndUpdate(
-        {_id: item._id},
-        {
-          $set: {
-            data: final_data,
-            complete: true,
-            date_modifed: new Date(),
-          },
-        },
-        {new: true, useFindAndModify: true},
-        (err, address) => {
-          if (err) console.log(err);
-          return Jobs.findOneAndUpdate(
-            {job_id: item.job_id},
-            {
-              $inc: {
-                completed_items: 1,
-              },
-              $set: {
-                date_modifed: new Date(),
-              },
-            },
-            {new: true, useFindAndModify: true},
-            (err, job) => {
-              if (err) console.log(err);
-              Promise.resolve(prop);
-            },
-          );
-        },
-      );
-    })
-    .then((prop) => {
-      return Promise.resolve(prop);
-    })
-    .catch((prop) => {
-      // Overwriting prop object and storing error in external variable
-      const error = prop.message;
-      prop = prop.prop;
-      const final_data = cleanData(prop);
-      return Addresses.findOneAndUpdate(
-        {_id: item._id},
-        {
-          $set: {
-            data: final_data,
-            error: true,
-            error_details: error,
-            date_modifed: new Date(),
-          },
-        },
-        {new: true, useFindAndModify: true},
-        (err, address) => {
-          return Jobs.findOneAndUpdate(
-            {job_id: item.job_id},
-            {
-              $inc: {
-                failed_items: 1,
-              },
-              $set: {
-                date_modifed: new Date(),
-              },
-            },
-            {new: true, useFindAndModify: true},
-            (err, job) => {
-              task.progress(100);
-              return Promise.resolve(prop);
-            },
-          );
-        },
-      );
+      return cleanData(prop);
     });
 }
 
@@ -500,7 +428,7 @@ module.exports.parse = splitAddressDash;
 //   return {searchZillow: job.searchZillow};
 // };
 
-module.exports.process = async (address) => {
-  await processAddress(address, task, task.data.search_zillow);
-  await fetchCurrentJob(current_address.job_id);
+module.exports.process = async (address, task) => {
+  return await processAddress(address, task);
+  // await fetchCurrentJob(current_address.job_id);
 };

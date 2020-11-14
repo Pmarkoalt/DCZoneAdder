@@ -17,29 +17,28 @@ const CSVJobTaskSchema = new Schema({
   result: {type: Schema.Types.Mixed},
   job: {type: Schema.Types.ObjectId, ref: 'CSVJob'},
 });
-CSVJobTaskSchema.pre('save', async (task, next) => {
-  if (task.completed && !task.end_time) {
-    task.end_time = Date.now();
-    task.duration = end_time - task.start_time.getTime();
+CSVJobTaskSchema.pre('save', async (next) => {
+  if (this.completed && !this.end_time) {
+    this.end_time = Date.now();
+    this.duration = this.end_time - this.start_time.getTime();
   }
   next();
 });
-CSVJobTaskSchema.post('save', async (task, next) => {
-  if (!task.completed || task.error) return next();
-  const [job, completed_count] = await Promise.all([
+CSVJobTaskSchema.post('save', async (task) => {
+  if (!task.completed || task.error) return;
+  const [{job}, completed_count] = await Promise.all([
     task.populate('job').execPopulate(),
     CSVJobTask.count({job: task.job, completed: true, error: undefined}).exec(),
   ]);
-  const prevTotal = job.average_task_completion_time * (completed_count - 1);
+  const prevTotal = (job.average_task_completion_time || 0) * (completed_count - 1);
   job.average_task_completion_time = (prevTotal + task.duration) / completed_count;
 
-  if (0 === (await CSVJob.count({job: job._id, completed: false}))) {
+  const completedCount = await CSVJob.count({job: job._id, completed: false});
+  if (completedCount === 0 && !job.completed) {
     job.completed = true;
-    job.completed_timestamp = Date.now();
   }
   job.save((err) => {
     if (err) console.log(err);
-    next();
   });
 });
 const CSVJobTask = mongoose.model('CSVJobTask', CSVJobTaskSchema);
@@ -79,6 +78,13 @@ const CSVJobSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+});
+CSVJobSchema.pre('save', async (next) => {
+  if (this.completed && !this.completed_timestamp) {
+    this.completed_timestamp = Date.now();
+    this.time_to_complete = this.completed_timestamp - this.created_timestamp.getTime();
+  }
+  next();
 });
 const CSVJob = mongoose.model('CSVJob', CSVJobSchema);
 

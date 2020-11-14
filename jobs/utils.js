@@ -7,3 +7,5 @@ function generateId() {
   }
   return retVal;
 }
+
+module.exports.generateId = generateId;

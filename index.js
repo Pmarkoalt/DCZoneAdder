@@ -7,11 +7,10 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const csv = require('csvtojson');
-const {Parser} = require('json2csv');
 const {connectToDB} = require('./db');
-const {listJobs, createJob, findJob, getJobResultCSVString} = require('./jobs');
+const {init, listJobs, createJob, deleteJob, findJob, getJobResultCSVString} = require('./jobs');
 
-connectToDB();
+connectToDB().then(init);
 
 // Serve the static files from the React app
 app.use(express.static(path.join(__dirname, 'client/build')));
@@ -37,8 +36,8 @@ app.get('/api/csv-jobs', async (req, res) => {
 
 app.post('/api/csv-jobs', async (req, res) => {
   try {
-    const job = await createJob(req.body.type, req.body.payload);
-    return res.json(job);
+    const job = await createJob(req.body);
+    return res.status(201).json(job);
   } catch (err) {
     return res.status(500).json({message: 'Error creating job', error: err});
   }
@@ -72,8 +71,8 @@ app.delete('/api/csv-jobs/:id', async (req, res) => {
   try {
     const jobId = req.params.id;
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
-    const job = await CSVJob.deleteOne({id: jobId}).exec();
-    return res.json(job);
+    await deleteJob(jobId);
+    return res.status(204).json();
   } catch (err) {
     return res.status(500).json({message: 'Error deleting job', error: err});
   }
