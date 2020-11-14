@@ -101,13 +101,20 @@ module.exports.createJob = (jobData) => {
 };
 
 module.exports.deleteJob = async (jobId) => {
-  try {
-    const result = await CSVJob.deleteOne({id: jobId}).exec();
-    return result;
-  } catch (err) {
-    console.log(err);
-    return Promise.reject(err);
-  }
+  return new Promise((resolve, reject) => {
+    try {
+      CSVJob.findOneAndRemove({id: jobId}, (err, job) => {
+        if (err) return reject(err);
+        CSVJobTask.deleteMany({job: job._id}, (err) => {
+          if (err) return reject(err);
+          return resolve(job);
+        });
+      });
+    } catch (err) {
+      console.log(err);
+      return reject(err);
+    }
+  });
 };
 
 const processTask = (taskMeta) => {

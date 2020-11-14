@@ -71,8 +71,8 @@ app.delete('/api/csv-jobs/:id', async (req, res) => {
   try {
     const jobId = req.params.id;
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
-    await deleteJob(jobId);
-    return res.status(204).json();
+    const job = await deleteJob(jobId);
+    return res.status(204).json(job);
   } catch (err) {
     return res.status(500).json({message: 'Error deleting job', error: err});
   }

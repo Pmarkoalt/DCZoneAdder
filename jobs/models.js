@@ -33,7 +33,7 @@ CSVJobTaskSchema.post('save', async (task) => {
   const prevTotal = (job.average_task_completion_time || 0) * (completed_count - 1);
   job.average_task_completion_time = (prevTotal + task.duration) / completed_count;
 
-  const completedCount = await CSVJob.count({job: job._id, completed: false});
+  const completedCount = await CSVJobTask.count({job: job._id, completed: false});
   if (completedCount === 0 && !job.completed) {
     job.completed = true;
   }
@@ -41,7 +41,6 @@ CSVJobTaskSchema.post('save', async (task) => {
     if (err) console.log(err);
   });
 });
-const CSVJobTask = mongoose.model('CSVJobTask', CSVJobTaskSchema);
 
 const CSVJobSchema = new Schema({
   id: {type: String, required: true, unique: true},
@@ -86,6 +85,8 @@ CSVJobSchema.pre('save', async (next) => {
   }
   next();
 });
+
+const CSVJobTask = mongoose.model('CSVJobTask', CSVJobTaskSchema);
 const CSVJob = mongoose.model('CSVJob', CSVJobSchema);
 
 module.exports = {CSVJob, CSVJobTask, JOB_TYPES};
