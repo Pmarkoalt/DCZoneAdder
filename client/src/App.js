@@ -12,13 +12,13 @@ class App extends Component {
         <Header />
         <Switch>
           <Route exact path="/" component={Home} />
-          <Route path="/jobs/:id" component={JobDetails} />
           <Route path="/jobs" component={JobsList} />
-          <Route path="/create-job" component={CSVUpload} />
-          <Route path="/create" component={CreateJob} />
+          <Route path="/jobs/create" component={CreateJob} />
+          <Route path="/jobs/:id" component={JobDetails} />
+          {/* <Route path="/create-job" component={CSVUpload} />
           <Route path="/list" component={ListComponent} />
           <Route path="/details/:id" component={DocumentDetails} />
-          <Route path="/job/:id" component={ZoneJobDetails} />
+          <Route path="/job/:id" component={ZoneJobDetails} /> */}
         </Switch>
         <Footer />
       </div>

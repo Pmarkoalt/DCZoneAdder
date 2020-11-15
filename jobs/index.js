@@ -29,12 +29,17 @@ module.exports.listJobs = () => {
 
 module.exports.findJob = (jobId) => {
   return new Promise((resolve, reject) => {
-    CSVJob.findOne({id: jobId}, (err, job) => {
+    CSVJob.findOne({id: jobId}, {}, (err, job) => {
       if (err) return reject(err);
-      return resolve(job);
+      return CSVJobTask.aggregate([
+        {$match: {job: job._id, completed: true}},
+        {$addFields: {hasError: {$toBool: "$error"}}},
+        {$group: {_id: "$hasError", count: {$sum: 1}}}
+      ]).then(results => {
+        console.log(results);
+        return resolve(job);
+      })
     })
-      .populate('tasks')
-      .lean();
   });
 };
 
