@@ -7,6 +7,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import IconButton from '@material-ui/core/IconButton';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import DeleteIcon from '@material-ui/icons/Delete';
+import {CircularProgressWithLabel} from '../../Components/progress';
 
 import './list.scss';
 
@@ -62,24 +63,30 @@ class ListComponent extends Component {
 
   job(item) {
     return (
-      <ListItem className="card" button component="a" key={item._id} href={`/jobs/${item.id}`}>
-        <ListItemText
-          primary={item.export_file_name || `Job ID: ${item.id}`}
-          secondary={formatDate(item.created_timestamp)}
-        />
-        <ListItemSecondaryAction>
-          <IconButton edge="end" aria-label="delete" onClick={() => this.deleteJob(item.id, item.export_file_name)}>
-            <DeleteIcon />
-          </IconButton>
-          <IconButton
-            edge="end"
-            aria-label="comments"
-            disabled={this.state.downloading[item.id]}
-            onClick={() => this.downloadCsv(item.id, item.export_file_name)}>
-            <GetAppIcon />
-          </IconButton>
-        </ListItemSecondaryAction>
-      </ListItem>
+      <div className="list-row">
+        <ListItem className="card" button component="a" key={item._id} href={`/jobs/${item.id}`}>
+          <ListItemText
+            primary={item.export_file_name || `Job ID: ${item.id}`}
+            secondary={formatDate(item.created_timestamp)}
+          />
+          <ListItemSecondaryAction>
+            <IconButton edge="end" aria-label="delete" onClick={() => this.deleteJob(item.id, item.export_file_name)}>
+              <DeleteIcon />
+            </IconButton>
+            <IconButton
+              edge="end"
+              aria-label="comments"
+              disabled={this.state.downloading[item.id]}
+              onClick={() => this.downloadCsv(item.id, item.export_file_name)}>
+              <GetAppIcon />
+            </IconButton>
+          </ListItemSecondaryAction>
+        </ListItem>
+        <div>
+          {item.tasks.length}/{item.total_tasks}
+        </div>
+        {/* <CircularProgressWithLabel value={(item.tasks.length / item.total_tasks) * 100} /> */}
+      </div>
     );
   }
 

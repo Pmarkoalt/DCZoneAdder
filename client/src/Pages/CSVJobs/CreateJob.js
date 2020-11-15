@@ -8,8 +8,10 @@ import {getExportFieldList} from '../../Components/ExportFieldSelect/export_fiel
 import {getContextFieldsComponent} from './context-fields';
 
 import './styles.scss';
+import {useParams} from 'react-router-dom';
 
-const CreateJob = ({jobType = 'zone'}) => {
+const CreateJob = () => {
+  const {jobType} = useParams();
   const [files, setFiles] = useState([]);
   const [error, setError] = useState();
   const [valid, setValid] = useState(false);

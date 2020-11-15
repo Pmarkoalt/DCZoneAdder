@@ -20,26 +20,32 @@ const JOB_INPUT_PARSERS = {
 
 module.exports.listJobs = () => {
   return new Promise((resolve, reject) => {
-    CSVJob.find({}, '-tasks', (err, jobs) => {
+    CSVJob.find({}, (err, jobs) => {
       if (err) return reject(err);
       return resolve(jobs);
-    }).lean();
+    })
+      .populate({path: 'tasks', match: {completed: true}})
+      .sort('-created_timestamp')
+      .limit(10);
   });
 };
 
 module.exports.findJob = (jobId) => {
   return new Promise((resolve, reject) => {
-    CSVJob.findOne({id: jobId}, {}, (err, job) => {
+    CSVJob.findOne({id: jobId}, '-tasks', (err, job) => {
       if (err) return reject(err);
       return CSVJobTask.aggregate([
         {$match: {job: job._id, completed: true}},
-        {$addFields: {hasError: {$toBool: "$error"}}},
-        {$group: {_id: "$hasError", count: {$sum: 1}}}
-      ]).then(results => {
-        console.log(results);
-        return resolve(job);
-      })
-    })
+        {$addFields: {hasError: {$toBool: '$error'}}},
+        {$group: {_id: '$hasError', count: {$sum: 1}}},
+      ]).then((results) => {
+        let errorCount = results.find((r) => r._id === true);
+        errorCount = errorCount ? errorCount.count : 0;
+        let successCount = results.find((r) => r._id === null);
+        successCount = successCount ? successCount.count : 0;
+        return resolve({...job, task_error_count: errorCount, task_success_count: successCount});
+      });
+    }).lean();
   });
 };
 
@@ -93,7 +99,7 @@ module.exports.createJob = (jobData) => {
           // const provideContext = JOB_TASK_CONTEXT[jobType];
           tasks.forEach((task) => {
             // const context = provideContext ? provideContext(job, task) : {};
-            queue.add({context: job.context, data: task.data, taskId: task._id, type: job.type});
+            queue.add({context: job.context, data: task.data, taskId: task._id, type: job.type, jobId: job.id});
           });
           return resolve(job);
         });
@@ -153,6 +159,6 @@ const processTask = (taskMeta) => {
   });
 };
 
-module.exports.init = () => {
-  initQueues(processTask);
+module.exports.init = (callbacks) => {
+  initQueues(processTask, callbacks);
 };

@@ -11,12 +11,12 @@ const JobDetails = ({match}) => {
   const [job, setJob] = useState({});
   const [data, setData] = useState(0);
   const [downloading, setDownloading] = useState(false);
-  // const [socket, setSocket] = useState();
+  const [socket, setSocket] = useState();
 
-  // useEffect(() => {
-  //   const s = io.connect();
-  //   setSocket(s);
-  // }, []);
+  useEffect(() => {
+    const s = io.connect();
+    setSocket(s);
+  }, []);
 
   const downloadCSV = useCallback(async (jobId, filename) => {
     setDownloading(true);
@@ -30,7 +30,7 @@ const JobDetails = ({match}) => {
     }
     getJob(jobId).then((j) => {
       setJob(j);
-      setData(j.tasks.filter((t) => t.completed).length);
+      setData(j.task_success_count + j.task_error_count);
     });
   }, [jobId]);
 
@@ -40,14 +40,14 @@ const JobDetails = ({match}) => {
     }
   }, [data, jobId, job.total_tasks]);
 
-  // useEffect(() => {
-  //   if (!jobId || !socket) {
-  //     return;
-  //   }
-  //   socket.on(`csv-job-update-${jobId}`, () => {
-  //     setData((d) => d + 1);
-  //   });
-  // }, [jobId, socket]);
+  useEffect(() => {
+    if (!jobId || !socket) {
+      return;
+    }
+    socket.on(`job-task-complete-${jobId}`, () => {
+      setData((d) => d + 1);
+    });
+  }, [jobId, socket]);
 
   return (
     <div id="section-two">
@@ -55,7 +55,7 @@ const JobDetails = ({match}) => {
         {`Job ID: ${jobId}`} ({data}/{job.total_tasks})
       </h2>
       {job.completed ? <h3>Job Complete!</h3> : <h3>Job Processing, Please Wait</h3>}
-      {job.completed && <Table data={job.tasks.map((t) => t.data)} keys={Object.keys(job.tasks[0].data)} />}
+      {/* {job.completed && <Table data={job.tasks.map((t) => t.data)} keys={Object.keys(job.tasks[0].data)} />} */}
       {job.id && !job.completed && (
         <div className="progress-bar-container">
           <div className="progress-bar" style={{width: `${(job ? data / job.total_tasks : 0) * 100}%`}} />
