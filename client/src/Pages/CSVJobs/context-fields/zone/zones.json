@@ -1,0 +1,585 @@
+[{
+    "label": "ALL-ZONES",
+    "value": "ALL-ZONES"
+  },
+  {
+    "label": "ARTS-1",
+    "value": "ARTS-1"
+  },
+  {
+    "label": "ARTS-2",
+    "value": "ARTS-2"
+  },
+  {
+    "label": "ARTS-3",
+    "value": "ARTS-3"
+  },
+  {
+    "label": "ARTS-4",
+    "value": "ARTS-4"
+  },
+  {
+    "label": "CG-1",
+    "value": "CG-1"
+  },
+  {
+    "label": "CG-2",
+    "value": "CG-2"
+  },
+  {
+    "label": "CG-3",
+    "value": "CG-3"
+  },
+  {
+    "label": "CG-4",
+    "value": "CG-4"
+  },
+  {
+    "label": "CG-5",
+    "value": "CG-5"
+  },
+  {
+    "label": "CG-6",
+    "value": "CG-6"
+  },
+  {
+    "label": "CG-7",
+    "value": "CG-7"
+  },
+  {
+    "label": "D-1-R",
+    "value": "D-1-R"
+  },
+  {
+    "label": "D-2",
+    "value": "D-2"
+  },
+  {
+    "label": "D-3",
+    "value": "D-3"
+  },
+  {
+    "label": "D-4",
+    "value": "D-4"
+  },
+  {
+    "label": "D-4-R",
+    "value": "D-4-R"
+  },
+  {
+    "label": "D-5",
+    "value": "D-5"
+  },
+  {
+    "label": "D-5-R",
+    "value": "D-5-R"
+  },
+  {
+    "label": "D-6",
+    "value": "D-6"
+  },
+  {
+    "label": "D-6-R",
+    "value": "D-6-R"
+  },
+  {
+    "label": "D-7",
+    "value": "D-7"
+  },
+  {
+    "label": "D-8",
+    "value": "D-8"
+  },
+  {
+    "label": "HE-1",
+    "value": "HE-1"
+  },
+  {
+    "label": "HE-2",
+    "value": "HE-2"
+  },
+  {
+    "label": "HE-3",
+    "value": "HE-3"
+  },
+  {
+    "label": "HE-4",
+    "value": "HE-4"
+  },
+  {
+    "label": "MU-1",
+    "value": "MU-1"
+  },
+  {
+    "label": "MU-10",
+    "value": "MU-10"
+  },
+  {
+    "label": "MU-11",
+    "value": "MU-11"
+  },
+  {
+    "label": "MU-12",
+    "value": "MU-12"
+  },
+  {
+    "label": "MU-13",
+    "value": "MU-13"
+  },
+  {
+    "label": "MU-14",
+    "value": "MU-14"
+  },
+  {
+    "label": "MU-15",
+    "value": "MU-15"
+  },
+  {
+    "label": "MU-16",
+    "value": "MU-16"
+  },
+  {
+    "label": "MU-17",
+    "value": "MU-17"
+  },
+  {
+    "label": "MU-18",
+    "value": "MU-18"
+  },
+  {
+    "label": "MU-19",
+    "value": "MU-19"
+  },
+  {
+    "label": "MU-2",
+    "value": "MU-2"
+  },
+  {
+    "label": "MU-20",
+    "value": "MU-20"
+  },
+  {
+    "label": "MU-21",
+    "value": "MU-21"
+  },
+  {
+    "label": "MU-22",
+    "value": "MU-22"
+  },
+  {
+    "label": "MU-23",
+    "value": "MU-23"
+  },
+  {
+    "label": "MU-24",
+    "value": "MU-24"
+  },
+  {
+    "label": "MU-25",
+    "value": "MU-25"
+  },
+  {
+    "label": "MU-26",
+    "value": "MU-26"
+  },
+  {
+    "label": "MU-27",
+    "value": "MU-27"
+  },
+  {
+    "label": "MU-28",
+    "value": "MU-28"
+  },
+  {
+    "label": "MU-29",
+    "value": "MU-29"
+  },
+  {
+    "label": "MU-3A",
+    "value": "MU-3A"
+  },
+  {
+    "label": "MU-3B",
+    "value": "MU-3B"
+  },
+  {
+    "label": "MU-4",
+    "value": "MU-4"
+  },
+  {
+    "label": "MU-5A",
+    "value": "MU-5A"
+  },
+  {
+    "label": "MU-5B",
+    "value": "MU-5B"
+  },
+  {
+    "label": "MU-6",
+    "value": "MU-6"
+  },
+  {
+    "label": "MU-7",
+    "value": "MU-7"
+  },
+  {
+    "label": "MU-8",
+    "value": "MU-8"
+  },
+  {
+    "label": "MU-9",
+    "value": "MU-9"
+  },
+  {
+    "label": "NC-1",
+    "value": "NC-1"
+  },
+  {
+    "label": "NC-10",
+    "value": "NC-10"
+  },
+  {
+    "label": "NC-11",
+    "value": "NC-11"
+  },
+  {
+    "label": "NC-12",
+    "value": "NC-12"
+  },
+  {
+    "label": "NC-13",
+    "value": "NC-13"
+  },
+  {
+    "label": "NC-14",
+    "value": "NC-14"
+  },
+  {
+    "label": "NC-15",
+    "value": "NC-15"
+  },
+  {
+    "label": "NC-16",
+    "value": "NC-16"
+  },
+  {
+    "label": "NC-17",
+    "value": "NC-17"
+  },
+  {
+    "label": "NC-2",
+    "value": "NC-2"
+  },
+  {
+    "label": "NC-3",
+    "value": "NC-3"
+  },
+  {
+    "label": "NC-4",
+    "value": "NC-4"
+  },
+  {
+    "label": "NC-5",
+    "value": "NC-5"
+  },
+  {
+    "label": "NC-6",
+    "value": "NC-6"
+  },
+  {
+    "label": "NC-7",
+    "value": "NC-7"
+  },
+  {
+    "label": "NC-8",
+    "value": "NC-8"
+  },
+  {
+    "label": "NC-9",
+    "value": "NC-9"
+  },
+  {
+    "label": "PDR-1",
+    "value": "PDR-1"
+  },
+  {
+    "label": "PDR-2",
+    "value": "PDR-2"
+  },
+  {
+    "label": "PDR-3",
+    "value": "PDR-3"
+  },
+  {
+    "label": "PDR-4",
+    "value": "PDR-4"
+  },
+  {
+    "label": "PDR-5",
+    "value": "PDR-5"
+  },
+  {
+    "label": "PDR-6",
+    "value": "PDR-6"
+  },
+  {
+    "label": "PDR-7",
+    "value": "PDR-7"
+  },
+  {
+    "label": "R-1-A",
+    "value": "R-1-A"
+  },
+  {
+    "label": "R-1-B",
+    "value": "R-1-B"
+  },
+  {
+    "label": "R-2",
+    "value": "R-2"
+  },
+  {
+    "label": "R-3",
+    "value": "R-3"
+  },
+  {
+    "label": "R-10",
+    "value": "R-10"
+  },
+  {
+    "label": "R-11",
+    "value": "R-11"
+  },
+  {
+    "label": "R-12",
+    "value": "R-12"
+  },
+  {
+    "label": "R-13",
+    "value": "R-13"
+  },
+  {
+    "label": "R-14",
+    "value": "R-14"
+  },
+  {
+    "label": "R-15",
+    "value": "R-15"
+  },
+  {
+    "label": "R-16",
+    "value": "R-16"
+  },
+  {
+    "label": "R-17",
+    "value": "R-17"
+  },
+  {
+    "label": "R-19",
+    "value": "R-19"
+  },
+  {
+    "label": "R-2",
+    "value": "R-2"
+  },
+  {
+    "label": "R-20",
+    "value": "R-20"
+  },
+  {
+    "label": "R-21",
+    "value": "R-21"
+  },
+  {
+    "label": "R-3",
+    "value": "R-3"
+  },
+  {
+    "label": "R-6",
+    "value": "R-6"
+  },
+  {
+    "label": "R-6",
+    "value": "R-6"
+  },
+  {
+    "label": "R-7",
+    "value": "R-7"
+  },
+  {
+    "label": "R-8",
+    "value": "R-8"
+  },
+  {
+    "label": "R-9",
+    "value": "R-9"
+  },
+  {
+    "label": "RA-1",
+    "value": "RA-1"
+  },
+  {
+    "label": "RA-10",
+    "value": "RA-10"
+  },
+  {
+    "label": "RA-2",
+    "value": "RA-2"
+  },
+  {
+    "label": "RA-3",
+    "value": "RA-3"
+  },
+  {
+    "label": "RA-4",
+    "value": "RA-4"
+  },
+  {
+    "label": "RA-5",
+    "value": "RA-5"
+  },
+  {
+    "label": "RA-6",
+    "value": "RA-6"
+  },
+  {
+    "label": "RA-7",
+    "value": "RA-7"
+  },
+  {
+    "label": "RA-8",
+    "value": "RA-8"
+  },
+  {
+    "label": "RA-9",
+    "value": "RA-9"
+  },
+  {
+    "label": "RC-1",
+    "value": "RC-1"
+  },
+  {
+    "label": "RC-2",
+    "value": "RC-2"
+  },
+  {
+    "label": "RC-3",
+    "value": "RC-3"
+  },
+  {
+    "label": "RF-1",
+    "value": "RF-1"
+  },
+  {
+    "label": "RF-2",
+    "value": "RF-2"
+  },
+  {
+    "label": "RF-3",
+    "value": "RF-3"
+  },
+  {
+    "label": "RF-4",
+    "value": "RF-4"
+  },
+  {
+    "label": "RF-5",
+    "value": "RF-5"
+  },
+  {
+    "label": "SEFC-1",
+    "value": "SEFC-1"
+  },
+  {
+    "label": "SEFC-2",
+    "value": "SEFC-2"
+  },
+  {
+    "label": "SEFC-3",
+    "value": "SEFC-3"
+  },
+  {
+    "label": "SEFC-4",
+    "value": "SEFC-4"
+  },
+  {
+    "label": "STE-1",
+    "value": "STE-1"
+  },
+  {
+    "label": "STE-10",
+    "value": "STE-10"
+  },
+  {
+    "label": "STE-11",
+    "value": "STE-11"
+  },
+  {
+    "label": "STE-12",
+    "value": "STE-12"
+  },
+  {
+    "label": "STE-13",
+    "value": "STE-13"
+  },
+  {
+    "label": "STE-14",
+    "value": "STE-14"
+  },
+  {
+    "label": "STE-15",
+    "value": "STE-15"
+  },
+  {
+    "label": "STE-16",
+    "value": "STE-16"
+  },
+  {
+    "label": "STE-17",
+    "value": "STE-17"
+  },
+  {
+    "label": "STE-18",
+    "value": "STE-18"
+  },
+  {
+    "label": "STE-19",
+    "value": "STE-19"
+  },
+  {
+    "label": "STE-2",
+    "value": "STE-2"
+  },
+  {
+    "label": "STE-3",
+    "value": "STE-3"
+  },
+  {
+    "label": "STE-4",
+    "value": "STE-4"
+  },
+  {
+    "label": "STE-5",
+    "value": "STE-5"
+  },
+  {
+    "label": "STE-6",
+    "value": "STE-6"
+  },
+  {
+    "label": "STE-7",
+    "value": "STE-7"
+  },
+  {
+    "label": "STE-8",
+    "value": "STE-8"
+  },
+  {
+    "label": "STE-9",
+    "value": "STE-9"
+  },
+  {
+    "label": "USN",
+    "value": "USN"
+  }
+]

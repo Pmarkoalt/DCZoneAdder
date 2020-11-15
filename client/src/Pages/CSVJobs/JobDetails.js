@@ -30,7 +30,7 @@ const JobDetails = ({match}) => {
     }
     getJob(jobId).then((j) => {
       setJob(j);
-      setData(j.tasks.length);
+      setData(j.tasks.filter((t) => t.completed).length);
     });
   }, [jobId]);
 

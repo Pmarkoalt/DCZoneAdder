@@ -2,15 +2,18 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import fileDownload from 'js-file-download';
 
-export async function createCSVJob(csv_array, exportFileName) {
+export async function createCSVJob(jobType, data, meta, context) {
   const params = {
-    csv_array,
-    export_file_name: exportFileName,
-    type: 'tpsc',
+    type: jobType,
+    data: data,
+    meta: {
+      export_file_name: meta.exportFileName,
+      csv_export_fields: meta.csvExportFields,
+    },
+    context,
   };
   const resp = await axios.post('/api/csv-jobs', params);
-  const {job_id: jobId} = resp.data;
-  return jobId;
+  return resp.data;
 }
 
 export async function listJobs() {
