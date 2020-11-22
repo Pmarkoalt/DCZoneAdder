@@ -17,7 +17,7 @@ import {LinearProgressWithLabel} from '../../Components/progress';
 import './list.scss';
 
 import {listJobs, deleteJob, formatDate, downloadJobCSV} from './utils.js';
-import {CircularProgress} from '@material-ui/core';
+import {Avatar, CircularProgress} from '@material-ui/core';
 
 const JobTypeSelect = styled(FormControl)`
   width: 200px;
@@ -26,15 +26,28 @@ const JobTypeSelect = styled(FormControl)`
   right: 10px;
 `;
 
+const getJobTypeAvatarMeta = (jobType) => {
+  const config = {
+    zone: ['Z', 'lightcoral'],
+    tpsc: ['T', 'lightskyblue'],
+  };
+  return config[jobType];
+};
+
 const Job = ({job, disableDownload, disableDelete, onDownload, onDelete}) => {
+  const [abbreviation, color] = getJobTypeAvatarMeta(job.type);
   return (
     <div className="list-row">
+      <Avatar variant="square" style={{backgroundColor: color, marginRight: '10px'}}>
+        {abbreviation}
+      </Avatar>
       <ListItem className="card" button component="a" key={job._id} href={`/jobs/${job.id}`}>
         <div className="list-top-row">
           <ListItemText
             primary={job.export_file_name || `Job ID: ${job.id}`}
             secondary={formatDate(job.created_timestamp)}
           />
+          <ListItemText primary={`Success: ${job.task_success_count}`} secondary={`Failed: ${job.task_error_count}`} />
           <ListItemSecondaryAction>
             <IconButton
               edge="end"
@@ -74,11 +87,12 @@ const JobList = () => {
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState({});
   const [deleting, setDeleting] = useState({});
-  const [jobType, setJobType] = useState();
+  const [jobType, setJobType] = useState('All');
 
   useEffect(() => {
     setLoading(true);
-    listJobs(jobType).then((jobs) => {
+    const _jobType = jobType === 'All' ? undefined : jobType;
+    listJobs(_jobType).then((jobs) => {
       setLoading(false);
       setJobs(jobs);
     });
@@ -93,15 +107,13 @@ const JobList = () => {
           id="demo-simple-select-filled"
           value={jobType}
           onChange={(event) => setJobType(event.target.value)}>
-          <MenuItem value={undefined}>
-            <em>All</em>
-          </MenuItem>
+          <MenuItem value="All">All</MenuItem>
           <MenuItem value="zone">Zone</MenuItem>
           <MenuItem value="tpsc">TSPC</MenuItem>
         </Select>
       </JobTypeSelect>
       <div id="list">
-        <List>
+        <List style={{width: '600px'}}>
           {!loading ? (
             jobs.length === 0 ? (
               <h3>No Results</h3>

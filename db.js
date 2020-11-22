@@ -1,12 +1,4 @@
 const mongoose = require('mongoose');
-// const Schemas = require('./schemas');
-
-// // Set up Mongoose
-// const Jobs = mongoose.model('Jobs', Schemas.jobsSchema);
-// const Addresses = mongoose.model('Addresses', Schemas.addressesSchema);
-// const CSVJob = mongoose.model('CSVJob', Schemas.CSVJobSchema);
-
-// module.exports.models = {Jobs, Addresses, CSVJob};
 
 module.exports.connectToDB = () => {
   return new Promise((resolve, reject) => {

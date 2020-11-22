@@ -7,9 +7,11 @@ import {Tabs} from '../../Components/tabs';
 
 import Button from '@material-ui/core/Button';
 // import './section_two.scss';
-import {downloadJobCSV, getJob, getJobTaskResults} from './utils';
+import {getJobTypeAvatarMeta, downloadJobCSV, getJob, getJobTaskResults} from './utils';
+import {Avatar} from '@material-ui/core';
 
 const DetailsContainer = styled.div`
+  padding-top: 1em;
   margin: auto;
   width: 80%;
   max-width: 1000px;
@@ -46,7 +48,7 @@ const TaskTable = ({job, error}) => {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     setLoading(true);
-    getJobTaskResults(job.id, Boolean(error)).then((tasks) => {
+    getJobTaskResults(job.id, Boolean(error), {limit: 100, start: 0}).then((tasks) => {
       setTasks(tasks);
       setLoading(false);
     });
@@ -54,7 +56,8 @@ const TaskTable = ({job, error}) => {
   const key = error ? 'data' : 'result';
   const header = tasks[0] ? Object.keys(tasks[0][key] || {}) : [];
   const rows = tasks.map((t) => t[key]);
-  return <Table header={header} rows={rows} loading={loading} />;
+  const count = error ? job.task_error_count : job.task_success_count;
+  return <Table header={header} rows={rows} loading={loading} count={count} />;
 };
 
 function msToTime(duration) {
@@ -79,6 +82,7 @@ const JobDetails = ({match}) => {
   const [data, setData] = useState(0);
   const [downloading, setDownloading] = useState(false);
   const [socket, setSocket] = useState();
+  const [abbreviation, color] = getJobTypeAvatarMeta(job ? job.type : undefined);
 
   useEffect(() => {
     const s = io.connect();
@@ -124,9 +128,14 @@ const JobDetails = ({match}) => {
     <DetailsContainer>
       <div className="top-row">
         <div>
-          <h2>
-            {`Job ID: ${jobId}`} {job.completed ? '' : `(${data}/${job.total_tasks})`}
-          </h2>
+          <div style={{display: 'flex'}}>
+            <Avatar variant="square" style={{backgroundColor: color, marginRight: '10px'}}>
+              {abbreviation}
+            </Avatar>
+            <h2>
+              {`Job ID: ${jobId}`} {job.completed ? '' : `(${data}/${job.total_tasks})`}
+            </h2>
+          </div>
           {job.completed ? (
             <h3>Job Complete! {job.total_tasks} tasks processed. </h3>
           ) : (
@@ -156,12 +165,12 @@ const JobDetails = ({match}) => {
         {job && job.completed && (
           <Tabs
             tabs={[
+              // {
+              //   label: 'Success',
+              //   component: <TaskTable job={job} />,
+              // },
               {
-                label: 'Success',
-                component: <TaskTable job={job} />,
-              },
-              {
-                label: 'Error',
+                label: `Failed Items (${job.task_error_count})`,
                 component: <TaskTable job={job} error />,
               },
             ]}

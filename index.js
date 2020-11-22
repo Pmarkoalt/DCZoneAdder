@@ -99,8 +99,11 @@ app.get('/api/csv-jobs/:id/failed', async (req, res) => {
   const jobId = req.params.id;
   try {
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
-    const {start = 0, limit = 10} = req.query;
-    const tasks = await getJobResults(jobId, true, {start, limit});
+    const pagination = {
+      start: req.query.start ? Number(req.query.start) : 0,
+      limit: req.query.limit ? Number(req.query.limit) : 10,
+    };
+    const tasks = await getJobResults(jobId, true, pagination);
     return res.status(200).json(tasks);
   } catch (err) {
     if (err === 404) {

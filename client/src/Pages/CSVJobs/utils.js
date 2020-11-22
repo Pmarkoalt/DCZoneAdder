@@ -29,8 +29,10 @@ export async function getJob(id) {
   return resp.data;
 }
 
-export async function getJobTaskResults(id, failed = false) {
-  const resp = await axios.get(`/api/csv-jobs/${id}/${failed ? 'failed' : 'succeeded'}`);
+export async function getJobTaskResults(id, failed = false, {start = 0, limit = 10} = {}) {
+  const resp = await axios.get(`/api/csv-jobs/${id}/${failed ? 'failed' : 'succeeded'}`, {
+    params: {start, limit},
+  });
   return resp.data;
 }
 
@@ -85,3 +87,11 @@ export function formatDate(date) {
 
   return `${day} ${monthNames[monthIndex]} ${year}, ${hour}:${minutes}`;
 }
+
+export const getJobTypeAvatarMeta = (jobType) => {
+  const config = {
+    zone: ['Z', 'lightcoral'],
+    tpsc: ['T', 'lightskyblue'],
+  };
+  return config[jobType] || ['X', 'gray'];
+};

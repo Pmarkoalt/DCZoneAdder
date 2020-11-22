@@ -67,7 +67,12 @@ module.exports.findJob = (jobId) => {
         errorCount = errorCount ? errorCount.count : 0;
         let successCount = results.find((r) => r._id === null);
         successCount = successCount ? successCount.count : 0;
-        return resolve({...job, task_error_count: errorCount, task_success_count: successCount});
+        return resolve({
+          ...job,
+          task_error_count: errorCount,
+          task_success_count: successCount,
+          task_completed_count: errorCount + successCount,
+        });
       });
     }).lean();
   });
