@@ -43,7 +43,7 @@ function Header(props) {
             <Link to="/list"><MenuItem onClick={handleClose}>View All CSVs</MenuItem></Link> */}
           </Menu>
           <Typography variant="h6" id="title">
-            DC Zone Adder
+            DC Zone Builder
           </Typography>
         </Toolbar>
       </AppBar>
