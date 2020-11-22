@@ -6,7 +6,7 @@ module.exports.process = (data) => {
   // //   result = await processProperty(data);
   // //   TASK_CACHE[TASK_TYPES.TPSC][ssl] = result;
   // // }
-  return processProperty(data);
+  return processProperty(data.data);
   // return new Promise((resolve, reject) => {
   //   job.save((err) => {
   //     if (err) return reject(err);
@@ -17,5 +17,5 @@ module.exports.process = (data) => {
 
 module.exports.queueConfig = {
   concurrency: 1,
-  name: 'tspc',
+  name: 'tpsc',
 };

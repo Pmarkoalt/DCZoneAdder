@@ -10,7 +10,7 @@ const {socket} = require('./socket');
 
 const csv = require('csvtojson');
 const {connectToDB} = require('./db');
-const {init, listJobs, createJob, deleteJob, findJob, getJobResultCSVString} = require('./jobs');
+const {init, listJobs, createJob, deleteJob, findJob, getJobResultCSVString, getJobResults} = require('./jobs');
 
 connectToDB().then(async () => {
   const io = socketio(server);
@@ -41,7 +41,13 @@ app.use(cors());
 // End Points
 app.get('/api/csv-jobs', async (req, res) => {
   try {
-    const jobs = await listJobs();
+    const {jobType} = req.query;
+    if (jobType) {
+      if (!['zone', 'tpsc'].includes(jobType)) {
+        return res.status(400).json({message: `${jobType} is not a valid job type.`});
+      }
+    }
+    const jobs = await listJobs(req.query.jobType);
     return res.json(jobs);
   } catch (err) {
     return res.status(500).json({message: 'Problem with Mongo DB'});
@@ -58,13 +64,44 @@ app.post('/api/csv-jobs', async (req, res) => {
 });
 
 app.get('/api/csv-jobs/:id', async (req, res) => {
+  const jobId = req.params.id;
   try {
-    const jobId = req.params.id;
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
     const job = await findJob(jobId);
     return res.json(job);
   } catch (err) {
+    if (err === 404) {
+      return res.status(404).json({message: `Cannot find job ${jobId}`});
+    }
     return res.status(500).json({message: 'Error finding job', error: err});
+  }
+});
+
+app.get('/api/csv-jobs/:id/succeeded', async (req, res) => {
+  const jobId = req.params.id;
+  try {
+    if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
+    const tasks = await getJobResults(jobId, false);
+    return res.status(200).json(tasks);
+  } catch (err) {
+    if (err === 404) {
+      return res.status(404).json({message: `Cannot find job ${jobId}`});
+    }
+    return res.status(500).json({message: 'Error getting job task results', error: err});
+  }
+});
+
+app.get('/api/csv-jobs/:id/failed', async (req, res) => {
+  const jobId = req.params.id;
+  try {
+    if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
+    const tasks = await getJobResults(jobId, true);
+    return res.status(200).json(tasks);
+  } catch (err) {
+    if (err === 404) {
+      return res.status(404).json({message: `Cannot find job ${jobId}`});
+    }
+    return res.status(500).json({message: 'Error getting job task results', error: err});
   }
 });
 

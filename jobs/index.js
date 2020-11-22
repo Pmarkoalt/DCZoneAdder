@@ -2,6 +2,7 @@ const {Parser} = require('json2csv');
 const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
 const {generateId} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
+const {resolve} = require('path');
 
 const TASK_HANDLERS = {
   [JOB_TYPES.ZONE]: require('./zone').process,
@@ -18,9 +19,10 @@ const JOB_INPUT_PARSERS = {
 //   [JOB_TYPES.TPSC]: require('./tpsc').onTaskCreate,
 // };
 
-module.exports.listJobs = () => {
+module.exports.listJobs = (jobType) => {
+  const query = jobType ? {type: jobType} : {};
   return new Promise((resolve, reject) => {
-    CSVJob.find({}, (err, jobs) => {
+    CSVJob.find(query, (err, jobs) => {
       if (err) return reject(err);
       return resolve(jobs);
     })
@@ -34,6 +36,7 @@ module.exports.findJob = (jobId) => {
   return new Promise((resolve, reject) => {
     CSVJob.findOne({id: jobId}, '-tasks', (err, job) => {
       if (err) return reject(err);
+      if (!job) return reject(404);
       return CSVJobTask.aggregate([
         {$match: {job: job._id, completed: true}},
         {$addFields: {hasError: {$toBool: '$error'}}},
@@ -47,6 +50,32 @@ module.exports.findJob = (jobId) => {
       });
     }).lean();
   });
+};
+
+module.exports.getJobResults = async (jobId, hasError) => {
+  try {
+    return new Promise((resolve, reject) => {
+      CSVJob.findOne({id: jobId}, '_id', (err, job) => {
+        if (err) return reject(error);
+        if (!job) return reject(404);
+        const query = {
+          job: job._id,
+        };
+        if (hasError) {
+          query.error = {$ne: undefined};
+        } else {
+          query.error = undefined;
+        }
+        CSVJobTask.find(query, (err, tasks) => {
+          if (err) return reject(error);
+          return resolve(tasks);
+        }).limit(10);
+      });
+    });
+  } catch (err) {
+    console.log(err);
+    return Promise.reject(err);
+  }
 };
 
 module.exports.getJobResultCSVString = async (jobId) => {
@@ -74,6 +103,7 @@ module.exports.createJob = (jobData) => {
       const {type, data, context, meta} = jobData;
       const parse = JOB_INPUT_PARSERS[type];
       const input = parse ? parse(data) : data;
+      console.log(input.length);
       const _job = new CSVJob({
         id: generateId(),
         total_tasks: input.length,
@@ -133,7 +163,7 @@ const processTask = (taskMeta) => {
   return new Promise((resolve, reject) => {
     CSVJobTask.findOneAndUpdate({_id: context.taskId}, {start_time: Date.now()}, {new: true}, async (err, task) => {
       if (err) return reject(err);
-      if (!task) return reject(`Could not find task ${conext.taskId}`);
+      if (!task) return reject(`Could not find task ${context.taskId}`);
       try {
         const result = await TASK_HANDLERS[context.type](context, taskMeta);
         task.completed = true;

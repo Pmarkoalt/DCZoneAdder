@@ -78,12 +78,12 @@ const CSVJobSchema = new Schema({
     default: Date.now,
   },
 });
-CSVJobSchema.pre('save', async (next) => {
-  if (this.completed && !this.completed_timestamp) {
-    this.completed_timestamp = Date.now();
-    this.time_to_complete = this.completed_timestamp - this.created_timestamp.getTime();
+CSVJobSchema.post('save', async (job) => {
+  if (job.completed && !job.completed_timestamp) {
+    job.completed_timestamp = Date.now();
+    job.time_to_complete = job.completed_timestamp - job.created_timestamp.getTime();
+    job.save();
   }
-  next();
 });
 
 const CSVJobTask = mongoose.model('CSVJobTask', CSVJobTaskSchema);

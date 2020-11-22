@@ -16,13 +16,21 @@ export async function createCSVJob(jobType, data, meta, context) {
   return resp.data;
 }
 
-export async function listJobs() {
-  const resp = await axios.get('/api/csv-jobs');
+export async function listJobs(jobType) {
+  console.log(jobType);
+  const resp = await axios.get('/api/csv-jobs', {
+    params: {jobType},
+  });
   return resp.data;
 }
 
 export async function getJob(id) {
   const resp = await axios.get(`/api/csv-jobs/${id}/`);
+  return resp.data;
+}
+
+export async function getJobTaskResults(id, failed = false) {
+  const resp = await axios.get(`/api/csv-jobs/${id}/${failed ? 'failed' : 'succeeded'}`);
   return resp.data;
 }
 
