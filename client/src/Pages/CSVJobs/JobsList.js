@@ -16,7 +16,7 @@ import {LinearProgressWithLabel} from '../../Components/progress';
 
 import './list.scss';
 
-import {listJobs, deleteJob, formatDate, downloadJobCSVFromSocket, downloadJobCSV} from './utils.js';
+import {listJobs, deleteJob, formatDate, downloadJobCSV} from './utils.js';
 import {CircularProgress} from '@material-ui/core';
 
 const JobTypeSelect = styled(FormControl)`
@@ -26,7 +26,7 @@ const JobTypeSelect = styled(FormControl)`
   right: 10px;
 `;
 
-const Job = ({job, disableDownload, onDownload, onDelete}) => {
+const Job = ({job, disableDownload, disableDelete, onDownload, onDelete}) => {
   return (
     <div className="list-row">
       <ListItem className="card" button component="a" key={job._id} href={`/jobs/${job.id}`}>
@@ -39,6 +39,7 @@ const Job = ({job, disableDownload, onDownload, onDelete}) => {
             <IconButton
               edge="end"
               aria-label="delete"
+              disabled={disableDelete}
               onClick={(event) => {
                 event.preventDefault();
                 onDelete(job.id, job.export_file_name);
@@ -59,8 +60,8 @@ const Job = ({job, disableDownload, onDownload, onDelete}) => {
         </div>
         <div className="progress">
           <LinearProgressWithLabel
-            value={(100 * job.tasks.length) / job.total_tasks}
-            tooltip={`${job.tasks.length} / ${job.total_tasks}`}
+            value={(100 * job.task_completed_count) / job.total_tasks}
+            tooltip={`${job.task_completed_count} / ${job.total_tasks}`}
           />
         </div>
       </ListItem>
@@ -72,6 +73,7 @@ const JobList = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState({});
+  const [deleting, setDeleting] = useState({});
   const [jobType, setJobType] = useState();
 
   useEffect(() => {
@@ -110,6 +112,7 @@ const JobList = () => {
                     job={item}
                     key={item.id}
                     disableDownload={Boolean(downloading[item.id])}
+                    disableDelete={Boolean(deleting[item.id])}
                     onDelete={async (jobId, name) => {
                       const shouldDelete = window.confirm(
                         `Are you sure you want to delete Job: ${name ? name : jobId}`,
@@ -117,8 +120,10 @@ const JobList = () => {
                       if (!shouldDelete) {
                         return;
                       }
+                      setDeleting((d) => ({...d, [jobId]: true}));
                       await deleteJob(jobId);
                       const jobs = await listJobs(jobType);
+                      setDeleting((d) => ({...d, [jobId]: false}));
                       setJobs(jobs);
                     }}
                     onDownload={async (jobId, filename) => {

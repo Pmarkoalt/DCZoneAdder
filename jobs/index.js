@@ -22,13 +22,34 @@ const JOB_INPUT_PARSERS = {
 module.exports.listJobs = (jobType) => {
   const query = jobType ? {type: jobType} : {};
   return new Promise((resolve, reject) => {
-    CSVJob.find(query, (err, jobs) => {
+    CSVJob.find(query, '-tasks', async (err, jobs) => {
       if (err) return reject(err);
-      return resolve(jobs);
+      // return resolve(jobs);
+      const jobsWithTaskData = await Promise.all(
+        jobs.map((job) => {
+          return CSVJobTask.aggregate([
+            {$match: {job: job._id, completed: true}},
+            {$addFields: {hasError: {$toBool: '$error'}}},
+            {$group: {_id: '$hasError', count: {$sum: 1}}},
+          ]).then((results) => {
+            let errorCount = results.find((r) => r._id === true);
+            errorCount = errorCount ? errorCount.count : 0;
+            let successCount = results.find((r) => r._id === null);
+            successCount = successCount ? successCount.count : 0;
+            return {
+              ...job,
+              task_error_count: errorCount,
+              task_success_count: successCount,
+              task_completed_count: errorCount + successCount,
+            };
+          });
+        }),
+      );
+      resolve(jobsWithTaskData);
     })
-      .populate({path: 'tasks', match: {completed: true}})
+      .lean()
       .sort('-created_timestamp')
-      .limit(10);
+      .limit(50);
   });
 };
 
@@ -52,7 +73,7 @@ module.exports.findJob = (jobId) => {
   });
 };
 
-module.exports.getJobResults = async (jobId, hasError) => {
+module.exports.getJobResults = async (jobId, hasError, {start = 0, limit = 10} = {}) => {
   try {
     return new Promise((resolve, reject) => {
       CSVJob.findOne({id: jobId}, '_id', (err, job) => {
@@ -67,9 +88,11 @@ module.exports.getJobResults = async (jobId, hasError) => {
           query.error = undefined;
         }
         CSVJobTask.find(query, (err, tasks) => {
-          if (err) return reject(error);
+          if (err) return reject(err);
           return resolve(tasks);
-        }).limit(10);
+        })
+          .skip(start)
+          .limit(limit);
       });
     });
   } catch (err) {

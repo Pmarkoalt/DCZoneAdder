@@ -58,6 +58,9 @@ const TaskTable = ({job, error}) => {
 };
 
 function msToTime(duration) {
+  if (!duration) {
+    return '--';
+  }
   var milliseconds = parseInt((duration % 1000) / 100),
     seconds = Math.floor((duration / 1000) % 60),
     minutes = Math.floor((duration / (1000 * 60)) % 60),
