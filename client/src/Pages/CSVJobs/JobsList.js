@@ -16,7 +16,7 @@ import {LinearProgressWithLabel} from '../../Components/progress';
 
 import './list.scss';
 
-import {listJobs, deleteJob, formatDate, downloadJobCSV} from './utils.js';
+import {listJobs, getJobTypeAvatarMeta, deleteJob, formatDate, downloadJobCSV} from './utils.js';
 import {Avatar, CircularProgress} from '@material-ui/core';
 
 const JobTypeSelect = styled(FormControl)`
@@ -25,14 +25,6 @@ const JobTypeSelect = styled(FormControl)`
   top: 80px;
   right: 10px;
 `;
-
-const getJobTypeAvatarMeta = (jobType) => {
-  const config = {
-    zone: ['Z', 'lightcoral'],
-    tpsc: ['T', 'lightskyblue'],
-  };
-  return config[jobType];
-};
 
 const Job = ({job, disableDownload, disableDelete, onDownload, onDelete}) => {
   const [abbreviation, color] = getJobTypeAvatarMeta(job.type);
@@ -109,7 +101,7 @@ const JobList = () => {
           onChange={(event) => setJobType(event.target.value)}>
           <MenuItem value="All">All</MenuItem>
           <MenuItem value="zone">Zone</MenuItem>
-          <MenuItem value="tpsc">TSPC</MenuItem>
+          <MenuItem value="tpsc">SSL</MenuItem>
         </Select>
       </JobTypeSelect>
       <div id="list">

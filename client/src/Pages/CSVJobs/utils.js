@@ -91,7 +91,7 @@ export function formatDate(date) {
 export const getJobTypeAvatarMeta = (jobType) => {
   const config = {
     zone: ['Z', 'lightcoral'],
-    tpsc: ['T', 'lightskyblue'],
+    tpsc: ['S', 'lightskyblue'],
   };
   return config[jobType] || ['X', 'gray'];
 };
