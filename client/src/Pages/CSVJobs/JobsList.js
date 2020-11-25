@@ -83,8 +83,7 @@ const JobList = () => {
 
   useEffect(() => {
     setLoading(true);
-    const _jobType = jobType === 'All' ? undefined : jobType;
-    listJobs(_jobType).then((jobs) => {
+    listJobs(jobType).then((jobs) => {
       setLoading(false);
       setJobs(jobs);
     });

@@ -16,8 +16,8 @@ export async function createCSVJob(jobType, data, meta, context) {
   return resp.data;
 }
 
-export async function listJobs(jobType) {
-  console.log(jobType);
+export async function listJobs(_jobType) {
+  const jobType = _jobType === "All" ? undefined : _jobType;
   const resp = await axios.get('/api/csv-jobs', {
     params: {jobType},
   });
