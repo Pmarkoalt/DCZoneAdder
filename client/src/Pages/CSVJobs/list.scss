@@ -3,6 +3,34 @@
     display: flex;
     justify-content: center;
     align-items: center;
+
+    div.list-row + div.list-row {
+        margin-top: 20px;
+    }
+}
+
+.list-top-row {
+    width: 100%;
+    margin-bottom: 10px;
+    display: flex;
+}
+
+.progress {
+    position: absolute;
+    display: block;
+    width: 95%;
+    height: 1em;
+    bottom: 5px;
+    box-sizing: border-box;
+}
+
+.list-row {
+    display: flex;
+    align-items: center;
+    > * + * {
+        margin-left: 10px;
+        margin-top: 20px;
+    }
 }
 
 .card {
