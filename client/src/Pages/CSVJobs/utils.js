@@ -16,6 +16,34 @@ export async function createCSVJob(jobType, data, meta, context) {
   return resp.data;
 }
 
+export async function createJobFromSocket(jobType, data, meta, context) {
+  const socket = io.connect();
+  return new Promise((resolve, reject) => {
+    try {
+      socket.on('connect', () => {
+        const params = {
+          type: jobType,
+          data: data,
+          meta: {
+            export_file_name: meta.exportFileName,
+            csv_export_fields: meta.csvExportFields,
+          },
+          context,
+        };
+        socket.emit('create-csv-job', params, (resp) => {
+          socket.disconnect();
+          if (resp.error) return reject(resp.error);
+          return resolve(resp.data);
+        });
+      });
+    } catch (e) {
+      console.log(e);
+      socket.disconnect();
+      reject(e.toString ? e.toString() : e);
+    }
+  });
+}
+
 export async function listJobs(_jobType) {
   const jobType = _jobType === "All" ? undefined : _jobType;
   const resp = await axios.get('/api/csv-jobs', {

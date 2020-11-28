@@ -2,7 +2,7 @@ import React, {useState, useCallback, useEffect} from 'react';
 import csvparse from 'csv-parse/lib/sync';
 import FileDrop from './FileDrop';
 import Button from '@material-ui/core/Button';
-import {createCSVJob} from './utils';
+import {createCSVJob, createJobFromSocket} from './utils';
 import ExportFieldSelect from '../../Components/ExportFieldSelect';
 import {getExportFieldList} from '../../Components/ExportFieldSelect/export_fields';
 import {getContextFieldsComponent} from './context-fields';
@@ -12,6 +12,7 @@ import {useParams} from 'react-router-dom';
 
 const CreateJob = () => {
   const {jobType} = useParams();
+  const [uploading, setUploading] = useState(false);
   const [files, setFiles] = useState([]);
   const [error, setError] = useState();
   const [valid, setValid] = useState(false);
@@ -45,7 +46,6 @@ const CreateJob = () => {
   useEffect(() => {
     setValid(files && files.length > 0);
   }, [files]);
-  console.log({context, meta});
   return (
     <div id="section-one">
       <h2>Please provide a CSV File To Create a new Job</h2>
@@ -73,22 +73,31 @@ const CreateJob = () => {
         <Button
           className="section-one-button"
           variant="contained"
-          disabled={!valid}
+          disabled={Boolean(!valid || uploading || error)}
           color="primary"
           onClick={async () => {
-            const data = files.reduce((acc, file) => {
-              const parsed = csvparse(file.data, {columns: true});
-              return [...acc, ...parsed];
-            }, []);
-            const job = await createCSVJob(jobType, data, meta, context);
-            console.log(job);
-            if (job) {
-              window.location.href = `/jobs/${job.id}`;
-            } else {
-              setError('Failed to create job, please try again.');
+            try {
+              setError(undefined);
+              setUploading(true);
+              const data = files.reduce((acc, file) => {
+                const parsed = csvparse(file.data, {columns: true});
+                return [...acc, ...parsed];
+              }, []);
+              const job = await createJobFromSocket(jobType, data, meta, context);
+              console.log(job);
+              if (job) {
+                window.location.href = `/jobs/${job.id}`;
+              } else {
+                setError('Failed to create job, please try again.');
+              }
+            } catch (e) {
+              console.log(e);
+              setError(`Error creating job: ${e}`);
+            } finally {
+              setUploading(false);
             }
           }}>
-          Upload
+          {uploading ? "Uploading..." : "Upload"}
         </Button>
       </div>
     </div>

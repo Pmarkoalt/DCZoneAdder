@@ -131,7 +131,6 @@ module.exports.createJob = (jobData) => {
       const {type, data, context, meta} = jobData;
       const parse = JOB_INPUT_PARSERS[type];
       const input = parse ? parse(data) : data;
-      console.log(input.length);
       const _job = new CSVJob({
         id: generateId(),
         total_tasks: input.length,

@@ -14,13 +14,13 @@ module.exports.socket = (server) => {
       respond(csv);
     });
 
-    const makeKeysUpper = (obj) => {
-      if (!obj) return obj;
-      return Object.keys(obj).reduce((acc, key) => {
-        acc[key.toUpperCase()] = obj[key];
-        return acc;
-      }, {});
-    };
+    // const makeKeysUpper = (obj) => {
+    //   if (!obj) return obj;
+    //   return Object.keys(obj).reduce((acc, key) => {
+    //     acc[key.toUpperCase()] = obj[key];
+    //     return acc;
+    //   }, {});
+    // };
 
     // socket.on('download-zone-job-result', async (jobId, respond) => {
     //   const job = await Jobs.findOne({job_id: jobId}).exec();

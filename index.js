@@ -6,9 +6,9 @@ const server = require('http').createServer(app);
 const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const {socket} = require('./socket');
+// const {socket} = require('./socket');
 
-const csv = require('csvtojson');
+// const csv = require('csvtojson');
 const {connectToDB} = require('./db');
 const {init, listJobs, createJob, deleteJob, findJob, getJobResultCSVString, getJobResults} = require('./jobs');
 
@@ -16,6 +16,15 @@ connectToDB().then(async () => {
   const io = socketio(server);
   io.on('connection', (socket) => {
     console.log('User connected');
+    socket.on('create-csv-job', async (data, resp) => {
+      console.log("Creating job", data);
+      try {
+        const job = await createJob(data);
+        resp({data: job});
+      } catch (e) {
+        resp({error: e});
+      }
+    });
     socket.on('disconnect', () => {
       console.log('User disconnected');
     });
