@@ -5,9 +5,19 @@ const queues = {};
 
 function getQueue(name) {
   if (!queues[name]) {
-    queues[name] = new Queue(name, REDIS_URL);
+    queues[name] = {
+      queue: new Queue(name, REDIS_URL),
+      interval: setInterval(() => {
+        const queue = queues[name].queue;
+        if (queue) {
+          queue.clean(10, 'completed').then(() => {
+            console.log(`${name} queue: completed tasks cleaned.`);
+          });
+        }
+      }, 1000 * 60 * 10), // clear completed every 10 minutes
+    }
   }
-  return queues[name];
+  return queues[name].queue;
 }
 
 module.exports.getQueue = getQueue;

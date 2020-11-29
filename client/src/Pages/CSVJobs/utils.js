@@ -74,6 +74,12 @@ export async function downloadJobCSV(id, filename = 'export.csv') {
   fileDownload(resp.data, _filename);
 }
 
+export async function downloadFailedJobCSV(id, filename = 'export.csv') {
+  const resp = await axios.get(`/api/csv-jobs/${id}/failed/csv`);
+  const _filename = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+  fileDownload(resp.data, `${_filename.replace('.csv', '')} (failed).csv`);
+}
+
 export async function downloadJobCSVFromSocket(id, filename = 'export.csv') {
   const socket = io.connect();
   return new Promise((resolve, reject) => {

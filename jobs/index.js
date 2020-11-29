@@ -14,6 +14,11 @@ const JOB_INPUT_PARSERS = {
   [JOB_TYPES.TPSC]: require('./tpsc').parse,
 };
 
+const JOB_RESULTS_PARSERS = {
+  [JOB_TYPES.ZONE]: require('./zone').parseResults,
+  [JOB_TYPES.TPSC]: require('./tpsc').parseResults,
+}
+
 // const JOB_TASK_CONTEXT = {
 //   [JOB_TYPES.ZONE]: require('./zone').onTaskCreate,
 //   [JOB_TYPES.TPSC]: require('./tpsc').onTaskCreate,
@@ -78,7 +83,7 @@ module.exports.findJob = (jobId) => {
   });
 };
 
-module.exports.getJobResults = async (jobId, hasError, {start = 0, limit = 10} = {}) => {
+const getJobResults = async (jobId, hasError, {start = 0, limit} = {}) => {
   try {
     return new Promise((resolve, reject) => {
       CSVJob.findOne({id: jobId}, '_id', (err, job) => {
@@ -92,12 +97,14 @@ module.exports.getJobResults = async (jobId, hasError, {start = 0, limit = 10} =
         } else {
           query.error = undefined;
         }
-        CSVJobTask.find(query, (err, tasks) => {
+        const taskQuery = CSVJobTask.find(query, (err, tasks) => {
           if (err) return reject(err);
           return resolve(tasks);
         })
-          .skip(start)
-          .limit(limit);
+          .skip(start);
+        if (limit !== undefined) {
+            taskQuery.limit(limit);
+        }
       });
     });
   } catch (err) {
@@ -105,6 +112,17 @@ module.exports.getJobResults = async (jobId, hasError, {start = 0, limit = 10} =
     return Promise.reject(err);
   }
 };
+module.exports.getJobResults = getJobResults;
+
+module.exports.getJobFailedResultsCSVString = async (jobId) => {
+  const failedTasks = await getJobResults(jobId, true);
+  const csvData = failedTasks.map(t => t.data);
+  if (!csvData || !csvData.length) return null;
+  const keys = Object.keys(csvData[0]);
+  const parser = new Parser({fields: keys});
+  const csv = parser.parse(csvData);
+  return csv;
+}
 
 module.exports.getJobResultCSVString = async (jobId) => {
   try {
@@ -113,7 +131,11 @@ module.exports.getJobResultCSVString = async (jobId) => {
       match: {completed: true, error: undefined},
       select: 'result',
     });
-    const results = job.tasks.map((t) => t.result);
+    let results = job.tasks.map((t) => t.result);
+    const resultParser = JOB_RESULTS_PARSERS[job.type];
+    if (resultParser) {
+      results = resultParser(results, job);
+    }
     if (!results || !results.length) return null;
     const keys = job.csv_export_fields.length > 0 ? job.csv_export_fields : Object.keys(results[0]);
     const parser = new Parser({fields: keys, excelStrings: true});

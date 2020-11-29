@@ -7,7 +7,7 @@ import {Tabs} from '../../Components/tabs';
 
 import Button from '@material-ui/core/Button';
 // import './section_two.scss';
-import {getJobTypeAvatarMeta, downloadJobCSV, getJob, getJobTaskResults} from './utils';
+import {getJobTypeAvatarMeta, downloadJobCSV, getJob, getJobTaskResults, downloadFailedJobCSV} from './utils';
 import {Avatar} from '@material-ui/core';
 
 const DetailsContainer = styled.div`
@@ -40,6 +40,14 @@ const DetailsContainer = styled.div`
 
   .download {
     align-self: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+
+    * + * {
+      margin-top: 10px;
+    }
   }
 `;
 
@@ -81,6 +89,7 @@ const JobDetails = ({match}) => {
   const [job, setJob] = useState({});
   const [data, setData] = useState(0);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingFailedTasks, setDownloadingFailedTasks] = useState(false);
   const [socket, setSocket] = useState();
   const [abbreviation, color] = getJobTypeAvatarMeta(job ? job.type : undefined);
 
@@ -93,6 +102,11 @@ const JobDetails = ({match}) => {
     setDownloading(true);
     await downloadJobCSV(jobId, filename);
     setDownloading(false);
+  }, []);
+  const downloadFailedTasksCSV = useCallback(async (jobId, filename) => {
+    setDownloadingFailedTasks(true);
+    await downloadFailedJobCSV(jobId, filename);
+    setDownloadingFailedTasks(false);
   }, []);
 
   useEffect(() => {
@@ -123,7 +137,6 @@ const JobDetails = ({match}) => {
   const completion = (job ? data / job.total_tasks : 0) * 100;
   const tooltip = job ? `${data} / ${job.total_tasks}` : '-/-';
 
-  console.log(job);
   return (
     <DetailsContainer>
       <div className="top-row">
@@ -156,7 +169,15 @@ const JobDetails = ({match}) => {
             color="primary"
             disabled={downloading}
             onClick={() => downloadCSV(jobId, job.export_file_name)}>
-            Download
+            Download Successful Items
+          </Button>
+          <Button
+            id="failed-task-download"
+            variant="contained"
+            color="secondary"
+            disabled={downloadingFailedTasks}
+            onClick={() => downloadFailedTasksCSV(jobId, job.export_file_name)}>
+            Download Failed Items
           </Button>
         </div>
       </div>

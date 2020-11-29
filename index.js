@@ -10,7 +10,7 @@ const bodyParser = require('body-parser');
 
 // const csv = require('csvtojson');
 const {connectToDB} = require('./db');
-const {init, listJobs, createJob, deleteJob, findJob, getJobResultCSVString, getJobResults} = require('./jobs');
+const {init, listJobs, createJob, deleteJob, findJob, getJobResultCSVString, getJobResults, getJobFailedResultsCSVString} = require('./jobs');
 
 connectToDB().then(async () => {
   const io = socketio(server);
@@ -68,7 +68,7 @@ app.post('/api/csv-jobs', async (req, res) => {
     const job = await createJob(req.body);
     return res.status(201).json(job);
   } catch (err) {
-    return res.status(500).json({message: 'Error creating job', error: err});
+    return res.status(500).json({message: 'Error creating job', error: err.toString()});
   }
 });
 
@@ -82,7 +82,7 @@ app.get('/api/csv-jobs/:id', async (req, res) => {
     if (err === 404) {
       return res.status(404).json({message: `Cannot find job ${jobId}`});
     }
-    return res.status(500).json({message: 'Error finding job', error: err});
+    return res.status(500).json({message: 'Error finding job', error: err.toString()});
   }
 });
 
@@ -92,7 +92,7 @@ app.get('/api/csv-jobs/:id/succeeded', async (req, res) => {
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
     const pagination = {
       start: req.query.start ? Number(req.query.start) : 0,
-      limit: req.query.limit ? Number(req.query.limit) : 10,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
     };
     const tasks = await getJobResults(jobId, false, pagination);
     return res.status(200).json(tasks);
@@ -100,7 +100,7 @@ app.get('/api/csv-jobs/:id/succeeded', async (req, res) => {
     if (err === 404) {
       return res.status(404).json({message: `Cannot find job ${jobId}`});
     }
-    return res.status(500).json({message: 'Error getting job task results', error: err});
+    return res.status(500).json({message: 'Error getting job task results', error: err.toString()});
   }
 });
 
@@ -110,7 +110,7 @@ app.get('/api/csv-jobs/:id/failed', async (req, res) => {
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
     const pagination = {
       start: req.query.start ? Number(req.query.start) : 0,
-      limit: req.query.limit ? Number(req.query.limit) : 10,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
     };
     const tasks = await getJobResults(jobId, true, pagination);
     return res.status(200).json(tasks);
@@ -118,7 +118,23 @@ app.get('/api/csv-jobs/:id/failed', async (req, res) => {
     if (err === 404) {
       return res.status(404).json({message: `Cannot find job ${jobId}`});
     }
-    return res.status(500).json({message: 'Error getting job task results', error: err});
+    return res.status(500).json({message: 'Error getting job task results', error: err.toString()});
+  }
+});
+
+app.get('/api/csv-jobs/:id/failed/csv', async (req, res) => {
+  const jobId = req.params.id;
+  try {
+    if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
+    const csv = await getJobFailedResultsCSVString(jobId);
+    res.set('Content-Type', 'text/csv');
+    res.setHeader('Content-disposition', 'attachment; filename=data.csv');
+    return res.status(200).send(csv);
+  } catch (err) {
+    if (err === 404) {
+      return res.status(404).json({message: `Cannot find job ${jobId}`});
+    }
+    return res.status(500).json({message: 'Error creating job failed task csv', error: err.toString()});
   }
 });
 
@@ -131,7 +147,7 @@ app.get('/api/csv-jobs/:id/download', async (req, res) => {
     res.setHeader('Content-disposition', 'attachment; filename=data.csv');
     return res.status(200).send(csv);
   } catch (err) {
-    return res.status(500).json({message: 'Error download job results', error: err});
+    return res.status(500).json({message: 'Error download job results', error: err.toString()});
   }
 });
 
@@ -142,7 +158,7 @@ app.delete('/api/csv-jobs/:id', async (req, res) => {
     const job = await deleteJob(jobId);
     return res.status(204).json(job);
   } catch (err) {
-    return res.status(500).json({message: 'Error deleting job', error: err});
+    return res.status(500).json({message: 'Error deleting job', error: err.toString()});
   }
 });
 

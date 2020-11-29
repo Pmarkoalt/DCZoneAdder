@@ -424,11 +424,15 @@ function splitAddressDash(csv_array) {
 
 module.exports.parse = splitAddressDash;
 
-// module.exports.taskContext = (job, task) => {
-//   return {searchZillow: job.searchZillow};
-// };
-
 module.exports.process = async (address, task) => {
   return await processAddress(address, task);
-  // await fetchCurrentJob(current_address.job_id);
 };
+
+module.exports.parseResults = (results, job) => {
+  const {zones=[], uses=[]} = job.context;
+  return results.filter(result => {
+    const hasZone = !zones.length || zones.includes(result["Zone"]);
+    const hasUseCode = !uses.length || uses.includes(result["Use Code"]);
+    return hasZone && hasUseCode;
+  });
+}
