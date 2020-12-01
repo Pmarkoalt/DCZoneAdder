@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
+import Tooltip from '@material-ui/core/Tooltip';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
@@ -16,7 +17,7 @@ import {LinearProgressWithLabel} from '../../Components/progress';
 
 import './list.scss';
 
-import {listJobs, getJobTypeAvatarMeta, deleteJob, formatDate, downloadJobCSV} from './utils.js';
+import {listJobs, getJobTypeAvatarMeta, deleteJob, formatDate, downloadJobCSV, downloadFailedJobCSV} from './utils.js';
 import {Avatar, CircularProgress} from '@material-ui/core';
 
 const JobTypeSelect = styled(FormControl)`
@@ -26,7 +27,7 @@ const JobTypeSelect = styled(FormControl)`
   right: 10px;
 `;
 
-const Job = ({job, disableDownload, disableDelete, onDownload, onDelete}) => {
+const Job = ({job, disableDownload, disableDelete, onDownload, onDownloadFailed, onDelete}) => {
   const [abbreviation, color] = getJobTypeAvatarMeta(job.type);
   return (
     <div className="list-row">
@@ -51,16 +52,32 @@ const Job = ({job, disableDownload, disableDelete, onDownload, onDelete}) => {
               }}>
               <DeleteIcon />
             </IconButton>
-            <IconButton
-              edge="end"
-              aria-label="comments"
-              disabled={disableDownload}
-              onClick={(event) => {
-                event.preventDefault();
-                onDownload(job.id, job.export_file_name);
-              }}>
-              {disableDownload ? <CircularProgress /> : <GetAppIcon />}
-            </IconButton>
+            <Tooltip title="Download successful items" placement="top">
+              <IconButton
+                edge="end"
+                aria-label="comments"
+                color="primary"
+                disabled={disableDownload}
+                onClick={(event) => {
+                  event.preventDefault();
+                  onDownload(job.id, job.export_file_name);
+                }}>
+                {disableDownload ? <CircularProgress /> : <GetAppIcon />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Download failed items" placement="top">
+              <IconButton
+                edge="end"
+                aria-label="failed items"
+                color="secondary"
+                disabled={disableDownload}
+                onClick={(event) => {
+                  event.preventDefault();
+                  onDownloadFailed(job.id, job.export_file_name);
+                }}>
+                {disableDownload ? <CircularProgress /> : <GetAppIcon />}
+              </IconButton>
+            </Tooltip>
           </ListItemSecondaryAction>
         </div>
         <div className="progress">
@@ -132,6 +149,11 @@ const JobList = () => {
                     onDownload={async (jobId, filename) => {
                       setDownloading((d) => ({...d, [jobId]: true}));
                       await downloadJobCSV(jobId, filename);
+                      setDownloading((d) => ({...d, [jobId]: false}));
+                    }}
+                    onDownloadFailed={async (jobId, filename) => {
+                      setDownloading((d) => ({...d, [jobId]: true}));
+                      await downloadFailedJobCSV(jobId, filename);
                       setDownloading((d) => ({...d, [jobId]: false}));
                     }}
                   />
