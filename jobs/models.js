@@ -4,6 +4,7 @@ var Schema = mongoose.Schema;
 const JOB_TYPES = {
   TPSC: 'tpsc',
   ZONE: 'zone',
+  BELLES: 'belles',
 };
 
 const CSVJobTaskSchema = new Schema({
