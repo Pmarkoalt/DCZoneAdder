@@ -147,6 +147,24 @@ module.exports.getJobResultCSVString = async (jobId) => {
   }
 };
 
+module.exports.getJobInputCSVString = async (jobId) => {
+  try {
+    const job = await CSVJob.findOne({id: jobId}).populate({
+      path: 'tasks',
+      select: 'data',
+    });
+    const input = job.tasks.map((t) => t.data);
+    if (!input || !input.length) return null;
+    const keys = Object.keys(input[0]);
+    const parser = new Parser({fields: keys});
+    const csv = parser.parse(input);
+    return csv;
+  } catch (err) {
+    console.log(err);
+    return Promise.reject(err);
+  }
+};
+
 module.exports.createJob = (jobData) => {
   return new Promise((resolve, reject) => {
     try {

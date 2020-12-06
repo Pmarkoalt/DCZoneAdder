@@ -10,14 +10,24 @@ const bodyParser = require('body-parser');
 
 // const csv = require('csvtojson');
 const {connectToDB} = require('./db');
-const {init, listJobs, createJob, deleteJob, findJob, getJobResultCSVString, getJobResults, getJobFailedResultsCSVString} = require('./jobs');
+const {
+  init,
+  listJobs,
+  createJob,
+  deleteJob,
+  findJob,
+  getJobResultCSVString,
+  getJobInputCSVString,
+  getJobFailedResultsCSVString,
+  getJobResults,
+} = require('./jobs');
 
 connectToDB().then(async () => {
   const io = socketio(server);
   io.on('connection', (socket) => {
     console.log('User connected');
     socket.on('create-csv-job', async (data, resp) => {
-      console.log("Creating job", data);
+      console.log('Creating job', data);
       try {
         const job = await createJob(data);
         resp({data: job});
@@ -148,6 +158,19 @@ app.get('/api/csv-jobs/:id/download', async (req, res) => {
     return res.status(200).send(csv);
   } catch (err) {
     return res.status(500).json({message: 'Error download job results', error: err.toString()});
+  }
+});
+
+app.get('/api/csv-jobs/:id/input-file', async (req, res) => {
+  try {
+    const jobId = req.params.id;
+    if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
+    const csv = await getJobInputCSVString(jobId);
+    res.set('Content-Type', 'text/csv');
+    res.setHeader('Content-disposition', 'attachment; filename=data.csv');
+    return res.status(200).send(csv);
+  } catch (err) {
+    return res.status(500).json({message: "Error generating job's CSV input file.", error: err});
   }
 });
 
