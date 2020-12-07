@@ -11,6 +11,7 @@ const bodyParser = require('body-parser');
 // const csv = require('csvtojson');
 const {connectToDB} = require('./db');
 const {
+  JOB_TYPES,
   init,
   listJobs,
   createJob,
@@ -62,7 +63,7 @@ app.get('/api/csv-jobs', async (req, res) => {
   try {
     const {jobType} = req.query;
     if (jobType) {
-      if (!['zone', 'tpsc'].includes(jobType)) {
+      if (!Object.values(JOB_TYPES).includes(jobType)) {
         return res.status(400).json({message: `${jobType} is not a valid job type.`});
       }
     }

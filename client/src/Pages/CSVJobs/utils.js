@@ -126,6 +126,7 @@ export const getJobTypeAvatarMeta = (jobType) => {
   const config = {
     zone: ['Z', 'lightcoral'],
     tpsc: ['S', 'lightskyblue'],
+    belles: ['B', 'mediumaquamarine'],
   };
   return config[jobType] || ['X', 'gray'];
 };

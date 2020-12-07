@@ -51,7 +51,7 @@ const CreateJob = () => {
       <h2>Please provide a CSV File To Create a new Job</h2>
       <FileDrop createFile={(newFile) => setFiles((f) => [...f, newFile])} files={files} />
       {error && (
-        <div>
+        <div className="csv-upload-error-container">
           <span className="csv-upload-error">{error}</span>
           <span className="csv-upload-error-clear" onClick={() => setError(undefined)}>
             Clear

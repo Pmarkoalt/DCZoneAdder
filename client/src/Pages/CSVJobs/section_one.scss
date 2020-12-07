@@ -185,7 +185,15 @@ label.export-filename {
     }
 }
 
+.csv-upload-error-container {
+    display: flex;
+    border: 2px solid tomato;
+    padding: 0.5em;
+    border-radius: 0.25em;
+}
+
 .csv-upload-error {
+    display: block;
     background-color: tomato;
     color: white;
     font-weight: 600;
@@ -195,6 +203,9 @@ label.export-filename {
 }
 
 .csv-upload-error-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-sizing: border-box;
     border-radius: 0.5em;
     border: 1px solid black;
