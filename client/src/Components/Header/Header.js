@@ -34,13 +34,13 @@ function Header(props) {
               <MenuItem onClick={handleClose}>View Job List</MenuItem>
             </Link>
             <Link to="/jobs/create/zone">
-              <MenuItem onClick={handleClose}>Create New Zone CSV</MenuItem>{' '}
+              <MenuItem onClick={handleClose}>Create New Zone CSV</MenuItem>
             </Link>
             <Link to="/jobs/create/tpsc">
-              <MenuItem onClick={handleClose}>Create New SSL CSV</MenuItem>{' '}
+              <MenuItem onClick={handleClose}>Create New SSL CSV</MenuItem>
             </Link>
             <Link to="/jobs/create/belles">
-              <MenuItem onClick={handleClose}>Create New Belles Link CSV</MenuItem>{' '}
+              <MenuItem onClick={handleClose}>Create New Belles Link CSV</MenuItem>
             </Link>
           </Menu>
           <Typography variant="h6" id="title">
