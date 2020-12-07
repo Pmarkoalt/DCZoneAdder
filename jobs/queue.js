@@ -23,7 +23,11 @@ function getQueue(name) {
 module.exports.getQueue = getQueue;
 
 module.exports.initQueues = (processFunction, {onSuccess, onError}) => {
-  const configs = [require('./zone').queueConfig, require('./tpsc').queueConfig];
+  const configs = [
+    require('./zone').queueConfig,
+    require('./tpsc').queueConfig,
+    require("./belles").queueConfig
+  ];
   configs.forEach((config) => {
     const queue = getQueue(config.name);
     queue.process(config.concurrency, processFunction);

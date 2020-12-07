@@ -4,19 +4,24 @@ const {generateId} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
 const {resolve} = require('path');
 
+module.exports.JOB_TYPES = JOB_TYPES;
+
 const TASK_HANDLERS = {
   [JOB_TYPES.ZONE]: require('./zone').process,
   [JOB_TYPES.TPSC]: require('./tpsc').process,
+  [JOB_TYPES.BELLES]: require('./belles').process,
 };
 
 const JOB_INPUT_PARSERS = {
   [JOB_TYPES.ZONE]: require('./zone').parse,
   [JOB_TYPES.TPSC]: require('./tpsc').parse,
+  [JOB_TYPES.BELLES]: require('./belles').parse,
 };
 
 const JOB_RESULTS_PARSERS = {
   [JOB_TYPES.ZONE]: require('./zone').parseResults,
   [JOB_TYPES.TPSC]: require('./tpsc').parseResults,
+  [JOB_TYPES.BELLES]: require('./belles').parseResults,
 }
 
 // const JOB_TASK_CONTEXT = {
@@ -193,9 +198,7 @@ module.exports.createJob = (jobData) => {
         job.save((err) => {
           if (err) return reject(err);
           const queue = getQueue(job.type);
-          // const provideContext = JOB_TASK_CONTEXT[jobType];
           tasks.forEach((task) => {
-            // const context = provideContext ? provideContext(job, task) : {};
             queue.add({context: job.context, data: task.data, taskId: task._id, type: job.type, jobId: job.id});
           });
           return resolve(job);

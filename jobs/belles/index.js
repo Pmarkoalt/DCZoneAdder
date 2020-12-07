@@ -3,7 +3,6 @@ const {
   getPropertyQuestData,
   getAppraisalData,
   getPublicTaxData,
-  getTaxLots,
 } = require('../../api/address');
 const {formatOwnerName, assembleAddress} = require('./formatting');
 
@@ -39,7 +38,6 @@ async function processAddress(address, task) {
       'CITYSTZIP',
     ]),
   ]);
-  // console.log({pq, appraisal, tax});
   const placeholder = '?????';
   const result = {
     Address: address,
@@ -101,13 +99,6 @@ function splitAddressDash(csv_array) {
 
 module.exports.parse = splitAddressDash;
 
-module.exports.process = async (address, task) => {
-  return await processAddress(address, task);
+module.exports.process = async (context, task) => {
+  return await processAddress(context.data.Address.trim(), task);
 };
-
-(async () => {
-  const result = await processAddress('1106 Columbia Rd NW');
-  // const result = await processAddress('1445 Clifton St NW');
-  // const result = await processAddress('2959 Davenport St NW');
-  console.log(result);
-})();

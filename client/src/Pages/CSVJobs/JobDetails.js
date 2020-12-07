@@ -167,7 +167,7 @@ const JobDetails = ({match}) => {
             id="section-two-submit"
             variant="contained"
             color="primary"
-            disabled={downloading}
+            disabled={downloading || job.task_success_count === 0}
             onClick={() => downloadCSV(jobId, job.export_file_name)}>
             Download Successful Items
           </Button>
@@ -175,7 +175,7 @@ const JobDetails = ({match}) => {
             id="failed-task-download"
             variant="contained"
             color="secondary"
-            disabled={downloadingFailedTasks}
+            disabled={downloadingFailedTasks || job.task_error_count === 0}
             onClick={() => downloadFailedTasksCSV(jobId, job.export_file_name)}>
             Download Failed Items
           </Button>

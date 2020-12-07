@@ -53,30 +53,34 @@ const Job = ({job, disableDownload, disableDelete, onDownload, onDownloadFailed,
               <DeleteIcon />
             </IconButton>
             <Tooltip title="Download successful items" placement="top">
-              <IconButton
-                edge="end"
-                aria-label="comments"
-                color="primary"
-                disabled={disableDownload}
-                onClick={(event) => {
-                  event.preventDefault();
-                  onDownload(job.id, job.export_file_name);
-                }}>
-                {disableDownload ? <CircularProgress /> : <GetAppIcon />}
-              </IconButton>
+              <span>
+                <IconButton
+                  edge="end"
+                  aria-label="comments"
+                  color="primary"
+                  disabled={disableDownload || job.task_success_count === 0}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    onDownload(job.id, job.export_file_name);
+                  }}>
+                  {disableDownload ? <CircularProgress /> : <GetAppIcon />}
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="Download failed items" placement="top">
-              <IconButton
-                edge="end"
-                aria-label="failed items"
-                color="secondary"
-                disabled={disableDownload}
-                onClick={(event) => {
-                  event.preventDefault();
-                  onDownloadFailed(job.id, job.export_file_name);
-                }}>
-                {disableDownload ? <CircularProgress /> : <GetAppIcon />}
-              </IconButton>
+              <span>
+                <IconButton
+                  edge="end"
+                  aria-label="failed items"
+                  color="secondary"
+                  disabled={disableDownload || job.task_error_count === 0}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    onDownloadFailed(job.id, job.export_file_name);
+                  }}>
+                  {disableDownload ? <CircularProgress /> : <GetAppIcon />}
+                </IconButton>
+              </span>
             </Tooltip>
           </ListItemSecondaryAction>
         </div>
@@ -118,6 +122,7 @@ const JobList = () => {
           <MenuItem value="All">All</MenuItem>
           <MenuItem value="zone">Zone</MenuItem>
           <MenuItem value="tpsc">SSL</MenuItem>
+          <MenuItem value="belles">Belles Link</MenuItem>
         </Select>
       </JobTypeSelect>
       <div id="list">

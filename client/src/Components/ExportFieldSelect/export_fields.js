@@ -42,6 +42,21 @@ export const zillowFields_old = [
 
 export const zillowFields = zillowFields_old.map((x) => x.label.toLowerCase());
 
+export const bellesFields = [
+  {label: 'Address', value: 'Address'},
+  {label: 'SSL', value: 'SSL'},
+  {label: 'Zoning', value: 'Zoning'},
+  {label: 'Lot SQF', value: 'Lot SQF'},
+  {label: 'Building Total SQF', value: 'Building Total SQF'},
+  {label: 'Units', value: 'Units'},
+  {label: 'Use', value: 'Use'},
+  {label: 'Sale Price', value: 'Sale Price'},
+  {label: 'Sale Date', value: 'Sale Date'},
+  {label: 'Current Owner', value: 'Current Owner'},
+  {label: 'Second Owner', value: 'Second Owner'},
+  {label: 'Owner Address + Owner City State + Owner Zip', value: 'Owner Address + Owner City State + Owner Zip'},
+];
+
 export const getExportFieldList = (jobType, context) => {
   let fields = [];
   if (jobType === 'zone') {
@@ -51,6 +66,8 @@ export const getExportFieldList = (jobType, context) => {
     }
   } else if (jobType === 'tpsc') {
     fields = [...fields];
+  } else if (jobType === "belles") {
+    fields = [...bellesFields.map(f => f.value)];
   }
   return fields;
 };
