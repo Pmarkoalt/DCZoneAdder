@@ -6,6 +6,12 @@ const {resolve} = require('path');
 
 module.exports.JOB_TYPES = JOB_TYPES;
 
+const JOB_CONFIGS = {
+  [JOB_TYPES.ZONE]: require('./zone').jobConfig,
+  [JOB_TYPES.TPSC]: require('./tpsc').jobConfig,
+  [JOB_TYPES.BELLES]: require('./belles').jobConfig,
+};
+
 const TASK_HANDLERS = {
   [JOB_TYPES.ZONE]: require('./zone').process,
   [JOB_TYPES.TPSC]: require('./tpsc').process,
@@ -22,7 +28,7 @@ const JOB_RESULTS_PARSERS = {
   [JOB_TYPES.ZONE]: require('./zone').parseResults,
   [JOB_TYPES.TPSC]: require('./tpsc').parseResults,
   [JOB_TYPES.BELLES]: require('./belles').parseResults,
-}
+};
 
 // const JOB_TASK_CONTEXT = {
 //   [JOB_TYPES.ZONE]: require('./zone').onTaskCreate,
@@ -105,10 +111,9 @@ const getJobResults = async (jobId, hasError, {start = 0, limit} = {}) => {
         const taskQuery = CSVJobTask.find(query, (err, tasks) => {
           if (err) return reject(err);
           return resolve(tasks);
-        })
-          .skip(start);
+        }).skip(start);
         if (limit !== undefined) {
-            taskQuery.limit(limit);
+          taskQuery.limit(limit);
         }
       });
     });
@@ -121,29 +126,38 @@ module.exports.getJobResults = getJobResults;
 
 module.exports.getJobFailedResultsCSVString = async (jobId) => {
   const failedTasks = await getJobResults(jobId, true);
-  const csvData = failedTasks.map(t => t.data);
+  const csvData = failedTasks.map((t) => t.data);
   if (!csvData || !csvData.length) return null;
   const keys = Object.keys(csvData[0]);
   const parser = new Parser({fields: keys});
   const csv = parser.parse(csvData);
   return csv;
-}
+};
 
 module.exports.getJobResultCSVString = async (jobId) => {
   try {
     const job = await CSVJob.findOne({id: jobId}).populate({
       path: 'tasks',
       match: {completed: true, error: undefined},
-      select: 'result',
+      select: ['result', 'data'],
     });
-    let results = job.tasks.map((t) => t.result);
+    const jobConfig = JOB_CONFIGS[job.type] || {};
+    let results = job.tasks.map((t) => {
+      if (jobConfig.includeInputDataInExport && t.result) {
+        return {
+          ...t.data,
+          ...t.result,
+        };
+      }
+      return t.result;
+    });
     const resultParser = JOB_RESULTS_PARSERS[job.type];
     if (resultParser) {
       results = resultParser(results, job);
     }
     if (!results || !results.length) return null;
     const keys = job.csv_export_fields.length > 0 ? job.csv_export_fields : Object.keys(results[0]);
-    const parser = new Parser({fields: keys, excelStrings: true});
+    const parser = new Parser({fields: keys, excelStrings: false});
     const csv = parser.parse(results);
     return csv;
   } catch (err) {

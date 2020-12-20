@@ -1,10 +1,9 @@
-const {
-  getAddressAttributes,
-  getPropertyQuestData,
-  getAppraisalData,
-  getPublicTaxData,
-} = require('../../api/address');
+const {getAddressAttributes, getPropertyQuestData, getAppraisalData, getPublicTaxData} = require('../../api/address');
 const {formatOwnerName, assembleAddress} = require('./formatting');
+
+module.exports.jobConfig = {
+  includeInputDataInExport: true,
+};
 
 module.exports.queueConfig = {
   concurrency: 5,

@@ -429,10 +429,10 @@ module.exports.process = async (address, task) => {
 };
 
 module.exports.parseResults = (results, job) => {
-  const {zones=[], uses=[]} = job.context;
-  return results.filter(result => {
-    const hasZone = !zones.length || zones.includes(result["Zone"]);
-    const hasUseCode = !uses.length || uses.includes(result["Use Code"]);
+  const {zones = [], uses = []} = job.context;
+  return results.filter((result) => {
+    const hasZone = !zones.length || zones.includes(result['Zone']);
+    const hasUseCode = !uses.length || uses.includes(result['Use Code']);
     return hasZone && hasUseCode;
   });
-}
+};
