@@ -8,4 +8,10 @@ function generateId() {
   return retVal;
 }
 
+function forceCollection(item) {
+  if (Array.isArray(item)) return item;
+  return [item];
+}
+
 module.exports.generateId = generateId;
+module.exports.forceCollection = forceCollection;
