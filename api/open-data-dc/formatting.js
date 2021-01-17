@@ -10,7 +10,7 @@ const formatOwnerName = (_name) => {
     }
     return last ? `${first} ${last}` : first;
   } catch {
-    return name;
+    return _name;
   }
 };
 

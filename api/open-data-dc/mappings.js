@@ -1,4 +1,4 @@
-const {assembleAddress, formatOwnerName} = require('../../jobs/belles/formatting');
+const {assembleAddress, formatOwnerName} = require('./formatting');
 
 const OpenDataDC = {
   ITS: {
@@ -145,10 +145,12 @@ const EXPORT_MAPPINGS = {
   'Sale Date': {
     columnName: 'Sale Date',
     source: 'ITS.SALEDATE',
+    format: (val) => val ? (new Date(val)).toISOString() : val,
   },
   'Deed Date': {
     columnName: 'Deed Date',
     source: 'ITS.DEEDDATE',
+    format: (val) => val ? (new Date(val)).toISOString() : val,
   },
   'Owner Name 1': {
     columnName: 'Owner Name 1',

@@ -5,6 +5,7 @@ const JOB_TYPES = {
   TPSC: 'tpsc',
   ZONE: 'zone',
   BELLES: 'belles',
+  OPEN_DATA_DC: 'open-data-dc',
 };
 
 const CSVJobTaskSchema = new Schema({
