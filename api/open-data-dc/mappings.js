@@ -79,6 +79,14 @@ const EXPORT_MAPPINGS = {
   Address: {
     columnName: 'Address',
     source: 'ITS.PREMISEADD',
+    format: (val) => {
+      if (!val) return val;
+      const parts = val.split("WASHINGTON DC");
+      if (parts.length) {
+        return parts[0];
+      }
+      return val;
+    }
   },
   Neighborhood: {
     columnName: 'Neighborhood',
@@ -137,6 +145,7 @@ const EXPORT_MAPPINGS = {
   'Property Use': {
     columnName: 'Property Use',
     source: 'PU.DESCRIPTION',
+    lookup: {attr: 'CODE', value: 'ITS.USECODE'},
   },
   'Sale Price': {
     columnName: 'Sale Price',
@@ -171,3 +180,5 @@ const EXPORT_MAPPINGS = {
 
 module.exports.OpenDataDC = OpenDataDC;
 module.exports.EXPORT_MAPPINGS = EXPORT_MAPPINGS;
+
+console.log(Object.keys(EXPORT_MAPPINGS));

@@ -57,6 +57,19 @@ export const bellesFields = [
   {label: 'Owner Address + Owner City State + Owner Zip', value: 'Owner Address + Owner City State + Owner Zip'},
 ];
 
+export const openDataDCFields = [
+  'SSL',           'Address',
+  'Neighborhood',  'CLASS',
+  'CLASS4',        'Out. Tax',
+  'Lst Tax Pymt',  'Computed-Surveyed Area',
+  'Tax Land Area', 'Num Units',
+  'MAR Num Units', 'GBA',
+  'Homestead',     'Property Use',
+  'Sale Price',    'Sale Date',
+  'Deed Date',     'Owner Name 1',
+  'Owner Name 2',  'Mailing Address'
+]
+
 export const getExportFieldList = (jobType, context) => {
   let fields = [];
   if (jobType === 'zone') {
@@ -68,6 +81,8 @@ export const getExportFieldList = (jobType, context) => {
     fields = [...fields];
   } else if (jobType === "belles") {
     fields = [...bellesFields.map(f => f.value)];
+  } else if (jobType === "open-data-dc") {
+    fields = [...fields, ...openDataDCFields];
   }
   return fields;
 };

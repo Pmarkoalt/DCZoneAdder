@@ -1,5 +1,7 @@
 const formatOwnerName = (_name) => {
   try {
+    if (_name.includes(" LLC")) return _name; // Try to detect company names
+
     let parts = _name.split(',').map(p => p.trim());
     const name = parts.length > 1 ? `${parts[1]} ${parts[0]}` : parts[0];
     parts = name.split(' ');

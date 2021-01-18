@@ -4,24 +4,34 @@ const {EXPORT_MAPPINGS, OpenDataDC} = require('./mappings');
 const {forceCollection} = require('../../jobs/utils');
 
 const DC_OPEN_DATA_URL = 'https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA';
-const getODDCResourceBySSL = async (endpoint, ssl, fields = ['*']) => {
+const getODDCResourceBySSL = async (endpoint, where, fields = ['*']) => {
   const url = `${DC_OPEN_DATA_URL}/${endpoint}`;
   const resp = await axios.get(url, {
     params: {
       f: 'json',
       outFields: fields.join(','),
-      where: `SSL = '${ssl}'`,
+      where: `${where.attr} = '${where.value}'`,
     },
   });
   const features = resp?.data?.features || [];
   return features[0]?.attributes;
 };
 
+function mergeAPIGroups(target, source) {
+  Object.entries(source).forEach(([api, attrs]) => {
+    if (target[api]) {
+      target[api].push(...attrs);
+    } else {
+      target[api] = attrs;
+    }
+  });
+}
+
 function createAPIGroupsFromFieldList(fields=[], apiFieldSource="source") {
   return fields.reduce((acc, field) => {
     // Some fields require multiple resources so its easier to treat everything like a list
     // even if that list is just contains one element.
-    for (const source of forceCollection(field[apiFieldSource])) {
+    for (const source of forceCollection(lodash.get(field, apiFieldSource))) {
       const [api, attr] = source.split('.');
       if (!acc[api]) {
         acc[api] = [];
@@ -38,7 +48,7 @@ async function batchOpenDataDCRequest(ssl, groups) {
   const results = {};
   const promises = Object.entries(groups).map(([api, fields]) => {
     const {endpoint} = OpenDataDC[api]['_meta'];
-    return getODDCResourceBySSL(endpoint, ssl, fields).then((r) => {
+    return getODDCResourceBySSL(endpoint, {attr: 'SSL', value: ssl}, fields).then((r) => {
       results[api] = r;
     });
   });
@@ -62,8 +72,10 @@ async function processSSL(ssl, _fields = []) {
   }
 
   // Organize the required API resources by grouping attributes by their respective API endpoint.
-  const openDataDCFieldGroups = createAPIGroupsFromFieldList(fields);
-  // console.log(openDataDCFieldGroups);
+  const openDataDCFieldGroups = createAPIGroupsFromFieldList(fields.filter(f => !f.lookup), 'source');
+  const lookupFields = createAPIGroupsFromFieldList(fields.filter(f => f.lookup), 'lookup.value');
+  mergeAPIGroups(openDataDCFieldGroups, lookupFields);
+  console.log(openDataDCFieldGroups);
 
   const results = await batchOpenDataDCRequest(ssl, openDataDCFieldGroups);
   // console.log(results);
@@ -77,6 +89,17 @@ async function processSSL(ssl, _fields = []) {
    * NOTE: Multi attribute fields currently do not support alternative sources.
    * */
   const csvObj = {};
+  for (const field of fields.filter(f => f.lookup)) {
+    const lookupValue = lodash.get(results, field.lookup.value);
+    const [api, attr] = field.source.split(".");
+    const {endpoint} = OpenDataDC[api]['_meta'];
+    const lookupResult = await getODDCResourceBySSL(endpoint, {attr: field.lookup.attr, value: lookupValue}, [attr]);
+    results[api] = {
+      ...(results.api || {}),
+      ...lookupResult,
+    }
+  }
+
   const alternativeFieldsReq = [];
   for (const field of fields) {
     if (Array.isArray(field.source)) {
@@ -95,7 +118,7 @@ async function processSSL(ssl, _fields = []) {
 
   if (alternativeFieldsReq.length) {
     console.log('Looking up alternative sources');
-    console.log(alternativeFieldsReq);
+    // console.log(alternativeFieldsReq);
     const altAPIGroups = createAPIGroupsFromFieldList(alternativeFieldsReq, "alternative");
     const altResults = await batchOpenDataDCRequest(ssl, altAPIGroups);
     for (const field of alternativeFieldsReq) {
@@ -104,9 +127,9 @@ async function processSSL(ssl, _fields = []) {
     }
   }
 
-  console.log(csvObj);
+  // console.log(csvObj);
   return csvObj;
 }
 
-processSSL('2664    0050');
+// processSSL('2664    0050');
 module.exports.processSSL = processSSL;

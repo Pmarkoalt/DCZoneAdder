@@ -127,6 +127,7 @@ export const getJobTypeAvatarMeta = (jobType) => {
     zone: ['Z', 'lightcoral'],
     tpsc: ['S', 'lightskyblue'],
     belles: ['B', 'mediumaquamarine'],
+    "open-data-dc": ['O', 'orchid'],
   };
   return config[jobType] || ['X', 'gray'];
 };

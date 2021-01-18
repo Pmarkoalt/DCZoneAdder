@@ -148,10 +148,13 @@ module.exports.getJobResultCSVString = async (jobId) => {
     const jobConfig = JOB_CONFIGS[job.type] || {};
     let results = job.tasks.map((t) => {
       if (jobConfig.includeInputDataInExport && t.result) {
-        return {
-          ...t.data,
-          ...t.result,
-        };
+        const combinedResult = {...t.data};
+        Object.entries(t.result).forEach(([key, val]) => {
+          if ((val !== undefined && val !== null) || (t[key] == undefined || t[key] == null)) {
+            combinedResult[key] = val;
+          }
+        })
+        return combinedResult;
       }
       return t.result;
     });
