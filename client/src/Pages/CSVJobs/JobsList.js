@@ -123,6 +123,7 @@ const JobList = () => {
           <MenuItem value="zone">Zone</MenuItem>
           <MenuItem value="tpsc">SSL</MenuItem>
           <MenuItem value="belles">Belles Link</MenuItem>
+          <MenuItem value="open-data-dc">Open Data DC</MenuItem>
         </Select>
       </JobTypeSelect>
       <div id="list">

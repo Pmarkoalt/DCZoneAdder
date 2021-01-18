@@ -10,24 +10,28 @@ const JOB_CONFIGS = {
   [JOB_TYPES.ZONE]: require('./zone').jobConfig,
   [JOB_TYPES.TPSC]: require('./tpsc').jobConfig,
   [JOB_TYPES.BELLES]: require('./belles').jobConfig,
+  [JOB_TYPES.OPEN_DATA_DC]: require('./open-data-dc').jobConfig,
 };
 
 const TASK_HANDLERS = {
   [JOB_TYPES.ZONE]: require('./zone').process,
   [JOB_TYPES.TPSC]: require('./tpsc').process,
   [JOB_TYPES.BELLES]: require('./belles').process,
+  [JOB_TYPES.OPEN_DATA_DC]: require('./open-data-dc').process,
 };
 
 const JOB_INPUT_PARSERS = {
   [JOB_TYPES.ZONE]: require('./zone').parse,
   [JOB_TYPES.TPSC]: require('./tpsc').parse,
   [JOB_TYPES.BELLES]: require('./belles').parse,
+  [JOB_TYPES.OPEN_DATA_DC]: require('./open-data-dc').parse,
 };
 
 const JOB_RESULTS_PARSERS = {
   [JOB_TYPES.ZONE]: require('./zone').parseResults,
   [JOB_TYPES.TPSC]: require('./tpsc').parseResults,
   [JOB_TYPES.BELLES]: require('./belles').parseResults,
+  [JOB_TYPES.OPEN_DATA_DC]: require('./open-data-dc').parseResults,
 };
 
 // const JOB_TASK_CONTEXT = {
@@ -144,10 +148,13 @@ module.exports.getJobResultCSVString = async (jobId) => {
     const jobConfig = JOB_CONFIGS[job.type] || {};
     let results = job.tasks.map((t) => {
       if (jobConfig.includeInputDataInExport && t.result) {
-        return {
-          ...t.data,
-          ...t.result,
-        };
+        const combinedResult = {...t.data};
+        Object.entries(t.result).forEach(([key, val]) => {
+          if ((val !== undefined && val !== null) || (t[key] == undefined || t[key] == null)) {
+            combinedResult[key] = val;
+          }
+        })
+        return combinedResult;
       }
       return t.result;
     });

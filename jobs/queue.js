@@ -26,7 +26,8 @@ module.exports.initQueues = (processFunction, {onSuccess, onError}) => {
   const configs = [
     require('./zone').queueConfig,
     require('./tpsc').queueConfig,
-    require("./belles").queueConfig
+    require("./belles").queueConfig,
+    require("./open-data-dc").queueConfig,
   ];
   configs.forEach((config) => {
     const queue = getQueue(config.name);
