@@ -62,7 +62,7 @@ export const openDataDCFields = [
   'Neighborhood',  'CLASS',
   'CLASS4',        'Out. Tax',
   'Lst Tax Pymt',  'Computed-Surveyed Area',
-  'Tax Land Area', 'Num Units',
+  'Tax Land Area', 'Zoning', 'Num Units',
   'MAR Num Units', 'GBA',
   'Homestead',     'Property Use',
   'Sale Price',    'Sale Date',
