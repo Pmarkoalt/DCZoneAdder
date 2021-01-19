@@ -14,7 +14,7 @@ function getQueue(name) {
             console.log(`${name} queue: completed tasks cleaned.`);
           });
         }
-      }, 1000 * 60 * 10), // clear completed every 10 minutes
+      }, 1000 * 60 * 1), // clear completed every minute
     }
   }
   return queues[name].queue;

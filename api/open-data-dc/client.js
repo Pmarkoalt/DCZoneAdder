@@ -75,7 +75,7 @@ async function processSSL(ssl, _fields = []) {
   const openDataDCFieldGroups = createAPIGroupsFromFieldList(fields.filter(f => !f.lookup), 'source');
   const lookupFields = createAPIGroupsFromFieldList(fields.filter(f => f.lookup), 'lookup.value');
   mergeAPIGroups(openDataDCFieldGroups, lookupFields);
-  console.log(openDataDCFieldGroups);
+  // console.log(openDataDCFieldGroups);
 
   const results = await batchOpenDataDCRequest(ssl, openDataDCFieldGroups);
   // console.log(results);

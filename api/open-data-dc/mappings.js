@@ -180,5 +180,3 @@ const EXPORT_MAPPINGS = {
 
 module.exports.OpenDataDC = OpenDataDC;
 module.exports.EXPORT_MAPPINGS = EXPORT_MAPPINGS;
-
-console.log(Object.keys(EXPORT_MAPPINGS));
