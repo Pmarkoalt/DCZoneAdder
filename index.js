@@ -28,7 +28,7 @@ connectToDB().then(async () => {
   io.on('connection', (socket) => {
     console.log('User connected');
     socket.on('create-csv-job', async (data, resp) => {
-      console.log('Creating job', data);
+      console.log('Creating job');
       try {
         const job = await createJob(data);
         resp({data: job});
