@@ -16,25 +16,22 @@ export async function createCSVJob(jobType, data, meta, context) {
   return resp.data;
 }
 
-export async function createJobFromSocket(jobType, data, meta, context) {
-  const socket = io.connect();
+export async function createJobFromSocket(socket, jobType, data, meta, context) {
   return new Promise((resolve, reject) => {
     try {
-      socket.on('connect', () => {
-        const params = {
-          type: jobType,
-          data: data,
-          meta: {
-            export_file_name: meta.exportFileName,
-            csv_export_fields: meta.csvExportFields,
-          },
-          context,
-        };
-        socket.emit('create-csv-job', params, (resp) => {
-          socket.disconnect();
-          if (resp.error) return reject(resp.error);
-          return resolve(resp.data);
-        });
+      const params = {
+        type: jobType,
+        data: data,
+        meta: {
+          export_file_name: meta.exportFileName,
+          csv_export_fields: meta.csvExportFields,
+        },
+        context,
+      };
+      socket.emit('create-csv-job', params, (resp) => {
+        socket.disconnect();
+        if (resp.error) return reject(resp.error);
+        return resolve(resp.data);
       });
     } catch (e) {
       console.log(e);

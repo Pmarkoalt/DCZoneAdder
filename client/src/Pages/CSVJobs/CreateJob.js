@@ -2,7 +2,8 @@ import React, {useState, useCallback, useEffect} from 'react';
 import csvparse from 'csv-parse/lib/sync';
 import FileDrop from './FileDrop';
 import Button from '@material-ui/core/Button';
-import {createCSVJob, createJobFromSocket} from './utils';
+import {createJobFromSocket} from './utils';
+import io from 'socket.io-client';
 import ExportFieldSelect from '../../Components/ExportFieldSelect';
 import {getExportFieldList} from '../../Components/ExportFieldSelect/export_fields';
 import {getContextFieldsComponent} from './context-fields';
@@ -13,6 +14,13 @@ import {useParams} from 'react-router-dom';
 const CreateJob = () => {
   const {jobType} = useParams();
   const [uploading, setUploading] = useState(false);
+  const [socket, setSocket] = useState(() => {
+  });
+  useEffect(() => {
+    const s = io.connect();
+    setSocket(s);
+    return () => s.close();
+  }, []);
   const [files, setFiles] = useState([]);
   const [error, setError] = useState();
   const [valid, setValid] = useState(false);
@@ -83,7 +91,7 @@ const CreateJob = () => {
                 const parsed = csvparse(file.data, {columns: true});
                 return [...acc, ...parsed];
               }, []);
-              const job = await createJobFromSocket(jobType, data, meta, context);
+              const job = await createJobFromSocket(socket, jobType, data, meta, context);
               console.log(job);
               if (job) {
                 window.location.href = `/jobs/${job.id}`;
