@@ -29,7 +29,8 @@ const getPropertyQuestData = async ({x, y}, options = {}) => {
       ...(options || {}),
     },
   });
-  return resp.data.results.reduce((acc, r) => {
+  const results = resp.data.results || [];
+  return results.reduce((acc, r) => {
     if (r.attributes) {
       return {
         ...acc,
