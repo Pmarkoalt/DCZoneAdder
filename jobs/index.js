@@ -208,6 +208,8 @@ module.exports.createJob = (jobData) => {
       });
       _job.save(async (err, job) => {
         if (err) return reject(err);
+        console.log("Job created.");
+        console.log(`Creating ${input.length} tasks...`)
         const taskData = input.map((item) => {
           return {
             data: item,
@@ -215,13 +217,19 @@ module.exports.createJob = (jobData) => {
           };
         });
         const tasks = await CSVJobTask.create(taskData);
-        job.tasks.push(...tasks.map((t) => t._id));
+        console.log("finished creating db tasks.");
+        for (const t of tasks) {
+          job.tasks.push(t._id);
+        }
+        // job.tasks.push(...tasks.map((t) => t._id));
+        console.log("Assigning tasks to job.");
         job.save((err) => {
           if (err) return reject(err);
           const queue = getQueue(job.type);
-          tasks.forEach((task) => {
+          for (const task of tasks) {
             queue.add({context: job.context, data: task.data, taskId: task._id, type: job.type, jobId: job.id});
-          });
+          }
+          console.log("Job and task creation complete!");
           return resolve(job);
         });
       });

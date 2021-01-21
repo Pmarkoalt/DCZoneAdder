@@ -117,7 +117,7 @@ async function processSSL(ssl, _fields = []) {
   }
 
   if (alternativeFieldsReq.length) {
-    console.log('Looking up alternative sources');
+    // console.log('Looking up alternative sources');
     // console.log(alternativeFieldsReq);
     const altAPIGroups = createAPIGroupsFromFieldList(alternativeFieldsReq, "alternative");
     const altResults = await batchOpenDataDCRequest(ssl, altAPIGroups);

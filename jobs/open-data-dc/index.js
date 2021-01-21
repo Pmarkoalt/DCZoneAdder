@@ -11,7 +11,6 @@ module.exports.queueConfig = {
 };
 
 module.exports.process = async (context, task) => {
-  console.log(context);
   let ssl = context.data.SSL;
   let xCoord, yCoord;
   if (!ssl) {
