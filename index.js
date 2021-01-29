@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
 const socketio = require('socket.io');
 const express = require('express');
 const app = express();
