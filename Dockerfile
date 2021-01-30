@@ -9,5 +9,5 @@ COPY . .
 
 RUN npm run build:client
 
-EXPOSE 5000
+EXPOSE 80
 CMD ["npm", "start"]
