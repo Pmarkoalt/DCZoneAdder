@@ -42,7 +42,7 @@ export async function createJobFromSocket(socket, jobType, data, meta, context) 
 }
 
 export async function listJobs(_jobType) {
-  const jobType = _jobType === "All" ? undefined : _jobType;
+  const jobType = _jobType === 'All' ? undefined : _jobType;
   const resp = await axios.get('/api/csv-jobs', {
     params: {jobType},
   });
@@ -63,6 +63,13 @@ export async function getJobTaskResults(id, failed = false, {start = 0, limit = 
 
 export function deleteJob(id) {
   return axios.delete(`/api/csv-jobs/${id}/`);
+}
+
+export async function fetchOpenDataDCData(ssl, address) {
+  const resp = await axios.get('/api/open-data/', {
+    params: {ssl, address},
+  });
+  return resp.data;
 }
 
 export async function downloadJobCSV(id, filename = 'export.csv') {
@@ -124,7 +131,7 @@ export const getJobTypeAvatarMeta = (jobType) => {
     zone: ['Z', 'lightcoral'],
     tpsc: ['S', 'lightskyblue'],
     belles: ['B', 'mediumaquamarine'],
-    "open-data-dc": ['O', 'orchid'],
+    'open-data-dc': ['O', 'orchid'],
   };
   return config[jobType] || ['X', 'gray'];
 };

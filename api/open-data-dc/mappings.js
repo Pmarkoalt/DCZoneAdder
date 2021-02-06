@@ -28,7 +28,7 @@ const OpenDataDC = {
       name: 'Record Lots',
       endpoint: 'Property_and_Land_WebMercator/MapServer/35/query',
     },
-    RECORDED_AREA_SF: 'RECORDED_AREA_SF',
+    COMPUTED_AREA_SF: 'COMPUTED_AREA_SF',
   },
   TL: {
     _meta: {
@@ -81,12 +81,12 @@ const EXPORT_MAPPINGS = {
     source: 'ITS.PREMISEADD',
     format: (val) => {
       if (!val) return val;
-      const parts = val.split("WASHINGTON DC");
+      const parts = val.split('WASHINGTON DC');
       if (parts.length) {
         return parts[0];
       }
       return val;
-    }
+    },
   },
   Neighborhood: {
     columnName: 'Neighborhood',
@@ -154,12 +154,12 @@ const EXPORT_MAPPINGS = {
   'Sale Date': {
     columnName: 'Sale Date',
     source: 'ITS.SALEDATE',
-    format: (val) => val ? (new Date(val)).toISOString() : val,
+    format: (val) => (val ? new Date(val).toISOString() : val),
   },
   'Deed Date': {
     columnName: 'Deed Date',
     source: 'ITS.DEEDDATE',
-    format: (val) => val ? (new Date(val)).toISOString() : val,
+    format: (val) => (val ? new Date(val).toISOString() : val),
   },
   'Owner Name 1': {
     columnName: 'Owner Name 1',

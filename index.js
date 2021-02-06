@@ -1,4 +1,4 @@
-// require('dotenv').config();
+require('dotenv').config();
 const socketio = require('socket.io');
 const express = require('express');
 const app = express();
@@ -22,6 +22,7 @@ const {
   getJobFailedResultsCSVString,
   getJobResults,
 } = require('./jobs');
+const {getODDCData} = require('./jobs/open-data-dc');
 
 connectToDB().then(async () => {
   const io = socketio(server);
@@ -94,6 +95,17 @@ app.get('/api/csv-jobs/:id', async (req, res) => {
       return res.status(404).json({message: `Cannot find job ${jobId}`});
     }
     return res.status(500).json({message: 'Error finding job', error: err.toString()});
+  }
+});
+
+app.get('/api/open-data', async (req, res) => {
+  const {ssl, address} = req.query;
+  try {
+    if (!ssl && !address) return res.status(400).json({message: 'ssl or address is required'});
+    const data = await getODDCData(ssl, address);
+    res.status(200).json(data);
+  } catch (err) {
+    return res.status(500).json({message: 'Error processing property.', error: err.toString()});
   }
 });
 
