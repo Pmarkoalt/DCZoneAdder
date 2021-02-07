@@ -13,5 +13,22 @@ function forceCollection(item) {
   return [item];
 }
 
+function formatSSL(ssl) {
+  const pairs = ssl.split(' ').filter((x) => x !== '');
+  if (!pairs || pairs.length !== 2) {
+    throw new Error(`SSL: ${ssl}, is not in a valid format`);
+  }
+  const [square, lot] = pairs;
+  const suffix = isNaN(parseInt(square.charAt(0))) ? square.charAt(0) : null;
+  let sq = square;
+  let spaces = '    ';
+  if (suffix) {
+    sq = sq.replace(suffix, '') + suffix;
+    spaces = '   ';
+  }
+  return `${sq.padStart(4, '0')}${spaces}${lot.padStart(4, '0')}`;
+}
+
 module.exports.generateId = generateId;
 module.exports.forceCollection = forceCollection;
+module.exports.formatSSL = formatSSL;
