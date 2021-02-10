@@ -1,5 +1,6 @@
 const {processSSL} = require('../../api/open-data-dc/client');
 const {getAddressAttributes, getPropertyQuestData} = require('../../api/address');
+const {formatSSL} = require('../../jobs/utils');
 
 module.exports.jobConfig = {
   includeInputDataInExport: true,
@@ -37,5 +38,12 @@ const getODDCData = async (ssl, address) => {
 
 module.exports.getODDCData = getODDCData;
 module.exports.process = async (context, task) => {
-  return getODDCData(context.data.SSL, context.data.Address);
+  let SSL = context.data.SSL;
+  if (!SSL) {
+    const {Square, Lot} = context.data;
+    if (Square && Lot) {
+      SSL = formatSSL(`${Square} ${Lot}`);
+    }
+  }
+  return getODDCData(SSL, context.data.Address);
 };
