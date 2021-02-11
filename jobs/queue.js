@@ -10,9 +10,7 @@ function getQueue(name) {
       interval: setInterval(() => {
         const queue = queues[name].queue;
         if (queue) {
-          queue.clean(10, 'completed').then(() => {
-            console.log(`${name} queue: completed tasks cleaned.`);
-          });
+          queue.clean(10, 'completed');
         }
       }, 1000 * 60 * 5), // clear completed every 5 minutes
     };
