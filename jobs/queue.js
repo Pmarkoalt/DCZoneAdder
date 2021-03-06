@@ -10,12 +10,10 @@ function getQueue(name) {
       interval: setInterval(() => {
         const queue = queues[name].queue;
         if (queue) {
-          queue.clean(10, 'completed').then(() => {
-            console.log(`${name} queue: completed tasks cleaned.`);
-          });
+          queue.clean(10, 'completed');
         }
       }, 1000 * 60 * 5), // clear completed every 5 minutes
-    }
+    };
   }
   return queues[name].queue;
 }
@@ -26,8 +24,8 @@ module.exports.initQueues = (processFunction, {onSuccess, onError}) => {
   const configs = [
     require('./zone').queueConfig,
     require('./tpsc').queueConfig,
-    require("./belles").queueConfig,
-    require("./open-data-dc").queueConfig,
+    require('./belles').queueConfig,
+    require('./open-data-dc').queueConfig,
   ];
   configs.forEach((config) => {
     const queue = getQueue(config.name);

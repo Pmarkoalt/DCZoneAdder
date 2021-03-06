@@ -22,6 +22,7 @@ const {
   getJobFailedResultsCSVString,
   getJobResults,
 } = require('./jobs');
+const {getODDCData} = require('./jobs/open-data-dc');
 
 connectToDB().then(async () => {
   const io = socketio(server);
@@ -94,6 +95,17 @@ app.get('/api/csv-jobs/:id', async (req, res) => {
       return res.status(404).json({message: `Cannot find job ${jobId}`});
     }
     return res.status(500).json({message: 'Error finding job', error: err.toString()});
+  }
+});
+
+app.get('/api/open-data', async (req, res) => {
+  const {ssl, address} = req.query;
+  try {
+    if (!ssl && !address) return res.status(400).json({message: 'ssl or address is required'});
+    const data = await getODDCData(ssl, address);
+    res.status(200).json(data);
+  } catch (err) {
+    return res.status(500).json({message: 'Error processing property.', error: err.toString()});
   }
 });
 
@@ -191,7 +203,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname + '/client/build/index.html'));
 });
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 80;
 server.listen(port, () => {
   console.log('App is listening on port ' + port);
 });

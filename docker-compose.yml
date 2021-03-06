@@ -1,0 +1,19 @@
+version: "2"
+services:
+  # db:
+  #   image: "mongo:4-bionic"
+  redis:
+    image: "redis:6-buster"
+    ports:
+      - "6379:6379"
+  app:
+    build: .
+    ports:
+      - "5000:80"
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      # - MONGO_DB_URL=mongodb+srv://db/zone-builder?retryWrites=true&w=majority
+    depends_on:
+      - redis
+      # - db
