@@ -7,6 +7,7 @@ import io from 'socket.io-client';
 import ExportFieldSelect from '../../Components/ExportFieldSelect';
 import {getExportFieldList} from '../../Components/ExportFieldSelect/export_fields';
 import {getContextFieldsComponent} from './context-fields';
+import {Tabs} from '../../Components/tabs/';
 
 import './styles.scss';
 import {useParams} from 'react-router-dom';
@@ -14,14 +15,14 @@ import {useParams} from 'react-router-dom';
 const CreateJob = () => {
   const {jobType} = useParams();
   const [uploading, setUploading] = useState(false);
-  const [socket, setSocket] = useState(() => {
-  });
+  const [socket, setSocket] = useState(() => {});
   useEffect(() => {
     const s = io.connect();
     setSocket(s);
     return () => s.close();
   }, []);
   const [files, setFiles] = useState([]);
+  const [uploadText, setUploadText] = useState();
   const [error, setError] = useState();
   const [valid, setValid] = useState(false);
   const [context, setContext] = useState({});
@@ -52,12 +53,29 @@ const CreateJob = () => {
   }, []);
   const ContextFieldsComponent = getContextFieldsComponent(jobType);
   useEffect(() => {
-    setValid(files && files.length > 0);
-  }, [files]);
+    setValid((files && files.length > 0) || (uploadText && uploadText.trim().length));
+  }, [files, uploadText]);
   return (
     <div id="section-one">
       <h2>Please provide a CSV File To Create a new Job</h2>
-      <FileDrop createFile={(newFile) => setFiles((f) => [...f, newFile])} files={files} />
+      <Tabs
+        style={{width: '100%'}}
+        tabs={[
+          {
+            label: 'File Upload',
+            component: <FileDrop createFile={(newFile) => setFiles((f) => [...f, newFile])} files={files} />,
+          },
+          {
+            label: 'Copy/Paste',
+            component: (
+              <textarea
+                style={{resize: 'none', width: '100%', minHeight: '300px'}}
+                onChange={(event) => setUploadText(event.target.value)}
+              />
+            ),
+          },
+        ]}
+      />
       {error && (
         <div className="csv-upload-error-container">
           <span className="csv-upload-error">{error}</span>
@@ -87,10 +105,22 @@ const CreateJob = () => {
             try {
               setError(undefined);
               setUploading(true);
-              const data = files.reduce((acc, file) => {
-                const parsed = csvparse(file.data, {columns: true});
-                return [...acc, ...parsed];
-              }, []);
+              let data;
+              if (files && files.length > 0) {
+                data = files.reduce((acc, file) => {
+                  const parsed = csvparse(file.data, {columns: true});
+                  return [...acc, ...parsed];
+                }, []);
+              } else if (uploadText && uploadText.trim().length) {
+                data = uploadText
+                  .split('\n')
+                  .filter((x) => x && x.trim().length)
+                  .map((address) => ({Address: address.trim()}));
+              } else {
+                // need at least a file or manual text input
+                setUploading(false);
+                return;
+              }
               const job = await createJobFromSocket(socket, jobType, data, meta, context);
               console.log(job);
               if (job) {
@@ -105,7 +135,7 @@ const CreateJob = () => {
               setUploading(false);
             }
           }}>
-          {uploading ? "Uploading..." : "Upload"}
+          {uploading ? 'Uploading...' : 'Upload'}
         </Button>
       </div>
     </div>

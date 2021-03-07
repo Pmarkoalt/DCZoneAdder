@@ -57,7 +57,7 @@ export default function SimpleTabs(props) {
   const tabs = props.tabs || [];
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} style={props.style}>
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
           {tabs.map((t, index) => {
