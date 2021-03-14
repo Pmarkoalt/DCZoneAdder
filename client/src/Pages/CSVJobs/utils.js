@@ -78,6 +78,12 @@ export async function downloadJobCSV(id, filename = 'export.csv') {
   fileDownload(resp.data, _filename);
 }
 
+export async function downloadFilteredJobResultsCSV(id, filename = 'export.csv') {
+  const resp = await axios.get(`/api/csv-jobs/${id}/download?useFilter=true`);
+  const _filename = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+  fileDownload(resp.data, `${_filename.replace('.csv', '')} (filtered).csv`);
+}
+
 export async function downloadFailedJobCSV(id, filename = 'export.csv') {
   const resp = await axios.get(`/api/csv-jobs/${id}/failed/csv`);
   const _filename = filename.endsWith('.csv') ? filename : `${filename}.csv`;

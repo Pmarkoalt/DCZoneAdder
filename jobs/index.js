@@ -2,7 +2,7 @@ const {Parser} = require('json2csv');
 const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
 const {generateId} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
-const {resolve} = require('path');
+const {goodpropsFilter} = require('../api/open-data-dc/filters.js');
 
 module.exports.JOB_TYPES = JOB_TYPES;
 
@@ -138,7 +138,7 @@ module.exports.getJobFailedResultsCSVString = async (jobId) => {
   return csv;
 };
 
-module.exports.getJobResultCSVString = async (jobId) => {
+module.exports.getJobResultCSVString = async (jobId, useFilter) => {
   try {
     const job = await CSVJob.findOne({id: jobId}).populate({
       path: 'tasks',
@@ -146,14 +146,15 @@ module.exports.getJobResultCSVString = async (jobId) => {
       select: ['result', 'data'],
     });
     const jobConfig = JOB_CONFIGS[job.type] || {};
-    let results = job.tasks.map((t) => {
+    const tasks = useFilter ? goodpropsFilter(job.tasks) : job.tasks;
+    let results = tasks.map((t) => {
       if (jobConfig.includeInputDataInExport && t.result) {
         const combinedResult = {...t.data};
         Object.entries(t.result).forEach(([key, val]) => {
-          if ((val !== undefined && val !== null) || (t[key] == undefined || t[key] == null)) {
+          if ((val !== undefined && val !== null) || t[key] == undefined || t[key] == null) {
             combinedResult[key] = val;
           }
-        })
+        });
         return combinedResult;
       }
       return t.result;
@@ -208,8 +209,8 @@ module.exports.createJob = (jobData) => {
       });
       _job.save(async (err, job) => {
         if (err) return reject(err);
-        console.log("Job created.");
-        console.log(`Creating ${input.length} tasks...`)
+        console.log('Job created.');
+        console.log(`Creating ${input.length} tasks...`);
         const taskData = input.map((item) => {
           return {
             data: item,
@@ -217,19 +218,19 @@ module.exports.createJob = (jobData) => {
           };
         });
         const tasks = await CSVJobTask.create(taskData);
-        console.log("finished creating db tasks.");
+        console.log('finished creating db tasks.');
         for (const t of tasks) {
           job.tasks.push(t._id);
         }
         // job.tasks.push(...tasks.map((t) => t._id));
-        console.log("Assigning tasks to job.");
+        console.log('Assigning tasks to job.');
         job.save((err) => {
           if (err) return reject(err);
           const queue = getQueue(job.type);
           for (const task of tasks) {
             queue.add({context: job.context, data: task.data, taskId: task._id, type: job.type, jobId: job.id});
           }
-          console.log("Job and task creation complete!");
+          console.log('Job and task creation complete!');
           return resolve(job);
         });
       });

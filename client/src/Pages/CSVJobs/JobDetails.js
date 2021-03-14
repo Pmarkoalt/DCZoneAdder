@@ -7,7 +7,14 @@ import {Tabs} from '../../Components/tabs';
 
 import Button from '@material-ui/core/Button';
 // import './section_two.scss';
-import {getJobTypeAvatarMeta, downloadJobCSV, getJob, getJobTaskResults, downloadFailedJobCSV} from './utils';
+import {
+  getJobTypeAvatarMeta,
+  downloadJobCSV,
+  getJob,
+  getJobTaskResults,
+  downloadFailedJobCSV,
+  downloadFilteredJobResultsCSV,
+} from './utils';
 import {Avatar} from '@material-ui/core';
 
 const DetailsContainer = styled.div`
@@ -89,6 +96,7 @@ const JobDetails = ({match}) => {
   const [job, setJob] = useState({});
   const [data, setData] = useState(0);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingFilteredResults, setDownloadingFilteredResults] = useState(false);
   const [downloadingFailedTasks, setDownloadingFailedTasks] = useState(false);
   const [socket, setSocket] = useState();
   const [abbreviation, color] = getJobTypeAvatarMeta(job ? job.type : undefined);
@@ -102,6 +110,11 @@ const JobDetails = ({match}) => {
     setDownloading(true);
     await downloadJobCSV(jobId, filename);
     setDownloading(false);
+  }, []);
+  const downloadFilteredResultsCSV = useCallback(async (jobId, filename) => {
+    setDownloadingFilteredResults(true);
+    await downloadFilteredJobResultsCSV(jobId, filename);
+    setDownloadingFilteredResults(false);
   }, []);
   const downloadFailedTasksCSV = useCallback(async (jobId, filename) => {
     setDownloadingFailedTasks(true);
@@ -170,6 +183,13 @@ const JobDetails = ({match}) => {
             disabled={downloading || job.task_success_count === 0}
             onClick={() => downloadCSV(jobId, job.export_file_name)}>
             Download Successful Items
+          </Button>
+          <Button
+            id="filterd-results-download"
+            variant="contained"
+            disabled={downloadingFilteredResults || job.task_success_count === 0}
+            onClick={() => downloadFilteredResultsCSV(jobId, job.export_file_name)}>
+            Download Filtered Results
           </Button>
           <Button
             id="failed-task-download"

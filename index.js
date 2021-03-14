@@ -165,7 +165,8 @@ app.get('/api/csv-jobs/:id/download', async (req, res) => {
   try {
     const jobId = req.params.id;
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
-    const csv = await getJobResultCSVString(jobId);
+    const useFilter = Boolean(req.query.useFilter);
+    const csv = await getJobResultCSVString(jobId, useFilter);
     res.set('Content-Type', 'text/csv');
     res.setHeader('Content-disposition', 'attachment; filename=data.csv');
     return res.status(200).send(csv);
