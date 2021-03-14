@@ -198,6 +198,16 @@ app.delete('/api/csv-jobs/:id', async (req, res) => {
   }
 });
 
+app.post('/api/auth', async (req, res) => {
+  try {
+    const password = req.body.password;
+    const status = password === process.env.APP_PASSWORD ? 200 : 401;
+    res.sendStatus(status);
+  } catch (err) {
+    return res.status(500).json({message: 'Error authenticating'});
+  }
+});
+
 // Handles any requests that don't match the ones above
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname + '/client/build/index.html'));
