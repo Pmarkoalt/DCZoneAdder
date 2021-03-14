@@ -12,6 +12,8 @@ const OpenDataDC = {
     CLASSTYPE: 'CLASSTYPE',
     TAXRATE: 'TAXRATE',
     TOTDUEAMT: 'TOTDUEAMT',
+    TOTCOLAMT: 'TOTCOLAMT',
+    TOTBALAMT: 'TOTBALAMT',
     LASTPAYDT: 'LASTPAYDT',
     HSTDCODE: 'HSTDCODE',
     SALEPRICE: 'SALEPRICE',
@@ -22,6 +24,13 @@ const OpenDataDC = {
     ADDRESS1: 'ADDRESS1',
     ADDRESS2: 'ADDRESS2',
     CITYSTZIP: 'CITYSTZIP',
+  },
+  ITSF: {
+    _meta: {
+      name: 'Integrated Tax System Public Extract Facts',
+      endpoint: 'Property_and_Land_WebMercator/MapServer/56/query',
+    },
+    APPRAISED_VALUE_CURRENT_TOTAL: 'APPRAISED_VALUE_CURRENT_TOTAL',
   },
   RL: {
     _meta: {
@@ -92,6 +101,10 @@ const EXPORT_MAPPINGS = {
     columnName: 'Neighborhood',
     source: 'ITS.NBHDNAME',
   },
+  'Ass. Value': {
+    columnName: 'Ass. Value',
+    source: 'ITSF.APPRAISED_VALUE_CURRENT_TOTAL',
+  },
   CLASS: {
     columnName: 'CLASS',
     source: 'ITS.CLASSTYPE',
@@ -101,9 +114,17 @@ const EXPORT_MAPPINGS = {
     source: 'ITS.TAXRATE',
     format: (val) => (val === 10 ? 'Y' : 'N'),
   },
-  'Out. Tax': {
-    columnName: 'Out. Tax',
+  TOTDUEAMT: {
+    columnName: 'TOTDUEAMT',
     source: 'ITS.TOTDUEAMT',
+  },
+  TOTCOLAMT: {
+    columnName: 'TOTCOLAMT',
+    source: 'ITS.TOTCOLAMT',
+  },
+  TOTBALAMT: {
+    columnName: 'TOTBALAMT',
+    source: 'ITS.TOTBALAMT',
   },
   'Lst Tax Pymt': {
     columnName: 'Lst Tax Pymt',
