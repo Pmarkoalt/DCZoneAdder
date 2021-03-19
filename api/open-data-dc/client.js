@@ -85,7 +85,6 @@ async function processSSL(_ssl, _fields = []) {
   // console.log(openDataDCFieldGroups);
 
   const results = await batchOpenDataDCRequest(ssl, openDataDCFieldGroups);
-  // console.log(results);
 
   /* Now that we have the first batch of API response, we can start to build out
    * the CSV object. Certain fields have alternative sources defined so for each

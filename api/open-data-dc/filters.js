@@ -100,7 +100,7 @@ module.exports.goodpropsFilter = (tasks) => {
   return tasks.filter((task) => {
     const rule = filterRules.find((r) => r.zones.includes(task.result.Zoning));
     if (!rule) return false;
-    const sqft = task.result['Computed-Surveyed Area'] || 0;
+    const sqft = Math.max(task.result['Tax Land Area'] || 0, task.result['Computed-Surveyed Area'] || 0, 0);
     return sqft >= rule.sqft;
   });
 };

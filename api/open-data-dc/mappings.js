@@ -101,9 +101,13 @@ const EXPORT_MAPPINGS = {
     columnName: 'Neighborhood',
     source: 'ITS.NBHDNAME',
   },
-  'Ass. Value': {
-    columnName: 'Ass. Value',
+  'Ass. Value (ITS FACTS)': {
+    columnName: 'Ass. Value (ITS FACTS)',
     source: 'ITSF.APPRAISED_VALUE_CURRENT_TOTAL',
+  },
+  'Ass. Value (ITS)': {
+    columnName: 'Ass. Value (ITS)',
+    source: 'ITS.ASSESSMENT',
   },
   CLASS: {
     columnName: 'CLASS',
@@ -117,10 +121,6 @@ const EXPORT_MAPPINGS = {
   TOTDUEAMT: {
     columnName: 'TOTDUEAMT',
     source: 'ITS.TOTDUEAMT',
-  },
-  TOTCOLAMT: {
-    columnName: 'TOTCOLAMT',
-    source: 'ITS.TOTCOLAMT',
   },
   TOTBALAMT: {
     columnName: 'TOTBALAMT',
@@ -140,13 +140,13 @@ const EXPORT_MAPPINGS = {
     source: 'MAR.LANDAREA',
     alternative: 'MAC.LANDAREA',
   },
-  'Num Units': {
-    columnName: 'Num Units',
+  'MAR Num Units': {
+    columnName: 'MAR Num Units',
     source: 'MAR.NUM_UNITS',
     alternative: 'MAC.NUM_UNITS',
   },
-  'MAR Num Units': {
-    columnName: 'MAR Num Units',
+  'AP Num Units': {
+    columnName: 'AP Num Units',
     source: 'AP.ACTIVE_RES_UNIT_COUNT',
   },
   GBA: {

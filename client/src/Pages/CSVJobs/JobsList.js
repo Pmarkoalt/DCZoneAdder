@@ -17,7 +17,15 @@ import {LinearProgressWithLabel} from '../../Components/progress';
 
 import './list.scss';
 
-import {listJobs, getJobTypeAvatarMeta, deleteJob, formatDate, downloadJobCSV, downloadFailedJobCSV} from './utils.js';
+import {
+  listJobs,
+  getJobTypeAvatarMeta,
+  deleteJob,
+  formatDate,
+  downloadJobCSV,
+  downloadFailedJobCSV,
+  downloadFilteredJobResultsCSV,
+} from './utils.js';
 import {Avatar, CircularProgress} from '@material-ui/core';
 
 const JobTypeSelect = styled(FormControl)`
@@ -27,7 +35,7 @@ const JobTypeSelect = styled(FormControl)`
   right: 10px;
 `;
 
-const Job = ({job, disableDownload, disableDelete, onDownload, onDownloadFailed, onDelete}) => {
+const Job = ({job, disableDownload, disableDelete, onDownload, onDownloadFailed, onDownloadFiltered, onDelete}) => {
   const [abbreviation, color] = getJobTypeAvatarMeta(job.type);
   return (
     <div className="list-row">
@@ -62,6 +70,20 @@ const Job = ({job, disableDownload, disableDelete, onDownload, onDownloadFailed,
                   onClick={(event) => {
                     event.preventDefault();
                     onDownload(job.id, job.export_file_name);
+                  }}>
+                  {disableDownload ? <CircularProgress /> : <GetAppIcon />}
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title="Download filtered items" placement="top">
+              <span>
+                <IconButton
+                  edge="end"
+                  aria-label="comments"
+                  disabled={disableDownload || job.task_success_count === 0}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    onDownloadFiltered(job.id, job.export_file_name);
                   }}>
                   {disableDownload ? <CircularProgress /> : <GetAppIcon />}
                 </IconButton>
@@ -127,7 +149,7 @@ const JobList = () => {
         </Select>
       </JobTypeSelect>
       <div id="list">
-        <List style={{width: '600px'}}>
+        <List style={{width: '800px'}}>
           {!loading ? (
             jobs.length === 0 ? (
               <h3>No Results</h3>
@@ -155,6 +177,11 @@ const JobList = () => {
                     onDownload={async (jobId, filename) => {
                       setDownloading((d) => ({...d, [jobId]: true}));
                       await downloadJobCSV(jobId, filename);
+                      setDownloading((d) => ({...d, [jobId]: false}));
+                    }}
+                    onDownloadFiltered={async (jobId, filename) => {
+                      setDownloading((d) => ({...d, [jobId]: true}));
+                      await downloadFilteredJobResultsCSV(jobId, filename);
                       setDownloading((d) => ({...d, [jobId]: false}));
                     }}
                     onDownloadFailed={async (jobId, filename) => {

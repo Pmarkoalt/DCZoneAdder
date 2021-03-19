@@ -106,11 +106,21 @@ const CreateJob = () => {
               setError(undefined);
               setUploading(true);
               let data;
+              console.log(files);
               if (files && files.length > 0) {
                 data = files.reduce((acc, file) => {
                   const parsed = csvparse(file.data, {columns: true});
                   return [...acc, ...parsed];
                 }, []);
+                if (data.length) {
+                  if (!('Address' in data[0])) {
+                    setError("CSV file(s) must include an 'Address' or 'SSL' column.");
+                    setFiles([]);
+                    setUploading(false);
+                    return;
+                  }
+                }
+                return console.log(data);
               } else if (uploadText && uploadText.trim().length) {
                 data = uploadText
                   .split('\n')

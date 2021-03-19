@@ -21,12 +21,10 @@ function formatSSL(ssl) {
   const [square, lot] = pairs;
   const suffix = isNaN(parseInt(square.charAt(0))) ? square.charAt(0) : null;
   let sq = square;
-  let spaces = '    ';
   if (suffix) {
     sq = sq.replace(suffix, '') + suffix;
-    spaces = '   ';
   }
-  return `${sq.padStart(4, '0')}${spaces}${lot.padStart(4, '0')}`;
+  return `${sq.padStart(4, '0').padEnd(8, ' ')}${lot.padStart(4, '0')}`;
 }
 
 module.exports.generateId = generateId;
