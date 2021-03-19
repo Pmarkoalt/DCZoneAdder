@@ -106,7 +106,6 @@ const CreateJob = () => {
               setError(undefined);
               setUploading(true);
               let data;
-              console.log(files);
               if (files && files.length > 0) {
                 data = files.reduce((acc, file) => {
                   const parsed = csvparse(file.data, {columns: true});
