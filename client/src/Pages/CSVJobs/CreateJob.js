@@ -112,7 +112,7 @@ const CreateJob = () => {
                   return [...acc, ...parsed];
                 }, []);
                 if (data.length) {
-                  if (!('Address' in data[0])) {
+                  if (!('Address' in data[0]) && !('SSL' in data[0])) {
                     setError("CSV file(s) must include an 'Address' or 'SSL' column.");
                     setFiles([]);
                     setUploading(false);
