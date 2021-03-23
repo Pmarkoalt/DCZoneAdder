@@ -12,6 +12,16 @@ import {Tabs} from '../../Components/tabs/';
 import './styles.scss';
 import {useParams} from 'react-router-dom';
 
+const validateCSV = (csvData) => {
+  if (!csvData.length) return;
+  const hasAddress = 'Address' in csvData[0];
+  const hasSSL = 'SSL' in csvData[0];
+  const hasSquareLot = 'Square' in csvData[0] && 'Lot' in csvData[0];
+  if (!hasAddress && !hasSSL && !hasSquareLot) {
+    return "CSV file(s) must include an 'Address', 'SSL', or 'Square' and 'Lot' column.";
+  }
+}
+
 const CreateJob = () => {
   const {jobType} = useParams();
   const [uploading, setUploading] = useState(false);
@@ -108,18 +118,17 @@ const CreateJob = () => {
               let data;
               if (files && files.length > 0) {
                 data = files.reduce((acc, file) => {
-                  const parsed = csvparse(file.data, {columns: true});
+                  const sanitizedData = file.data.replaceAll("=\"", "\"");
+                  const parsed = csvparse(sanitizedData, {columns: true});
                   return [...acc, ...parsed];
                 }, []);
-                if (data.length) {
-                  if (!('Address' in data[0]) && !('SSL' in data[0])) {
-                    setError("CSV file(s) must include an 'Address' or 'SSL' column.");
-                    setFiles([]);
-                    setUploading(false);
-                    return;
-                  }
+                const validationError = validateCSV(data);
+                if (validationError) {
+                  setError(validationError);
+                  setFiles([]);
+                  setUploading(false);
+                  return;
                 }
-                return console.log(data);
               } else if (uploadText && uploadText.trim().length) {
                 data = uploadText
                   .split('\n')
