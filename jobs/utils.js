@@ -19,12 +19,20 @@ function formatSSL(ssl) {
     throw new Error(`SSL: ${ssl}, is not in a valid format`);
   }
   const [square, lot] = pairs;
-  const suffix = isNaN(parseInt(square.charAt(0))) ? square.charAt(0) : null;
-  let sq = square;
-  if (suffix) {
-    sq = sq.replace(suffix, '') + suffix;
+  let suffix = "";
+
+  const match = square.match(/([a-z]+)?\d+([a-z]+)?/i);
+  if (match) {
+    if (match[1] && match[2]) {
+      throw new Error(`SSL: ${ssl}, is not in a valid format`);
+    } else if (match[1]) {
+      suffix = match[1];
+    } else if (match[2]) {
+      suffix = match[2];
+    }
   }
-  return `${sq.padStart(4, '0').padEnd(8, ' ')}${lot.padStart(4, '0')}`;
+  const sq = suffix.length ? square.replace(suffix, "") : square;
+  return `${(sq.padStart(4, '0') + suffix.toUpperCase()).padEnd(8, ' ')}${lot.padStart(4, '0')}`;
 }
 
 module.exports.generateId = generateId;
