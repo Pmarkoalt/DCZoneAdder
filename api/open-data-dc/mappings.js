@@ -101,10 +101,6 @@ const EXPORT_MAPPINGS = {
     columnName: 'Neighborhood',
     source: 'ITS.NBHDNAME',
   },
-  'Ass. Value (ITS FACTS)': {
-    columnName: 'Ass. Value (ITS FACTS)',
-    source: 'ITSF.APPRAISED_VALUE_CURRENT_TOTAL',
-  },
   'Ass. Value (ITS)': {
     columnName: 'Ass. Value (ITS)',
     source: 'ITS.ASSESSMENT',
