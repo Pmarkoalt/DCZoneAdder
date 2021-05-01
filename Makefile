@@ -8,6 +8,7 @@ deploy:
 	docker build -t zone-builder:latest .
 	docker tag zone-builder:latest $(ECR_URL)/zone-builder:latest
 	docker push $(ECR_URL)/zone-builder:latest
+	aws ecs update-service --force-new-deployment --profile=cbdevllc --region=us-east-1 --cluster=zone-builder --service=webapp
 
 ssh:
 	sudo ssh -i ~/.ssh/property-apps.pem ubuntu@$(EC2_URL)
