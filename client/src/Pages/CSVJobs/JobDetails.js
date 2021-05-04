@@ -14,6 +14,7 @@ import {
   getJobTaskResults,
   downloadFailedJobCSV,
   downloadFilteredJobResultsCSV,
+  downloadLeadsZip,
 } from './utils';
 import {Avatar} from '@material-ui/core';
 
@@ -198,6 +199,14 @@ const JobDetails = ({match}) => {
             disabled={downloadingFailedTasks || job.task_error_count === 0}
             onClick={() => downloadFailedTasksCSV(jobId, job.export_file_name)}>
             Download Failed Items
+          </Button>
+          <Button
+            id="leads-download"
+            variant="contained"
+            color="primary"
+            disabled={downloading || job.task_success_count === 0}
+            onClick={() => downloadLeadsZip(jobId, job.export_file_name)}>
+            Download Leads
           </Button>
         </div>
       </div>

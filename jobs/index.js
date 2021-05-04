@@ -3,6 +3,7 @@ const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
 const {generateId} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
 const {goodpropsFilter} = require('../api/open-data-dc/filters.js');
+const AdmZip = require("adm-zip");
 
 module.exports.JOB_TYPES = JOB_TYPES;
 
@@ -256,6 +257,20 @@ module.exports.deleteJob = async (jobId) => {
       return reject(err);
     }
   });
+};
+
+module.exports.getJobLeadResults = async (jobId) => {
+  try {
+    const results = await getJobResults(jobId);
+    const zip = new AdmZip();
+    const content = JSON.stringify(results[0]);
+    zip.addFile("test1.txt", Buffer.alloc(content.length, content), "test1");
+    zip.addFile("test2.txt", Buffer.alloc(content.length, content), "test2");
+    return zip.toBuffer();
+  } catch (err) {
+    console.log(err);
+    return Promise.reject(err);
+  }
 };
 
 const processTask = (taskMeta) => {
