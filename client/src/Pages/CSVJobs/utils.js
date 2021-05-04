@@ -108,9 +108,8 @@ export async function downloadJobCSVFromSocket(id, filename = 'export.csv') {
 }
 
 export async function downloadLeadsZip(id, filename = 'export.csv') {
-  const resp = await axios.get(`/api/csv-jobs/${id}/leads`);
+  const resp = await axios.get(`/api/csv-jobs/${id}/leads`, {responseType: 'arraybuffer'});
   const _filename = filename.endsWith('.csv') ? filename : `${filename}.csv`;
-  // console.log(resp.data);
   fileDownload(resp.data, `${_filename.replace('.csv', '')} (leads).zip`);
 }
 

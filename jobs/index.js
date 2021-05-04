@@ -259,7 +259,7 @@ module.exports.deleteJob = async (jobId) => {
   });
 };
 
-module.exports.getJobLeadResults = async (jobId) => {
+module.exports.getJobLeadResultsZip = async (jobId) => {
   try {
     const results = await getJobResults(jobId);
     const zip = new AdmZip();

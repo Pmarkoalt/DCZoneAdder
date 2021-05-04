@@ -20,7 +20,7 @@ const {
   getJobResultCSVString,
   getJobInputCSVString,
   getJobFailedResultsCSVString,
-  getJobLeadResults,
+  getJobLeadResultsZip,
   getJobResults,
 } = require('./jobs');
 const {getODDCData} = require('./jobs/open-data-dc');
@@ -193,12 +193,11 @@ app.get('/api/csv-jobs/:id/leads', async (req, res) => {
   try {
     const jobId = req.params.id;
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
-    const leadResults = await getJobLeadResults(jobId);
-    console.log(leadResults);
+    const leadResultsZipBuffer = await getJobLeadResultsZip(jobId);
     res.set('Content-Type', 'application/zip');
     res.setHeader('Content-disposition', 'attachment; filename=leads.zip');
     // return res.status(200);
-    return res.status(200).send(leadResults);
+    return res.status(200).send(leadResultsZipBuffer);
   } catch (err) {
     return res.status(500).json({message: "Error generating job's CSV input file.", error: err});
   }
