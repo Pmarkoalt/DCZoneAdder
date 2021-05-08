@@ -1,3 +1,5 @@
+const {Parser} = require('json2csv');
+
 function generateId() {
   var length = 8,
     charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
@@ -35,6 +37,21 @@ function formatSSL(ssl) {
   return `${(sq.padStart(4, '0') + suffix.toUpperCase()).padEnd(8, ' ')}${lot.padStart(4, '0')}`;
 }
 
+function createCSVString(data) {
+  const keys = Object.keys(data[0]);
+  const parser = new Parser({fields: keys});
+  const csv = parser.parse(data);
+  return csv;
+}
+
+function monthDiff(d1, d2) {
+  const timeDiff = (d2.getTime() - d1.getTime()) / 1000;
+  const secondsPerMonth = (60 * 60 * 24 * 365) / 12;
+  return timeDiff / secondsPerMonth;
+}
+
 module.exports.generateId = generateId;
 module.exports.forceCollection = forceCollection;
 module.exports.formatSSL = formatSSL;
+module.exports.createCSVString = createCSVString;
+module.exports.monthDiff = monthDiff;
