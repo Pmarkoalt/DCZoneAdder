@@ -112,7 +112,7 @@ module.exports.oddc = (records) => {
         return saleDateMatch && classMatch && marNumUnitsMatch;
     }
     const {true: matched, false: failed} = lodash.groupBy(records, match);
-    const {true: entities, false: individuals} = lodash.groupBy(matched, (data) => {
+    const {true: highTax, false: individuals} = lodash.groupBy(matched, (data) => {
         const name = data["Owner Name 1"];
         if (!name) return false;
         return entityList.some((check) => name.toUpperCase().includes(check));
