@@ -198,7 +198,6 @@ app.get('/api/csv-jobs/:id/leads', async (req, res) => {
     const leadResultsZipBuffer = await getJobLeadResultsZip(jobId, leadType);
     res.set('Content-Type', 'application/zip');
     res.setHeader('Content-disposition', 'attachment; filename=leads.zip');
-    // return res.status(200);
     return res.status(200).send(leadResultsZipBuffer);
   } catch (err) {
     return res.status(500).json({message: "Error generating job's CSV input file.", error: err});
