@@ -107,6 +107,11 @@ export async function downloadJobCSVFromSocket(id, filename = 'export.csv') {
   });
 }
 
+export async function downloadLeadsZip(id, leadType, filename = 'export.csv') {
+  const resp = await axios.get(`/api/csv-jobs/${id}/leads?type=${leadType}`, {responseType: 'arraybuffer'});
+  fileDownload(resp.data, `${filename.replace('.csv', '')} (leads).zip`);
+}
+
 export function formatDate(date) {
   const monthNames = [
     'January',

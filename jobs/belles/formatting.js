@@ -1,6 +1,6 @@
 const formatOwnerName = (_name) => {
   try {
-    let parts = _name.split(',').map(p => p.trim());
+    let parts = _name.split(',').map((p) => p.trim());
     const name = parts.length > 1 ? `${parts[1]} ${parts[0]}` : parts[0];
     parts = name.split(' ');
     const first = parts[0].replace(/[\W0-9]/gi, '');
@@ -10,7 +10,7 @@ const formatOwnerName = (_name) => {
     }
     return last ? `${first} ${last}` : first;
   } catch {
-    return name;
+    return _name;
   }
 };
 

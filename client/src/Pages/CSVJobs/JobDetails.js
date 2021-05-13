@@ -14,8 +14,9 @@ import {
   getJobTaskResults,
   downloadFailedJobCSV,
   downloadFilteredJobResultsCSV,
+  downloadLeadsZip,
 } from './utils';
-import {Avatar} from '@material-ui/core';
+import {Avatar, FormControl, InputLabel, Select, MenuItem} from '@material-ui/core';
 
 const DetailsContainer = styled.div`
   padding-top: 1em;
@@ -95,9 +96,11 @@ const JobDetails = ({match}) => {
   const jobId = match.params.id;
   const [job, setJob] = useState({});
   const [data, setData] = useState(0);
+  const [lipType, setLipType] = useState('oddc');
   const [downloading, setDownloading] = useState(false);
   const [downloadingFilteredResults, setDownloadingFilteredResults] = useState(false);
   const [downloadingFailedTasks, setDownloadingFailedTasks] = useState(false);
+  const [downloadingLeads, setDownloadingLeads] = useState(false);
   const [socket, setSocket] = useState();
   const [abbreviation, color] = getJobTypeAvatarMeta(job ? job.type : undefined);
 
@@ -121,6 +124,14 @@ const JobDetails = ({match}) => {
     await downloadFailedJobCSV(jobId, filename);
     setDownloadingFailedTasks(false);
   }, []);
+  const downloadLeadZipCB = useCallback(
+    async (jobId, filename) => {
+      setDownloadingLeads(true);
+      await downloadLeadsZip(jobId, lipType, filename);
+      setDownloadingLeads(false);
+    },
+    [lipType],
+  );
 
   useEffect(() => {
     if (!jobId) {
@@ -199,6 +210,31 @@ const JobDetails = ({match}) => {
             onClick={() => downloadFailedTasksCSV(jobId, job.export_file_name)}>
             Download Failed Items
           </Button>
+          <FormControl variant="outlined" style={{width: '100%'}}>
+            <InputLabel id="lead-filter-label">Lead Indentification Process</InputLabel>
+            <Select
+              labelId="lead-filter-label"
+              id="lead-filter-select"
+              value={lipType}
+              onChange={(event) => {
+                setLipType(event.target.value);
+              }}
+              label="Lead Identification Process">
+              <MenuItem value="rod">Recorder of Deeds</MenuItem>
+              <MenuItem value="ltb">Landlord & Tenant</MenuItem>
+              <MenuItem value="oddc">Open Data DC</MenuItem>
+            </Select>
+            <Button
+              id="leads-download"
+              variant="contained"
+              color="primary"
+              disabled={downloadingLeads || job.task_success_count === 0}
+              onClick={() => {
+                downloadLeadZipCB(jobId, job.export_file_name);
+              }}>
+              {downloadingLeads ? 'Processing...' : 'Download Leads'}
+            </Button>
+          </FormControl>
         </div>
       </div>
       <LinearProgressWithLabel value={completion} tooltip={tooltip} />
