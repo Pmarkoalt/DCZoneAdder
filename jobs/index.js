@@ -1,10 +1,10 @@
-const AdmZip = require("adm-zip");
+const AdmZip = require('adm-zip');
 const {Parser} = require('json2csv');
 const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
 const {generateId} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
 const {goodpropsFilter} = require('../api/open-data-dc/filters.js');
-const {ltb, recorderOfDeeds} = require("./leads");
+const {leadIdentificationProcess} = require('./leads');
 
 module.exports.JOB_TYPES = JOB_TYPES;
 
@@ -260,15 +260,16 @@ module.exports.deleteJob = async (jobId) => {
   });
 };
 
-module.exports.getJobLeadResultsZip = async (jobId) => {
+module.exports.getJobLeadResultsZip = async (jobId, leadType) => {
   try {
     const results = await getJobResults(jobId);
-    return recorderOfDeeds(results.map(r => {
+    const resultData = results.map((r) => {
       return {
         ...r.data,
         ...r.result,
-      }
-    }));
+      };
+    });
+    return leadIdentificationProcess(leadType, resultData);
   } catch (err) {
     console.log(err);
     return Promise.reject(err);
