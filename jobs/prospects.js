@@ -55,12 +55,12 @@ const rod = (records) => {
       const saleDateMatch = !data['Sale Date'] || toDate(data['Sale Date']) < data.Recorded;
       const classMatch = !data.CLASS || ['1', '2'].includes(data.CLASS);
       const marNumUnitsMatch = !data['MAR Num Units'] || ['1', '2', '3', '4'].includes(data['MAR Num Units']);
-      return saleDateMatch && classMatch && marNumUnitsMatch;
+      const hasOwnerName = Boolean(data['Owner Name 1']);
+      return saleDateMatch && classMatch && marNumUnitsMatch && hasOwnerName;
     };
     const {true: matched, false: failed} = lodash.groupBy(docTypeGroup, match);
     const {true: entities, false: individuals} = lodash.groupBy(matched, (data) => {
       const name = data['Owner Name 1'];
-      if (!name) return false;
       return entityList.some((check) => name.toUpperCase().includes(check));
     });
     if (entities) zip.addFile(`${docType} Entities.csv`, getAsCSVBuffer(entities));
@@ -79,12 +79,12 @@ const ltb = (records) => {
     const saleDateMatch = !data['Sale Date'] || toDate(data['Sale Date']) < data['File Date'];
     const classMatch = !data.CLASS || ['1', '2'].includes(data.CLASS);
     const marNumUnitsMatch = !data['MAR Num Units'] || ['1', '2', '3', '4'].includes(data['MAR Num Units']);
-    return saleDateMatch && classMatch && marNumUnitsMatch;
+    const hasOwnerName = Boolean(data['Owner Name 1']);
+    return saleDateMatch && classMatch && marNumUnitsMatch && hasOwnerName;
   };
   const {true: matched, false: failed} = lodash.groupBy(records, match);
   const {true: entities, false: individuals} = lodash.groupBy(matched, (data) => {
     const name = data['Owner Name 1'];
-    if (!name) return false;
     return entityList.some((check) => name.toUpperCase().includes(check));
   });
   if (entities) zip.addFile('Successful - LTB Entities.csv', getAsCSVBuffer(entities));
