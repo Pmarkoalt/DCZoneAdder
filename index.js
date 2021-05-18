@@ -20,7 +20,7 @@ const {
   getJobResultCSVString,
   getJobInputCSVString,
   getJobFailedResultsCSVString,
-  getJobLeadResultsZip,
+  getJobProspectResultsZip,
   getJobResults,
 } = require('./jobs');
 const {getODDCData} = require('./jobs/open-data-dc');
@@ -189,18 +189,18 @@ app.get('/api/csv-jobs/:id/input-file', async (req, res) => {
   }
 });
 
-app.get('/api/csv-jobs/:id/leads', async (req, res) => {
+app.get('/api/csv-jobs/:id/prospects', async (req, res) => {
   try {
     const jobId = req.params.id;
-    const leadType = req.query.type;
-    if (!leadType) return res.status(400).json({message: '`type` query param is required'});
+    const prospectType = req.query.type;
+    if (!prospectType) return res.status(400).json({message: '`type` query param is required'});
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
-    const leadResultsZipBuffer = await getJobLeadResultsZip(jobId, leadType);
+    const prospectResultsZipBuffer = await getJobProspectResultsZip(jobId, prospectType);
     res.set('Content-Type', 'application/zip');
-    res.setHeader('Content-disposition', 'attachment; filename=leads.zip');
-    return res.status(200).send(leadResultsZipBuffer);
+    res.setHeader('Content-disposition', 'attachment; filename=prospects.zip');
+    return res.status(200).send(prospectResultsZipBuffer);
   } catch (err) {
-    return res.status(500).json({message: "Error generating job's CSV input file.", error: err});
+    return res.status(500).json({message: "Error generating job's prospect export.", error: err});
   }
 });
 

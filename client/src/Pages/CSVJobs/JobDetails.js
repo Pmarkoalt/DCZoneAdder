@@ -14,7 +14,7 @@ import {
   getJobTaskResults,
   downloadFailedJobCSV,
   downloadFilteredJobResultsCSV,
-  downloadLeadsZip,
+  downloadProspectsZip,
 } from './utils';
 import {Avatar, FormControl, InputLabel, Select, MenuItem} from '@material-ui/core';
 
@@ -100,7 +100,7 @@ const JobDetails = ({match}) => {
   const [downloading, setDownloading] = useState(false);
   const [downloadingFilteredResults, setDownloadingFilteredResults] = useState(false);
   const [downloadingFailedTasks, setDownloadingFailedTasks] = useState(false);
-  const [downloadingLeads, setDownloadingLeads] = useState(false);
+  const [downloadingProspects, setDownloadingProspects] = useState(false);
   const [socket, setSocket] = useState();
   const [abbreviation, color] = getJobTypeAvatarMeta(job ? job.type : undefined);
 
@@ -124,11 +124,11 @@ const JobDetails = ({match}) => {
     await downloadFailedJobCSV(jobId, filename);
     setDownloadingFailedTasks(false);
   }, []);
-  const downloadLeadZipCB = useCallback(
+  const downloadProspectsZipCB = useCallback(
     async (jobId, filename) => {
-      setDownloadingLeads(true);
-      await downloadLeadsZip(jobId, lipType, filename);
-      setDownloadingLeads(false);
+      setDownloadingProspects(true);
+      await downloadProspectsZip(jobId, lipType, filename);
+      setDownloadingProspects(false);
     },
     [lipType],
   );
@@ -211,28 +211,28 @@ const JobDetails = ({match}) => {
             Download Failed Items
           </Button>
           <FormControl variant="outlined" style={{width: '100%'}}>
-            <InputLabel id="lead-filter-label">Lead Indentification Process</InputLabel>
+            <InputLabel id="prospect-filter-label">Prospect Indentification Process</InputLabel>
             <Select
-              labelId="lead-filter-label"
-              id="lead-filter-select"
+              labelId="prospect-filter-label"
+              id="prospect-filter-select"
               value={lipType}
               onChange={(event) => {
                 setLipType(event.target.value);
               }}
-              label="Lead Identification Process">
+              label="Prospect Identification Process">
               <MenuItem value="rod">Recorder of Deeds</MenuItem>
               <MenuItem value="ltb">Landlord & Tenant</MenuItem>
               <MenuItem value="oddc">Open Data DC</MenuItem>
             </Select>
             <Button
-              id="leads-download"
+              id="prospects-download"
               variant="contained"
               color="primary"
-              disabled={downloadingLeads || job.task_success_count === 0}
+              disabled={downloadingProspects || job.task_success_count === 0}
               onClick={() => {
-                downloadLeadZipCB(jobId, job.export_file_name);
+                downloadProspectsZipCB(jobId, job.export_file_name);
               }}>
-              {downloadingLeads ? 'Processing...' : 'Download Leads'}
+              {downloadingProspects ? 'Processing...' : 'Download Prospects'}
             </Button>
           </FormControl>
         </div>

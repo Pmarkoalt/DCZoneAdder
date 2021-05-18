@@ -4,7 +4,7 @@ const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
 const {generateId} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
 const {goodpropsFilter} = require('../api/open-data-dc/filters.js');
-const {leadIdentificationProcess} = require('./leads');
+const {prospectIdentificationProcess} = require('./prospects');
 
 module.exports.JOB_TYPES = JOB_TYPES;
 
@@ -260,7 +260,7 @@ module.exports.deleteJob = async (jobId) => {
   });
 };
 
-module.exports.getJobLeadResultsZip = async (jobId, leadType) => {
+module.exports.getJobProspectResultsZip = async (jobId, prospectType) => {
   try {
     const results = await getJobResults(jobId);
     const resultData = results.map((r) => {
@@ -269,7 +269,7 @@ module.exports.getJobLeadResultsZip = async (jobId, leadType) => {
         ...r.result,
       };
     });
-    return leadIdentificationProcess(leadType, resultData);
+    return prospectIdentificationProcess(prospectType, resultData);
   } catch (err) {
     console.log(err);
     return Promise.reject(err);

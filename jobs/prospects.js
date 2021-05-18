@@ -125,11 +125,11 @@ const oddc = (records) => {
   return zip.toBuffer();
 };
 
-module.exports.leadIdentificationProcess = (leadType, data) => {
+module.exports.prospectIdentificationProcess = (prospectType, data) => {
   const map = {
     rod,
     ltb,
     oddc,
   };
-  return map[leadType](data);
+  return map[prospectType](data);
 };
