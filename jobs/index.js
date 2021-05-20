@@ -263,12 +263,20 @@ module.exports.deleteJob = async (jobId) => {
 module.exports.getJobProspectResultsZip = async (jobId, prospectType) => {
   try {
     const results = await getJobResults(jobId);
-    const resultData = results.map((r) => {
-      return {
+    const resultData = results.reduce((acc, r) => {
+      const data = {
         ...r.data,
         ...r.result,
       };
-    });
+      acc.push(data);
+      if (data['Owner Name 2']) {
+        const other = {...data};
+        other['Owner Name 1'] = other['Owner Name 2'];
+        other['Owner Name 2'] = undefined;
+        acc.push(other);
+      }
+      return acc;
+    }, []);
     return prospectIdentificationProcess(prospectType, resultData);
   } catch (err) {
     console.log(err);
