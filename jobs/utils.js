@@ -1,4 +1,28 @@
+require('dotenv').config();
 const {Parser} = require('json2csv');
+const {google} = require('googleapis');
+const e = require('express');
+
+// readGoogleSheet('1FRtJ35wwMMi4HJeO2VJRnBYYJC9JtTKE8jQrbOuInqM', 'Sheet1!A1:A');
+function readGoogleSheet(spreadsheetId, range) {
+  const API_KEY = process.env.SHEETS_API_KEY;
+  const sheets = google.sheets({version: 'v4', auth: API_KEY});
+  sheets.spreadsheets.values.get(
+    {
+      spreadsheetId,
+      range,
+    },
+    (err, res) => {
+      if (err) return console.log('The API returned an error: ' + err);
+      const rows = res.data.values;
+      if (rows.length) {
+        console.log(rows);
+      } else {
+        console.log('No data found.');
+      }
+    },
+  );
+}
 
 function generateId() {
   var length = 8,
@@ -79,6 +103,35 @@ const assembleAddress = (address1, address2, citystzip) => {
   }
 };
 
+function parseAddress(address) {
+  try {
+    const [street, cityStateZip] = address.split(',');
+    const parts = cityStateZip.trim().split(' ');
+    let zip, state, city;
+    let item = parts.pop();
+    if (isNaN(parseInt(item))) {
+      state = item;
+    } else {
+      zip = item;
+      state = parts.pop();
+    }
+    city = parts.join(' ');
+    return {
+      street,
+      city,
+      state,
+      zip,
+    };
+  } catch {
+    return {
+      street: undefined,
+      city: undefined,
+      state: undefined,
+      zip: undefined,
+    };
+  }
+}
+
 module.exports.generateId = generateId;
 module.exports.forceCollection = forceCollection;
 module.exports.formatSSL = formatSSL;
@@ -86,3 +139,5 @@ module.exports.createCSVString = createCSVString;
 module.exports.monthDiff = monthDiff;
 module.exports.formatOwnerName = formatOwnerName;
 module.exports.assembleAddress = assembleAddress;
+module.exports.readGoogleSheet = readGoogleSheet;
+module.exports.parseAddress = parseAddress;

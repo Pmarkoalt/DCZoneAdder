@@ -1,7 +1,8 @@
 const lodash = require('lodash');
 const AdmZip = require('adm-zip');
-const {createCSVString, monthDiff} = require('./utils');
+const {createCSVString, monthDiff, parseAddress} = require('./utils');
 const classMap = require('./open-data-dc/prop-use-class-map');
+const tierMap = require('./open-data-dc/neighborhood-tiers');
 
 const toDate = (str) => (str ? new Date(str) : undefined);
 
@@ -47,21 +48,49 @@ const entityList = [
   'WMATA',
 ];
 
+const isEntity = (name) => {
+  return entityList.some((check) => name.toUpperCase().includes(check));
+};
+
+const getIndividualFirstLastName = (name) => {
+  if (isEntity(name)) return [undefined, undefined];
+  try {
+    return name.trim().split(' ');
+  } catch {
+    return [undefined, undefined];
+  }
+};
+
+const setMailingAddressData = (data) => {
+  const mailingAddress = data['Mailing Address'];
+  const {street, city, state, zip} = parseAddress(mailingAddress);
+  data['Mailing Street Address'] = street;
+  data['Mailing City'] = city;
+  data['Mailing State'] = state;
+  data['Mailing Zip'] = zip;
+  console.log(data);
+};
+
 const rod = (records) => {
   const zip = new AdmZip();
   const process = (docType, docTypeGroup) => {
     const match = (data) => {
+      data['Neighborhood Tier'] = tierMap[data['Neighborhood']];
       data.CLASS = data.CLASS || classMap[data['Property Use']];
+      const [firstName, lastName] = getIndividualFirstLastName(data['Owner Name 1']);
+      data['First Name'] = firstName;
+      data['Last Name'] = lastName;
+      setMailingAddressData(data);
       const saleDateMatch = !data['Sale Date'] || toDate(data['Sale Date']) < data.Recorded;
-      const classMatch = !data.CLASS || ['1', '2'].includes(data.CLASS);
-      const marNumUnitsMatch = !data['MAR Num Units'] || ['1', '2', '3', '4'].includes(data['MAR Num Units']);
+      const classMatch = !data.CLASS || ['1', '2'].includes(String(data.CLASS));
+      const marNumUnitsMatch = !data['MAR Num Units'] || ['1', '2', '3', '4'].includes(String(data['MAR Num Units']));
       const hasOwnerName = Boolean(data['Owner Name 1']);
       return saleDateMatch && classMatch && marNumUnitsMatch && hasOwnerName;
     };
     const {true: matched, false: failed} = lodash.groupBy(docTypeGroup, match);
     const {true: entities, false: individuals} = lodash.groupBy(matched, (data) => {
       const name = data['Owner Name 1'];
-      return entityList.some((check) => name.toUpperCase().includes(check));
+      return isEntity(name);
     });
     if (entities) zip.addFile(`${docType} Entities.csv`, getAsCSVBuffer(entities));
     if (individuals) zip.addFile(`${docType} Individuals.csv`, getAsCSVBuffer(individuals));
@@ -75,17 +104,22 @@ const rod = (records) => {
 const ltb = (records) => {
   const zip = new AdmZip();
   const match = (data) => {
+    data['Neighborhood Tier'] = tierMap[data['Neighborhood']];
     data.CLASS = data.CLASS || classMap[data['Property Use']];
+    const [firstName, lastName] = getIndividualFirstLastName(data['Owner Name 1']);
+    data['First Name'] = firstName;
+    data['Last Name'] = lastName;
+    setMailingAddressData(data);
     const saleDateMatch = !data['Sale Date'] || toDate(data['Sale Date']) < data['File Date'];
-    const classMatch = !data.CLASS || ['1', '2'].includes(data.CLASS);
-    const marNumUnitsMatch = !data['MAR Num Units'] || ['1', '2', '3', '4'].includes(data['MAR Num Units']);
+    const classMatch = !data.CLASS || ['1', '2'].includes(String(data.CLASS));
+    const marNumUnitsMatch = !data['MAR Num Units'] || ['1', '2', '3', '4'].includes(String(data['MAR Num Units']));
     const hasOwnerName = Boolean(data['Owner Name 1']);
     return saleDateMatch && classMatch && marNumUnitsMatch && hasOwnerName;
   };
   const {true: matched, false: failed} = lodash.groupBy(records, match);
   const {true: entities, false: individuals} = lodash.groupBy(matched, (data) => {
     const name = data['Owner Name 1'];
-    return entityList.some((check) => name.toUpperCase().includes(check));
+    return isEntity(name);
   });
   if (entities) zip.addFile('Successful - LTB Entities.csv', getAsCSVBuffer(entities));
   if (individuals) zip.addFile('Successful - LTB Individuals.csv', getAsCSVBuffer(individuals));
@@ -96,9 +130,14 @@ const ltb = (records) => {
 const oddc = (records) => {
   const zip = new AdmZip();
   const match = (data) => {
+    data['Neighborhood Tier'] = tierMap[data['Neighborhood']];
+    const [firstName, lastName] = getIndividualFirstLastName(data['Owner Name 1']);
+    data['First Name'] = firstName;
+    data['Last Name'] = lastName;
+    setMailingAddressData(data);
     const saleDateMatch = !data['Sale Date'] || monthDiff(toDate(data['Sale Date']), new Date()) > 6;
     let classMatch = false;
-    data.CLASS = data.CLASS || classMap[data['Property Use']];
+    data.CLASS = String(data.CLASS || classMap[data['Property Use']]);
     if (['1', '2'].includes(data.CLASS)) {
       let x;
       if (data.CLASS === '1') {
@@ -112,7 +151,7 @@ const oddc = (records) => {
     } else if ([undefined, '3', '4'].includes(data.CLASS)) {
       classMatch = true;
     }
-    const marNumUnitsMatch = !data['MAR Num Units'] || ['1', '2', '3', '4'].includes(data['MAR Num Units']);
+    const marNumUnitsMatch = !data['MAR Num Units'] || ['1', '2', '3', '4'].includes(String(data['MAR Num Units']));
     return saleDateMatch && classMatch && marNumUnitsMatch;
   };
   const {true: matched, false: failed} = lodash.groupBy(records, match);
