@@ -68,7 +68,6 @@ const setMailingAddressData = (data) => {
   data['Mailing City'] = city;
   data['Mailing State'] = state;
   data['Mailing Zip'] = zip;
-  console.log(data);
 };
 
 const rod = (records) => {
