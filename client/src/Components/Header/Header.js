@@ -33,6 +33,9 @@ function Header(props) {
             <Link to="/jobs">
               <MenuItem onClick={handleClose}>View Job List</MenuItem>
             </Link>
+            <Link to="/jobs/create/zone">
+              <MenuItem onClick={handleClose}>Create New Zone CSV</MenuItem>
+            </Link>
             <Link to="/jobs/create/belles">
               <MenuItem onClick={handleClose}>Create New Belles Link CSV</MenuItem>
             </Link>
