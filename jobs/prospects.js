@@ -49,11 +49,11 @@ const entityList = [
 ];
 
 const isEntity = (name) => {
-  return entityList.some((check) => name.toUpperCase().includes(check));
+  return name && entityList.some((check) => name.toUpperCase().includes(check));
 };
 
 const getIndividualFirstLastName = (name) => {
-  if (isEntity(name)) return [undefined, undefined];
+  if (!name || isEntity(name)) return [undefined, undefined];
   try {
     return name.trim().split(' ');
   } catch {
