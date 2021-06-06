@@ -107,8 +107,10 @@ export async function downloadJobCSVFromSocket(id, filename = 'export.csv') {
   });
 }
 
-export async function downloadProspectsZip(id, prospectType, filename = 'export.csv') {
-  const resp = await axios.get(`/api/csv-jobs/${id}/prospects?type=${prospectType}`, {responseType: 'arraybuffer'});
+export async function downloadProspectsZip(id, prospectType, pipContext, filename = 'export.csv') {
+  const resp = await axios.post(`/api/csv-jobs/${id}/prospects?type=${prospectType}`, pipContext, {
+    responseType: 'arraybuffer',
+  });
   fileDownload(resp.data, `${filename.replace('.csv', '')} (prospects).zip`);
 }
 

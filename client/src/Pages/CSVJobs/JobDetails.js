@@ -16,7 +16,7 @@ import {
   downloadFilteredJobResultsCSV,
   downloadProspectsZip,
 } from './utils';
-import {Avatar, FormControl, InputLabel, Select, MenuItem} from '@material-ui/core';
+import {Avatar, FormControl, InputLabel, Select, MenuItem, TextField} from '@material-ui/core';
 
 const DetailsContainer = styled.div`
   padding-top: 1em;
@@ -96,13 +96,25 @@ const JobDetails = ({match}) => {
   const jobId = match.params.id;
   const [job, setJob] = useState({});
   const [data, setData] = useState(0);
-  const [lipType, setLipType] = useState('oddc');
+  const [pipType, setPipType] = useState('oddc');
+  const [pipContext, setPipContext] = useState({taxRatio: '0.6'});
+  const [isPipValid, setIsPipValid] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadingFilteredResults, setDownloadingFilteredResults] = useState(false);
   const [downloadingFailedTasks, setDownloadingFailedTasks] = useState(false);
   const [downloadingProspects, setDownloadingProspects] = useState(false);
   const [socket, setSocket] = useState();
   const [abbreviation, color] = getJobTypeAvatarMeta(job ? job.type : undefined);
+
+  useEffect(() => {
+    if (pipType === 'oddc') {
+      const taxRatio = pipContext.taxRatio;
+      const validTaxRatio = taxRatio !== undefined && taxRatio.trim().length > 0 && !isNaN(+taxRatio);
+      setIsPipValid(validTaxRatio);
+    } else {
+      setIsPipValid(true);
+    }
+  }, [pipType, pipContext]);
 
   useEffect(() => {
     const s = io.connect();
@@ -126,11 +138,16 @@ const JobDetails = ({match}) => {
   }, []);
   const downloadProspectsZipCB = useCallback(
     async (jobId, filename) => {
-      setDownloadingProspects(true);
-      await downloadProspectsZip(jobId, lipType, filename);
-      setDownloadingProspects(false);
+      try {
+        setDownloadingProspects(true);
+        await downloadProspectsZip(jobId, pipType, pipContext, filename);
+      } catch (e) {
+        alert('Someone went wrong, please try again. If this is happening consistently, there is a bug.');
+      } finally {
+        setDownloadingProspects(false);
+      }
     },
-    [lipType],
+    [pipType, pipContext],
   );
 
   useEffect(() => {
@@ -178,12 +195,12 @@ const JobDetails = ({match}) => {
           ) : (
             <h3>Job Processing, Please Wait</h3>
           )}
-        </div>
-        <div className="task-comp-time">
-          {job.completed && <div>Total job duration: {msToTime(job.time_to_complete)}</div>}
-          <div>
-            Avg task duration:{' '}
-            {job.average_task_completion_time ? `${Math.round(job.average_task_completion_time)}ms` : '--'}
+          <div className="task-comp-time">
+            {job.completed && <div>Total job duration: {msToTime(job.time_to_complete)}</div>}
+            <div>
+              Avg task duration:{' '}
+              {job.average_task_completion_time ? `${Math.round(job.average_task_completion_time)}ms` : '--'}
+            </div>
           </div>
         </div>
         <div className="download">
@@ -200,7 +217,7 @@ const JobDetails = ({match}) => {
             variant="contained"
             disabled={downloadingFilteredResults || job.task_success_count === 0}
             onClick={() => downloadFilteredResultsCSV(jobId, job.export_file_name)}>
-            Download Filtered Results
+            Download Zoning Opp Filter
           </Button>
           <Button
             id="failed-task-download"
@@ -210,25 +227,41 @@ const JobDetails = ({match}) => {
             onClick={() => downloadFailedTasksCSV(jobId, job.export_file_name)}>
             Download Failed Items
           </Button>
+        </div>
+        <div>
           <FormControl variant="outlined" style={{width: '100%'}}>
             <InputLabel id="prospect-filter-label">Prospect Indentification Process</InputLabel>
             <Select
               labelId="prospect-filter-label"
               id="prospect-filter-select"
-              value={lipType}
+              value={pipType}
               onChange={(event) => {
-                setLipType(event.target.value);
+                setPipType(event.target.value);
               }}
               label="Prospect Identification Process">
               <MenuItem value="rod">Recorder of Deeds</MenuItem>
               <MenuItem value="ltb">Landlord & Tenant</MenuItem>
               <MenuItem value="oddc">Open Data DC</MenuItem>
             </Select>
+            {pipType === 'oddc' ? (
+              <TextField
+                style={{marginTop: '0.5em'}}
+                labelId="tax-ratio-label"
+                id="tax-ratio-input"
+                variant="filled"
+                value={pipContext.taxRatio}
+                onChange={(event) => {
+                  setPipContext((ctx) => ({...ctx, taxRatio: event.target.value}));
+                }}
+                label="Tax Ratio Threshold"
+              />
+            ) : null}
             <Button
               id="prospects-download"
               variant="contained"
               color="primary"
-              disabled={downloadingProspects || job.task_success_count === 0}
+              style={{marginTop: '0.5em'}}
+              disabled={!isPipValid || downloadingProspects || job.task_success_count === 0}
               onClick={() => {
                 downloadProspectsZipCB(jobId, job.export_file_name);
               }}>

@@ -189,13 +189,14 @@ app.get('/api/csv-jobs/:id/input-file', async (req, res) => {
   }
 });
 
-app.get('/api/csv-jobs/:id/prospects', async (req, res) => {
+app.post('/api/csv-jobs/:id/prospects', async (req, res) => {
   try {
     const jobId = req.params.id;
+    const ctx = req.body || {};
     const prospectType = req.query.type;
     if (!prospectType) return res.status(400).json({message: '`type` query param is required'});
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
-    const prospectResultsZipBuffer = await getJobProspectResultsZip(jobId, prospectType);
+    const prospectResultsZipBuffer = await getJobProspectResultsZip(jobId, prospectType, ctx);
     res.set('Content-Type', 'application/zip');
     res.setHeader('Content-disposition', 'attachment; filename=prospects.zip');
     return res.status(200).send(prospectResultsZipBuffer);

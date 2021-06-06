@@ -213,28 +213,34 @@ module.exports.createJob = (jobData) => {
         if (err) return reject(err);
         console.log('Job created.');
         console.log(`Creating ${input.length} tasks...`);
-        const taskData = input.map((item) => {
-          return {
-            data: item,
-            job: job._id,
-          };
-        });
-        const tasks = await CSVJobTask.create(taskData);
-        console.log('finished creating db tasks.');
-        for (const t of tasks) {
-          job.tasks.push(t._id);
-        }
-        // job.tasks.push(...tasks.map((t) => t._id));
-        console.log('Assigning tasks to job.');
-        job.save((err) => {
-          if (err) return reject(err);
-          const queue = getQueue(job.type);
-          for (const task of tasks) {
-            queue.add({context: job.context, data: task.data, taskId: task._id, type: job.type, jobId: job.id});
+        try {
+          const taskData = input.map((item) => {
+            return {
+              data: item,
+              job: job._id,
+            };
+          });
+          const tasks = await CSVJobTask.create(taskData);
+          console.log('finished creating db tasks.');
+          for (const t of tasks) {
+            job.tasks.push(t._id);
           }
-          console.log('Job and task creation complete!');
-          return resolve(job);
-        });
+          // job.tasks.push(...tasks.map((t) => t._id));
+          console.log('Assigning tasks to job.');
+          job.save((err) => {
+            if (err) return reject(err);
+            const queue = getQueue(job.type);
+            for (const task of tasks) {
+              queue.add({context: job.context, data: task.data, taskId: task._id, type: job.type, jobId: job.id});
+            }
+            console.log('Job and task creation complete!');
+            return resolve(job);
+          });
+        } catch (e) {
+          console.log('Error creating tasks, deleting job');
+          job.deleteOne();
+          reject(e && e.toString ? e.toString() : e);
+        }
       });
     } catch (e) {
       console.log(e);
@@ -260,7 +266,7 @@ module.exports.deleteJob = async (jobId) => {
   });
 };
 
-module.exports.getJobProspectResultsZip = async (jobId, prospectType) => {
+module.exports.getJobProspectResultsZip = async (jobId, prospectType, ctx) => {
   try {
     const results = await getJobResults(jobId);
     const resultData = results.reduce((acc, r) => {
@@ -277,7 +283,7 @@ module.exports.getJobProspectResultsZip = async (jobId, prospectType) => {
       }
       return acc;
     }, []);
-    return prospectIdentificationProcess(prospectType, resultData);
+    return prospectIdentificationProcess(prospectType, resultData, ctx);
   } catch (err) {
     console.log(err);
     return Promise.reject(err);

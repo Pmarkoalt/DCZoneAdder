@@ -126,7 +126,7 @@ const ltb = (records) => {
   return zip.toBuffer();
 };
 
-const oddc = (records) => {
+const oddc = (records, {taxRatio = 0.6} = {}) => {
   const zip = new AdmZip();
   const match = (data) => {
     data['Neighborhood Tier'] = tierMap[data['Neighborhood']];
@@ -146,7 +146,7 @@ const oddc = (records) => {
       } else if (data.CLASS === ['1', '2']) {
         x = 0.0125;
       }
-      classMatch = data.TOTBALAMT / (data['Ass. Value (ITS)'] * x) > 0.6;
+      classMatch = data.TOTBALAMT / (data['Ass. Value (ITS)'] * x) > parseFloat(taxRatio);
     } else if ([undefined, '3', '4'].includes(data.CLASS)) {
       classMatch = true;
     }
@@ -163,11 +163,11 @@ const oddc = (records) => {
   return zip.toBuffer();
 };
 
-module.exports.prospectIdentificationProcess = (prospectType, data) => {
+module.exports.prospectIdentificationProcess = (prospectType, data, ctx) => {
   const map = {
     rod,
     ltb,
     oddc,
   };
-  return map[prospectType](data);
+  return map[prospectType](data, ctx);
 };

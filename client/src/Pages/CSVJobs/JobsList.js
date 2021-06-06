@@ -75,7 +75,7 @@ const Job = ({job, disableDownload, disableDelete, onDownload, onDownloadFailed,
                 </IconButton>
               </span>
             </Tooltip>
-            <Tooltip title="Download filtered items" placement="top">
+            <Tooltip title="Download Zowning Opp Filter" placement="top">
               <span>
                 <IconButton
                   edge="end"
