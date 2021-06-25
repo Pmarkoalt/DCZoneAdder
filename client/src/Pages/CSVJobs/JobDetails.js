@@ -18,6 +18,12 @@ import {
 } from './utils';
 import {Avatar, FormControl, InputLabel, Select, MenuItem, TextField} from '@material-ui/core';
 
+const PIP_TYPE = {
+  ODDC: 'OD', // open data dc
+  ROD: 'ROD', // recorder of deeds
+  DCSC: 'DCSC', // dc superior court
+};
+
 const DetailsContainer = styled.div`
   padding-top: 1em;
   margin: auto;
@@ -96,7 +102,7 @@ const JobDetails = ({match}) => {
   const jobId = match.params.id;
   const [job, setJob] = useState({});
   const [data, setData] = useState(0);
-  const [pipType, setPipType] = useState('oddc');
+  const [pipType, setPipType] = useState(PIP_TYPE.ODDC);
   const [pipContext, setPipContext] = useState({taxRatio: '0.6'});
   const [isPipValid, setIsPipValid] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -107,7 +113,7 @@ const JobDetails = ({match}) => {
   const [abbreviation, color] = getJobTypeAvatarMeta(job ? job.type : undefined);
 
   useEffect(() => {
-    if (pipType === 'oddc') {
+    if (pipType === PIP_TYPE.ODDC) {
       const taxRatio = pipContext.taxRatio;
       const validTaxRatio = taxRatio !== undefined && taxRatio.trim().length > 0 && !isNaN(+taxRatio);
       setIsPipValid(validTaxRatio);
@@ -239,11 +245,11 @@ const JobDetails = ({match}) => {
                 setPipType(event.target.value);
               }}
               label="Prospect Identification Process">
-              <MenuItem value="rod">Recorder of Deeds</MenuItem>
-              <MenuItem value="ltb">Landlord & Tenant</MenuItem>
-              <MenuItem value="oddc">Open Data DC</MenuItem>
+              <MenuItem value={PIP_TYPE.ROD}>Recorder of Deeds</MenuItem>
+              <MenuItem value={PIP_TYPE.DCSC}>Landlord & Tenant</MenuItem>
+              <MenuItem value={PIP_TYPE.ODDC}>Open Data DC</MenuItem>
             </Select>
-            {pipType === 'oddc' ? (
+            {pipType === PIP_TYPE.ODDC ? (
               <TextField
                 style={{marginTop: '0.5em'}}
                 labelId="tax-ratio-label"

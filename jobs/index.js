@@ -1,10 +1,10 @@
-const AdmZip = require('adm-zip');
 const {Parser} = require('json2csv');
+const {groupBy} = require('lodash');
 const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
-const {generateId} = require('./utils');
+const {generateId, createCSVZipFolder} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
 const {goodpropsFilter} = require('../api/open-data-dc/filters.js');
-const {prospectIdentificationProcess} = require('./prospects');
+const {prospectIdentificationProcess, isEntity} = require('./prospects');
 
 module.exports.JOB_TYPES = JOB_TYPES;
 
@@ -140,7 +140,7 @@ module.exports.getJobFailedResultsCSVString = async (jobId) => {
   return csv;
 };
 
-module.exports.getJobResultCSVString = async (jobId, useFilter) => {
+const getSuccessfulJobResults = async (jobId, useFilter) => {
   try {
     const job = await CSVJob.findOne({id: jobId}).populate({
       path: 'tasks',
@@ -165,6 +165,29 @@ module.exports.getJobResultCSVString = async (jobId, useFilter) => {
     if (resultParser) {
       results = resultParser(results, job);
     }
+    return results;
+  } catch (err) {
+    console.log(err);
+    return Promise.reject(err);
+  }
+};
+
+module.exports.getEntitiesIndividualsZip = async (jobId, useFilter) => {
+  const results = await getSuccessfulJobResults(jobId, useFilter);
+  const {true: entities, false: individuals} = groupBy(results, (result) => isEntity(result['Owner Name 1']));
+  const groups = {};
+  if (entities && entities.length) {
+    groups['Entities.csv'] = entities;
+  }
+  if (individuals && individuals.length) {
+    groups['Individuals.csv'] = individuals;
+  }
+  return createCSVZipFolder(groups);
+};
+
+module.exports.getJobResultCSVString = async (jobId, useFilter) => {
+  try {
+    const results = await getSuccessfulJobResults(jobId, useFilter);
     if (!results || !results.length) return null;
     const keys = job.csv_export_fields.length > 0 ? job.csv_export_fields : Object.keys(results[0]);
     const parser = new Parser({fields: keys, excelStrings: false});

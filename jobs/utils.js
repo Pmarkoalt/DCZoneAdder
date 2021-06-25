@@ -1,4 +1,5 @@
 require('dotenv').config();
+const AdmZip = require('adm-zip');
 const {Parser} = require('json2csv');
 const {google} = require('googleapis');
 const e = require('express');
@@ -67,6 +68,19 @@ function createCSVString(data) {
   const csv = parser.parse(data);
   return csv;
 }
+
+const getAsCSVBuffer = (data) => {
+  const csv = createCSVString(data);
+  return Buffer.alloc(csv.length, csv);
+};
+
+const createCSVZipFolder = (groups) => {
+  const zip = new AdmZip();
+  Object.entries(groups).forEach(([filename, entries]) => {
+    zip.addFile(filename, getAsCSVBuffer(entries));
+  });
+  return zip.toBuffer();
+};
 
 function monthDiff(d1, d2) {
   const timeDiff = (d2.getTime() - d1.getTime()) / 1000;
@@ -141,3 +155,5 @@ module.exports.formatOwnerName = formatOwnerName;
 module.exports.assembleAddress = assembleAddress;
 module.exports.readGoogleSheet = readGoogleSheet;
 module.exports.parseAddress = parseAddress;
+module.exports.createCSVZipFolder = createCSVZipFolder;
+module.exports.getAsCSVBuffer = getAsCSVBuffer;

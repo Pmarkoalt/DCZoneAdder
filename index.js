@@ -22,6 +22,7 @@ const {
   getJobFailedResultsCSVString,
   getJobProspectResultsZip,
   getJobResults,
+  getEntitiesIndividualsZip,
 } = require('./jobs');
 const {getODDCData} = require('./jobs/open-data-dc');
 
@@ -167,10 +168,10 @@ app.get('/api/csv-jobs/:id/download', async (req, res) => {
     const jobId = req.params.id;
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
     const useFilter = Boolean(req.query.useFilter);
-    const csv = await getJobResultCSVString(jobId, useFilter);
-    res.set('Content-Type', 'text/csv');
-    res.setHeader('Content-disposition', 'attachment; filename=data.csv');
-    return res.status(200).send(csv);
+    const zip = await getEntitiesIndividualsZip(jobId, useFilter);
+    res.set('Content-Type', 'application/zip');
+    res.setHeader('Content-disposition', 'attachment; filename=export.zip');
+    return res.status(200).send(zip);
   } catch (err) {
     return res.status(500).json({message: 'Error download job results', error: err.toString()});
   }

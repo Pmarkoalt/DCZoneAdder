@@ -30,10 +30,10 @@ const getODDCData = async (ssl, address) => {
     yCoord = YCOORD;
   }
   const {ZONING, OWNERNAME, OWNNAME2} = await getPropertyQuestData({x: xCoord, y: yCoord}, {layers: 'all:25,11'});
-  if (OWNERNAME) {
+  if (OWNERNAME && OWNERNAME !== 'Null') {
     oddcData['Owner Name 1'] = OWNERNAME;
   }
-  if (OWNNAME2) {
+  if (OWNNAME2 && OWNNAME2 !== 'Null') {
     oddcData['Owner Name 2'] = OWNNAME2;
   }
   return {
