@@ -43,7 +43,7 @@ const entityList = [
 ];
 
 const isEntity = (name) => {
-  return name && entityList.some((check) => name.toUpperCase().includes(check));
+  return Boolean(name && entityList.some((check) => name.toUpperCase().includes(check)));
 };
 module.exports.isEntity = isEntity;
 

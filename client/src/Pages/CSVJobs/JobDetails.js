@@ -128,14 +128,27 @@ const JobDetails = ({match}) => {
   }, []);
 
   const downloadCSV = useCallback(async (jobId, filename) => {
-    setDownloading(true);
-    await downloadJobCSV(jobId, filename);
-    setDownloading(false);
+    try {
+      setDownloading(true);
+      await downloadJobCSV(jobId, filename);
+    } catch (e) {
+      alert('An error occurred, please try again.');
+    } finally {
+      setDownloading(false);
+    }
   }, []);
   const downloadFilteredResultsCSV = useCallback(async (jobId, filename) => {
-    setDownloadingFilteredResults(true);
-    await downloadFilteredJobResultsCSV(jobId, filename);
-    setDownloadingFilteredResults(false);
+    try {
+      setDownloadingFilteredResults(true);
+      const hasResults = await downloadFilteredJobResultsCSV(jobId, filename);
+      if (!hasResults) {
+        alert('There are no results that match the filter.');
+      }
+    } catch (e) {
+      alert('An error occurred, please try again.');
+    } finally {
+      setDownloadingFilteredResults(false);
+    }
   }, []);
   const downloadFailedTasksCSV = useCallback(async (jobId, filename) => {
     setDownloadingFailedTasks(true);

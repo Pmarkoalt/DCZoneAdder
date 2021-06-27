@@ -81,7 +81,12 @@ export async function downloadJobCSV(id, filename = 'export.zip') {
 export async function downloadFilteredJobResultsCSV(id, filename = 'export.zip') {
   const resp = await axios.get(`/api/csv-jobs/${id}/download?useFilter=true`, {responseType: 'arraybuffer'});
   const _filename = filename.endsWith('.zip') ? filename : `${filename}.zip`;
-  fileDownload(resp.data, `${_filename.replace('.zip', '')} (filtered).zip`, 'application/zip');
+  if (resp.data.byteLength === 0) {
+    return false;
+  } else {
+    fileDownload(resp.data, `${_filename.replace('.zip', '')} (filtered).zip`, 'application/zip');
+    return true;
+  }
 }
 
 export async function downloadFailedJobCSV(id, filename = 'export.csv') {

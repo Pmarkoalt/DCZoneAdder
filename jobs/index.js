@@ -174,7 +174,11 @@ const getSuccessfulJobResults = async (jobId, useFilter) => {
 
 module.exports.getEntitiesIndividualsZip = async (jobId, useFilter) => {
   const results = await getSuccessfulJobResults(jobId, useFilter);
-  const {true: entities, false: individuals} = groupBy(results, (result) => isEntity(result['Owner Name 1']));
+  if (!results || !results.length) return null;
+  const {true: entities, false: individuals} = groupBy(results, (result) => {
+    const owner = result['Owner Name 1'] || result['Owner Name'];
+    return isEntity(owner);
+  });
   const groups = {};
   if (entities && entities.length) {
     groups['Entities.csv'] = entities;
