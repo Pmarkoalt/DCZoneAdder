@@ -114,6 +114,7 @@ const checkClass = (pipType, data, taxRatio = 0.6) => {
 const getPropertyType = (data) => {
   let units = data['MAR Num Units'];
   const propertyUse = data['Property Use'];
+  if (!propertyUse) return null;
   units = units ? String(units) : units;
   if (units === '1') {
     return propertyUse.includes('Single') ? 'SFH' : 'Single-Unit';
