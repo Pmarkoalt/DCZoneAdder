@@ -1,11 +1,11 @@
 const lodash = require('lodash');
-const {createCSVZipFolder, monthDiff, parseAddress} = require('./utils');
+const {createCSVZipFolder, monthDiff, parseAddress, readGoogleSheet} = require('./utils');
 const classMap = require('./open-data-dc/prop-use-class-map');
 const tierMap = require('./open-data-dc/neighborhood-tiers');
 
 const toDate = (str) => (str ? new Date(str) : undefined);
 
-const entityList = [
+const defaultEntityNameTriggers = [
   'ASSOC',
   'CAPITAL',
   'CHURCH',
@@ -42,13 +42,25 @@ const entityList = [
   'WMATA',
 ];
 
-const isEntity = (name) => {
-  return Boolean(name && entityList.some((check) => name.toUpperCase().includes(check)));
+async function fetchEntityNameTriggers() {
+  try {
+    const sheetId = '1416we19U-0sUXn_lZNNiNP99_w0z2YEKzCTymG-Z2UM';
+    const resp = await readGoogleSheet(sheetId, 'Entity Filters.csv!A1:A');
+    return lodash.flattenDeep(resp);
+  } catch (e) {
+    console.log('Error fetching entity list, falling back to default', e);
+    return defaultEntityNameTriggers;
+  }
+}
+module.exports.fetchEntityNameTriggers = fetchEntityNameTriggers;
+
+const isEntity = (name, entityNameTriggers = defaultEntityNameTriggers) => {
+  return Boolean(name && entityNameTriggers.some((check) => name.toUpperCase().includes(check.toUpperCase())));
 };
 module.exports.isEntity = isEntity;
 
-const getIndividualFirstLastName = (name) => {
-  if (!name || isEntity(name)) return [undefined, undefined];
+const getIndividualFirstLastName = (name, ctx) => {
+  if (!name || isEntity(name, ctx.entityNameTriggers)) return [undefined, undefined];
   try {
     if (name.includes(',')) {
       let [last, first] = name
@@ -155,7 +167,7 @@ const tagRecord = (pipType, data, ctx = {}) => {
 
   record.tags.saleDateMatch = checkSaleDate(pipType, data);
 
-  const [firstName, lastName] = getIndividualFirstLastName(data['Owner Name 1']);
+  const [firstName, lastName] = getIndividualFirstLastName(data['Owner Name 1'], ctx);
   record.data['First Name'] = firstName;
   record.data['Last Name'] = lastName;
 
@@ -165,7 +177,7 @@ const tagRecord = (pipType, data, ctx = {}) => {
   record.tags.propertyType = getPropertyType(data);
   setMailingAddressData(record.data);
 
-  record.tags.ownerType = isEntity(record.data['Owner Name 1']) ? 'Entity' : 'Individual';
+  record.tags.ownerType = isEntity(record.data['Owner Name 1'], ctx.entityNameTriggers) ? 'Entity' : 'Individual';
   const {hasOwnerName, marNumUnitsMatch, saleDateMatch, classMatch} = record.tags;
   record.tags.isEligible = hasOwnerName && marNumUnitsMatch && saleDateMatch && classMatch;
 

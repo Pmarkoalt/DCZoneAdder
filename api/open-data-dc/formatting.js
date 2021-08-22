@@ -25,7 +25,7 @@ const assembleAddress = (address1, address2, citystzip) => {
     const [city, state, zip] = citystzip.split(' ').filter((x) => x !== '');
     return `${address}, ${city} ${state} ${zip.split('-')[0]}`;
   } catch {
-    return 'ERROR';
+    return '';
   }
 };
 

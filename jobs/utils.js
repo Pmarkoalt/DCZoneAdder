@@ -6,23 +6,29 @@ const e = require('express');
 
 // readGoogleSheet('1FRtJ35wwMMi4HJeO2VJRnBYYJC9JtTKE8jQrbOuInqM', 'Sheet1!A1:A');
 function readGoogleSheet(spreadsheetId, range) {
-  const API_KEY = process.env.SHEETS_API_KEY;
-  const sheets = google.sheets({version: 'v4', auth: API_KEY});
-  sheets.spreadsheets.values.get(
-    {
-      spreadsheetId,
-      range,
-    },
-    (err, res) => {
-      if (err) return console.log('The API returned an error: ' + err);
-      const rows = res.data.values;
-      if (rows.length) {
-        console.log(rows);
-      } else {
-        console.log('No data found.');
-      }
-    },
-  );
+  return new Promise((resolve, reject) => {
+    const API_KEY = process.env.SHEETS_API_KEY;
+    const sheets = google.sheets({version: 'v4', auth: API_KEY});
+    sheets.spreadsheets.values.get(
+      {
+        spreadsheetId,
+        range,
+      },
+      (err, res) => {
+        if (err) {
+          console.log('The API returned an error: ' + err);
+          return reject(err);
+        }
+        const rows = res.data.values;
+        if (rows.length) {
+          return resolve(rows);
+        } else {
+          console.log('No data found.');
+          return resolve(undefined);
+        }
+      },
+    );
+  });
 }
 
 function generateId() {
@@ -113,7 +119,7 @@ const assembleAddress = (address1, address2, citystzip) => {
     const [city, state, zip] = citystzip.split(' ').filter((x) => x !== '');
     return `${address}, ${city} ${state} ${zip.split('-')[0]}`;
   } catch {
-    return 'ERROR';
+    return '';
   }
 };
 

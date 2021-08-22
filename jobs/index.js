@@ -4,7 +4,7 @@ const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
 const {generateId, createCSVZipFolder} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
 const {goodpropsFilter} = require('../api/open-data-dc/filters.js');
-const {prospectIdentificationProcess, isEntity} = require('./prospects');
+const {prospectIdentificationProcess, isEntity, fetchEntityNameTriggers} = require('./prospects');
 
 module.exports.JOB_TYPES = JOB_TYPES;
 
@@ -174,12 +174,15 @@ const getSuccessfulJobResults = async (jobId, useFilter) => {
 
 module.exports.getEntitiesIndividualsZip = async (jobId, useFilter) => {
   const results = await getSuccessfulJobResults(jobId, useFilter);
+  const entityNameTriggers = await fetchEntityNameTriggers();
   if (!results || !results.length) return null;
   const {true: entities, false: individuals} = groupBy(results, (result) => {
     const owner = result['Owner Name 1'] || result['Owner Name'];
-    return isEntity(owner);
+    return isEntity(owner, entityNameTriggers);
   });
-  const groups = {};
+  const groups = {
+    'All Results.csv': results,
+  };
   if (entities && entities.length) {
     groups['Entities.csv'] = entities;
   }
@@ -310,6 +313,7 @@ module.exports.getJobProspectResultsZip = async (jobId, prospectType, ctx) => {
       }
       return acc;
     }, []);
+    ctx.entityNameTriggers = await fetchEntityNameTriggers();
     return prospectIdentificationProcess(prospectType, resultData, ctx);
   } catch (err) {
     console.log(err);
