@@ -22,7 +22,8 @@ const {
   getJobFailedResultsCSVString,
   getJobProspectResultsZip,
   getJobResults,
-  getEntitiesIndividualsZip,
+  getEntitiesIndividualsZipFromJob,
+  getIndividualsAndEntitiesZip,
 } = require('./jobs');
 const {getODDCData} = require('./jobs/open-data-dc');
 
@@ -168,7 +169,7 @@ app.get('/api/csv-jobs/:id/download', async (req, res) => {
     const jobId = req.params.id;
     if (!jobId) return res.status(400).json({message: 'No Job Id provided'});
     const useFilter = Boolean(req.query.useFilter);
-    const zip = await getEntitiesIndividualsZip(jobId, useFilter);
+    const zip = await getEntitiesIndividualsZipFromJob(jobId, useFilter);
     res.set('Content-Type', 'application/zip');
     res.setHeader('Content-disposition', 'attachment; filename=export.zip');
     return res.status(200).send(zip);
@@ -202,6 +203,20 @@ app.post('/api/csv-jobs/:id/prospects', async (req, res) => {
     res.setHeader('Content-disposition', 'attachment; filename=prospects.zip');
     return res.status(200).send(prospectResultsZipBuffer);
   } catch (err) {
+    return res.status(500).json({message: "Error generating job's prospect export.", error: err});
+  }
+});
+
+app.post('/api/entity-filter', async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data) return res.status(400).json({message: 'No csv data provided'});
+    const zipBuffer = await getIndividualsAndEntitiesZip(data);
+    res.set('Content-Type', 'application/zip');
+    res.setHeader('Content-disposition', 'attachment; filename=export.zip');
+    return res.status(200).send(zipBuffer);
+  } catch (err) {
+    console.log('ERROR', err);
     return res.status(500).json({message: "Error generating job's prospect export.", error: err});
   }
 });

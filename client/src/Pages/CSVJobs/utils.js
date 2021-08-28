@@ -119,6 +119,13 @@ export async function downloadProspectsZip(id, prospectType, pipContext, filenam
   fileDownload(resp.data, `${filename.replace('.csv', '')} (prospects).zip`);
 }
 
+export async function filterEntitiesTask(data, filename = 'export.csv') {
+  const resp = await axios.post(`/api/entity-filter`, data, {
+    responseType: 'arraybuffer',
+  });
+  fileDownload(resp.data, `${filename.replace('.csv', '')} (entities-individuals).zip`);
+}
+
 export function formatDate(date) {
   const monthNames = [
     'January',

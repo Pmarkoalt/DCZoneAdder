@@ -45,6 +45,9 @@ function Header(props) {
             <Link to="/open-data">
               <MenuItem onClick={handleClose}>Make Single OpenDataDC Request</MenuItem>
             </Link>
+            <Link to="/entity-filter">
+              <MenuItem onClick={handleClose}>Group Records Into Individuals & Entities</MenuItem>
+            </Link>
           </Menu>
           <Typography variant="h6" id="title">
             DC Zone Builder

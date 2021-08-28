@@ -2,7 +2,7 @@ import React from 'react';
 import {Route, Switch} from 'react-router-dom';
 import './App.scss';
 import {CreateJob, Home} from './Pages';
-import {JobsList, JobDetails, ODDCRequestForm} from './Pages/CSVJobs';
+import {JobsList, JobDetails, ODDCRequestForm, EntityFilterUploadForm} from './Pages/CSVJobs';
 import {Footer, Header} from './Components';
 import useSimpleAuth from './useSimpleAuth';
 
@@ -17,6 +17,7 @@ const App = () => {
         <Route path="/jobs/:id" component={JobDetails} />
         <Route path="/jobs" component={JobsList} />
         <Route path="/open-data" component={ODDCRequestForm} />
+        <Route path="/entity-filter" component={EntityFilterUploadForm} />
         {/* <Route path="/create-job" component={CSVUpload} />
           <Route path="/list" component={ListComponent} />
           <Route path="/details/:id" component={DocumentDetails} />
