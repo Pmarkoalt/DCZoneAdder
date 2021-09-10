@@ -1,6 +1,7 @@
 const {processSSL} = require('../../api/open-data-dc/client');
+const {getZillowData} = require('../../api/zillow/client');
 const {getAddressAttributes, getPropertyQuestData} = require('../../api/address');
-const {formatSSL} = require('../../jobs/utils');
+const {formatSSL, parseAddress} = require('../../jobs/utils');
 
 module.exports.jobConfig = {
   includeInputDataInExport: true,
@@ -51,5 +52,20 @@ module.exports.process = async (context, task) => {
       SSL = formatSSL(`${Square} ${Lot}`);
     }
   }
-  return getODDCData(SSL, context.data.Address);
+  let openDataResult = await getODDCData(SSL, context.data.Address);
+  if (context.context.searchZillow) {
+    try {
+      const address = parseAddress(openDataResult['Mailing Address']);
+      const zillowData = await getZillowData(address);
+      if (zillowData) {
+        openDataResult = {
+          ...openDataResult,
+          ...zillowData,
+        };
+      }
+    } catch (e) {
+      console.log('Error requesting Zillow API data', e);
+    }
+  }
+  return openDataResult;
 };
