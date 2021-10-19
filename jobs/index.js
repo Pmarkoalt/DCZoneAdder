@@ -277,8 +277,15 @@ module.exports.createJob = (jobData) => {
           job.save((err) => {
             if (err) return reject(err);
             const queue = getQueue(job.type);
+            const jobOpts = {
+              removeOnComplete: true,
+              removeOnFail: true,
+            };
             for (const task of tasks) {
-              queue.add({context: job.context, data: task.data, taskId: task._id, type: job.type, jobId: job.id});
+              queue.add(
+                {context: job.context, data: task.data, taskId: task._id, type: job.type, jobId: job.id},
+                jobOpts,
+              );
             }
             console.log('Job and task creation complete!');
             return resolve(job);
