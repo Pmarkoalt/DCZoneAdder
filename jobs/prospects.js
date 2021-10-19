@@ -196,7 +196,7 @@ const tagRecord = (pipType, data, ctx = {}) => {
   if (record.tags.isEligible) {
     const {propertyType, ownerType} = record.tags;
     const subtype = getPIPSubtype(pipType, record.data);
-    record.tags.groupId = `${ownerType}:${tier}:${propertyType}:${subtype}`;
+    record.tags.groupId = `${ownerType}:${propertyType}:${subtype}`;
     record.tags.filename = `${pipType} - ${subtype} - ${propertyType} - ${ownerType}.csv`;
   }
 
