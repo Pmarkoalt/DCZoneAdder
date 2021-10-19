@@ -125,17 +125,27 @@ const checkClass = (pipType, data, taxRatio = 0.6) => {
 
 const getPropertyType = (data) => {
   let units = data['MAR Num Units'];
-  const propertyUse = data['Property Use'];
+  let propertyUse = data['Property Use'];
   if (!propertyUse) return null;
+  propertyUse = propertyUse.toUpperCase();
   units = units ? String(units) : units;
-  if (units === '1') {
-    return propertyUse.includes('Single') ? 'SFH' : 'Single-Unit';
-  } else if (!units || units === '0') {
-    if (!['Hotel', 'Educational', 'Office-Condo', 'Retail-Condo'].map((x) => propertyUse.includes(x))) {
-      return 'Other';
+  if (propertyUse.includes('SINGLE')) {
+    return 'SFH';
+  }
+  if (propertyUse.includes('RESIDENTIAL')) {
+    if (units === '1') {
+      return 'Unit';
+    }
+    if (['2', '3', '4'].includes(units)) {
+      return 'MFH (2 to 4)';
+    } else {
+      const numUnits = parseInt(units);
+      if (!isNaN(numUnits) && numUnits >= 5) {
+        return 'MFH (5 plus)';
+      }
     }
   }
-  return 'Multiple-Unit';
+  return 'Other';
 };
 
 const getPIPSubtype = (pipType, data) => {
@@ -185,10 +195,9 @@ const tagRecord = (pipType, data, ctx = {}) => {
   record.tags.filename = 'Failed.csv';
   if (record.tags.isEligible) {
     const {propertyType, ownerType} = record.tags;
-    const tier = record.data['Neighborhood Tier'];
     const subtype = getPIPSubtype(pipType, record.data);
     record.tags.groupId = `${ownerType}:${tier}:${propertyType}:${subtype}`;
-    record.tags.filename = `${pipType} - ${subtype} - ${propertyType} - ${tier} - ${ownerType}.csv`;
+    record.tags.filename = `${pipType} - ${subtype} - ${propertyType} - ${ownerType}.csv`;
   }
 
   return record;
