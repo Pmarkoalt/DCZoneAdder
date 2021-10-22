@@ -53,19 +53,19 @@ module.exports.process = async (context, task) => {
     }
   }
   let openDataResult = await getODDCData(SSL, context.data.Address);
-  if (context.context.searchZillow) {
-    try {
-      const address = parseAddress(openDataResult['Mailing Address']);
-      const zillowData = await getZillowData(address);
-      if (zillowData) {
-        openDataResult = {
-          ...openDataResult,
-          ...zillowData,
-        };
-      }
-    } catch (e) {
-      console.log('Error requesting Zillow API data', e);
-    }
-  }
+  // if (context.context.searchZillow) {
+  //   try {
+  //     const address = parseAddress(openDataResult['Mailing Address']);
+  //     const zillowData = await getZillowData(address);
+  //     if (zillowData) {
+  //       openDataResult = {
+  //         ...openDataResult,
+  //         ...zillowData,
+  //       };
+  //     }
+  //   } catch (e) {
+  //     console.log('Error requesting Zillow API data', e);
+  //   }
+  // }
   return openDataResult;
 };
