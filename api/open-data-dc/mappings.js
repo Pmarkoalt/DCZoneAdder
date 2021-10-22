@@ -24,6 +24,7 @@ const OpenDataDC = {
     ADDRESS1: 'ADDRESS1',
     ADDRESS2: 'ADDRESS2',
     CITYSTZIP: 'CITYSTZIP',
+    NEWTOTAL: 'NEWTOTAL',
   },
   ITSF: {
     _meta: {
@@ -104,6 +105,10 @@ const EXPORT_MAPPINGS = {
   'Ass. Value (ITS)': {
     columnName: 'Ass. Value (ITS)',
     source: 'ITS.ASSESSMENT',
+  },
+  'True Ass. Value (ITS)': {
+    columnName: 'True Ass. Value (ITS)',
+    source: 'ITS.NEWTOTAL',
   },
   CLASS: {
     columnName: 'CLASS',
