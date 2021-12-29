@@ -123,8 +123,24 @@ const assembleAddress = (address1, address2, citystzip) => {
   }
 };
 
+function parseAddressWithoutComma(address) {
+  const parts = address.split(' ');
+  const zip = parts.pop();
+  const state = parts.pop();
+  const city = parts.pop();
+  const street = parts.join(' ');
+  return {
+    street,
+    city,
+    state,
+    zip,
+  };
+}
+
 function parseAddress(address) {
   try {
+    // This is kind of a hack, we will need to make address parsing more robust in the future
+    if (!address.includes(',')) return parseAddressWithoutComma(address);
     const [street, cityStateZip] = address.split(',');
     const parts = cityStateZip.trim().split(' ');
     let zip, state, city;

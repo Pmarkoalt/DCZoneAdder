@@ -85,6 +85,15 @@ const setMailingAddressData = (data) => {
   data['Mailing Zip'] = zip;
 };
 
+const setPremiseAddressData = (data) => {
+  const premiseAddress = data['PREMISEADD'];
+  const {street, city, state, zip} = parseAddress(premiseAddress);
+  data['Premise Street Address'] = street;
+  data['Premise City'] = city;
+  data['Premise State'] = state;
+  data['Premise Zip'] = zip;
+};
+
 const PIP_TYPE = {
   ODDC: 'OD', // open data dc
   ROD: 'ROD', // recorder of deeds
@@ -92,13 +101,15 @@ const PIP_TYPE = {
 };
 
 const checkSaleDate = (pipType, data) => {
+  const saleDate = data['Sale Date'];
+  if (!saleDate) return true;
   switch (pipType) {
     case PIP_TYPE.ROD:
-      return !data['Sale Date'] || toDate(data['Sale Date']) < toDate(data.Recorded);
+      return toDate(saleDate) < toDate(data.Recorded);
     case PIP_TYPE.DCSC:
-      return !data['Sale Date'] || toDate(data['Sale Date']) < toDate(data['File Date']);
+      return toDate(saleDate) < toDate(data['File Date']);
     case PIP_TYPE.ODDC:
-      return !data['Sale Date'] || monthDiff(toDate(data['Sale Date']), new Date()) < 6;
+      return monthDiff(toDate(data['Sale Date']), new Date()) > 12;
     default:
       throw new Error(`Invalid pip type: ${pipType}`);
   }
@@ -186,6 +197,7 @@ const tagRecord = (pipType, data, ctx = {}) => {
 
   record.tags.propertyType = getPropertyType(data);
   setMailingAddressData(record.data);
+  setPremiseAddressData(record.data);
 
   record.tags.ownerType = isEntity(record.data['Owner Name 1'], ctx.entityNameTriggers) ? 'Entity' : 'Individual';
   const {hasOwnerName, marNumUnitsMatch, saleDateMatch, classMatch} = record.tags;
