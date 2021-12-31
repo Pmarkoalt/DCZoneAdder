@@ -42,6 +42,40 @@ const defaultEntityNameTriggers = [
   'WMATA',
 ];
 
+async function fetchEntityIndex() {
+  const sheetId = '197eIRy19EOayd4BvhKpfxVwq_4vgxFh8uqKVYmnf8Sk';
+  const resp = await readGoogleSheet(sheetId, 'Index!A2:J');
+  return resp.map((item) => {
+    const [
+      entity,
+      exclude,
+      firstName,
+      middleInitial,
+      lastName,
+      note,
+      mailingAddress,
+      mailingCity,
+      mailingState,
+      mailingZip,
+    ] = item;
+    return {
+      entity,
+      exclude: exclude === 'TRUE',
+      firstName,
+      middleInitial,
+      lastName,
+      note,
+      mailing: {
+        address: mailingAddress,
+        city: mailingCity,
+        state: mailingState,
+        zip: mailingZip,
+      },
+    };
+  });
+}
+module.exports.fetchEntityIndex = fetchEntityIndex;
+
 async function fetchEntityNameTriggers() {
   try {
     const sheetId = '1416we19U-0sUXn_lZNNiNP99_w0z2YEKzCTymG-Z2UM';
@@ -59,8 +93,22 @@ const isEntity = (name, entityNameTriggers = defaultEntityNameTriggers) => {
 };
 module.exports.isEntity = isEntity;
 
-const getIndividualFirstLastName = (name, ctx) => {
-  if (!name || isEntity(name, ctx.entityNameTriggers)) return [undefined, undefined];
+const getFirstAndLastName = (name, ctx) => {
+  if (!name) return [undefined, undefined];
+  if (isEntity(name, ctx.entityNameTriggers)) {
+    return getEntityFirstLastName(name, ctx);
+  }
+  return getIndividualFirstLastName(name);
+};
+
+const getEntityFirstLastName = (name, ctx) => {
+  const found = ctx.entityIndex.find(({entity}) => entity === name);
+  if (!found) return [undefined, undefined];
+  if (found.exclude) return false;
+  return [found.firstName, found.lastName];
+};
+
+const getIndividualFirstLastName = (name) => {
   try {
     if (name.includes(',')) {
       let [last, first] = name
@@ -188,7 +236,10 @@ const tagRecord = (pipType, data, ctx = {}) => {
 
   record.tags.saleDateMatch = checkSaleDate(pipType, data);
 
-  const [firstName, lastName] = getIndividualFirstLastName(data['Owner Name 1'], ctx);
+  let result = getFirstAndLastName(data['Owner Name 1'], ctx);
+  record.tags.entityExcluded = !result;
+  result = result || [undefined, undefined];
+  const [firstName, lastName] = result;
   record.data['First Name'] = firstName;
   record.data['Last Name'] = lastName;
 
@@ -200,8 +251,8 @@ const tagRecord = (pipType, data, ctx = {}) => {
   setPremiseAddressData(record.data);
 
   record.tags.ownerType = isEntity(record.data['Owner Name 1'], ctx.entityNameTriggers) ? 'Entity' : 'Individual';
-  const {hasOwnerName, marNumUnitsMatch, saleDateMatch, classMatch} = record.tags;
-  record.tags.isEligible = hasOwnerName && marNumUnitsMatch && saleDateMatch && classMatch;
+  const {hasOwnerName, marNumUnitsMatch, saleDateMatch, classMatch, entityExcluded} = record.tags;
+  record.tags.isEligible = hasOwnerName && marNumUnitsMatch && saleDateMatch && classMatch && !entityExcluded;
 
   record.tags.groupId = 'failed';
   record.tags.filename = 'Failed.csv';

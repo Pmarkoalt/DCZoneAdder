@@ -4,7 +4,7 @@ const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
 const {generateId, createCSVZipFolder} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
 const {goodpropsFilter} = require('../api/open-data-dc/filters.js');
-const {prospectIdentificationProcess, isEntity, fetchEntityNameTriggers} = require('./prospects');
+const {prospectIdentificationProcess, isEntity, fetchEntityNameTriggers, fetchEntityIndex} = require('./prospects');
 
 module.exports.JOB_TYPES = JOB_TYPES;
 
@@ -338,6 +338,7 @@ module.exports.getJobProspectResultsZip = async (jobId, prospectType, ctx) => {
       return acc;
     }, []);
     ctx.entityNameTriggers = await fetchEntityNameTriggers();
+    ctx.entityIndex = await fetchEntityIndex();
     return prospectIdentificationProcess(prospectType, resultData, ctx);
   } catch (err) {
     console.log(err);

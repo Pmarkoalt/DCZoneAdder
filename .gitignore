@@ -29,3 +29,5 @@ chrome-user-data
 .env.staging
 
 dump.rdb
+
+service-account.json

@@ -2,13 +2,17 @@ require('dotenv').config();
 const AdmZip = require('adm-zip');
 const {Parser} = require('json2csv');
 const {google} = require('googleapis');
-const e = require('express');
+const {decryptServiceKey} = require('../credentials');
 
 // readGoogleSheet('1FRtJ35wwMMi4HJeO2VJRnBYYJC9JtTKE8jQrbOuInqM', 'Sheet1!A1:A');
 function readGoogleSheet(spreadsheetId, range) {
+  const credentials = decryptServiceKey();
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  });
   return new Promise((resolve, reject) => {
-    const API_KEY = process.env.SHEETS_API_KEY;
-    const sheets = google.sheets({version: 'v4', auth: API_KEY});
+    const sheets = google.sheets({version: 'v4', auth});
     sheets.spreadsheets.values.get(
       {
         spreadsheetId,
