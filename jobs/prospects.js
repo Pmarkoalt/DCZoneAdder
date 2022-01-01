@@ -134,7 +134,7 @@ const setMailingAddressData = (data) => {
 };
 
 const setPremiseAddressData = (data) => {
-  const premiseAddress = data['PREMISEADD'];
+  const premiseAddress = data['Address'];
   const {street, city, state, zip} = parseAddress(premiseAddress);
   data['Premise Street Address'] = street;
   data['Premise City'] = city;
