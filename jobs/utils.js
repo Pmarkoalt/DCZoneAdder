@@ -2,6 +2,7 @@ require('dotenv').config();
 const AdmZip = require('adm-zip');
 const {Parser} = require('json2csv');
 const {google} = require('googleapis');
+const addressParser = require('parse-address');
 const {decryptServiceKey} = require('../credentials');
 
 // readGoogleSheet('1FRtJ35wwMMi4HJeO2VJRnBYYJC9JtTKE8jQrbOuInqM', 'Sheet1!A1:A');
@@ -127,37 +128,20 @@ const assembleAddress = (address1, address2, citystzip) => {
   }
 };
 
-function parseAddressWithoutComma(address) {
-  const parts = address.split(' ');
-  const zip = parts.pop();
-  const state = parts.pop();
-  const city = parts.pop();
-  const street = parts.join(' ');
-  return {
-    street,
-    city,
-    state,
-    zip,
-  };
-}
-
 function parseAddress(address) {
   try {
-    // This is kind of a hack, we will need to make address parsing more robust in the future
-    if (!address.includes(',')) return parseAddressWithoutComma(address);
-    const [street, cityStateZip] = address.split(',');
-    const parts = cityStateZip.trim().split(' ');
-    let zip, state, city;
-    let item = parts.pop();
-    if (isNaN(parseInt(item))) {
-      state = item;
-    } else {
-      zip = item;
-      state = parts.pop();
+    if (!address) {
+      return {
+        street: undefined,
+        city: undefined,
+        state: undefined,
+        zip: undefined,
+      };
     }
-    city = parts.join(' ');
+    const {number, suffix, street, type, city, state, zip} = addressParser.parseLocation(address);
+    const _street = [number, street, type, suffix].filter((x) => x).join(' ');
     return {
-      street,
+      street: _street,
       city,
       state,
       zip,
