@@ -48,6 +48,9 @@ function Header(props) {
             <Link to="/entity-filter">
               <MenuItem onClick={handleClose}>Group Records Into Individuals & Entities</MenuItem>
             </Link>
+            <Link to="/franklin-county">
+              <MenuItem onClick={handleClose}>Franklin County</MenuItem>
+            </Link>
           </Menu>
           <Typography variant="h6" id="title">
             DC Zone Builder
