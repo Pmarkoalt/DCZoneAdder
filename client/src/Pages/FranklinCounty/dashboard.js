@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 const Container = styled.div`
   padding-left: 1.5em;
+  padding-bottom: 1.5em;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -32,13 +33,13 @@ const Container = styled.div`
 // const API_URL = 'http://localhost:3333';
 const API_URL = 'https://jbzyxeg9zx.us-east-1.awsapprunner.com';
 
-async function getScraperStatus() {
+async function getScraperMeta() {
   const resp = await fetch(`${API_URL}/api/queue`);
   return resp.json();
 }
 
-async function startScraper() {
-  const resp = await fetch(`${API_URL}/api/start`, {method: 'POST'});
+async function startScraper(year) {
+  const resp = await fetch(`${API_URL}/api/start/${year}`, {method: 'POST'});
   return resp.json();
 }
 
@@ -48,24 +49,37 @@ async function stopScraper() {
 }
 
 const Dashboard = () => {
-  const [isRunning, setIsRunning] = useState(false);
+  const [meta, setMeta] = useState({});
 
-  const updateStatus = useCallback(() => {
-    getScraperStatus().then(({running}) => {
-      setIsRunning(running);
+  const updateMeta = useCallback(() => {
+    getScraperMeta().then((m) => {
+      setMeta(m);
     });
   }, []);
 
   useEffect(() => {
-    updateStatus();
-  }, [updateStatus]);
+    updateMeta();
+  }, [updateMeta]);
 
-  const start = useCallback(async () => {
-    (await startScraper()) && updateStatus();
-  }, [updateStatus]);
+  const start = useCallback(
+    async (year) => {
+      await startScraper(year);
+      setTimeout(() => {
+        updateMeta();
+      }, 1000);
+    },
+    [updateMeta],
+  );
   const stop = useCallback(async () => {
-    (await stopScraper()) && updateStatus();
-  }, [updateStatus]);
+    await stopScraper();
+    setTimeout(() => {
+      updateMeta();
+    }, 1000);
+  }, [updateMeta]);
+
+  console.log(meta);
+
+  const isRunning = meta.status === 'RUNNING';
 
   return (
     <Container>
@@ -73,11 +87,28 @@ const Dashboard = () => {
       <div className="group">
         <h3>Foreclosure Scraper</h3>
         <div>
-          STATUS: <span>{isRunning ? 'Running' : 'Idle'}</span>
+          STATUS: <span>{meta.status || 'Loading...'}</span>
+        </div>
+        <div>
+          <div>
+            2020: <span>{meta['lastCaseNumberProcessed:20']}</span>
+          </div>
+          <div>
+            2021: <span>{meta['lastCaseNumberProcessed:21']}</span>
+          </div>
+          <div>
+            2022: <span>{meta['lastCaseNumberProcessed:22']}</span>
+          </div>
         </div>
         <div className="buttons">
-          <button onClick={start} disabled={isRunning}>
-            Start
+          <button onClick={() => start(20)} disabled={isRunning}>
+            Start 2020
+          </button>
+          <button onClick={() => start(21)} disabled={isRunning}>
+            Start 2021
+          </button>
+          <button onClick={() => start(22)} disabled={isRunning}>
+            Start 2022
           </button>
           <button onClick={stop} disabled={!isRunning}>
             Stop
