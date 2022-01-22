@@ -77,9 +77,7 @@ const Dashboard = () => {
     }, 1000);
   }, [updateMeta]);
 
-  console.log(meta);
-
-  const isRunning = meta.status === 'RUNNING';
+  const isRunning = meta.status && meta.status.startsWith('RUNNING');
 
   return (
     <Container>
