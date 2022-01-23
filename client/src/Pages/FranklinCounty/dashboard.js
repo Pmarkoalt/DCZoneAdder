@@ -59,6 +59,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     updateMeta();
+    const intervalId = setInterval(() => {
+      updateMeta();
+    }, 10000);
+    return () => clearInterval(intervalId);
   }, [updateMeta]);
 
   const start = useCallback(
