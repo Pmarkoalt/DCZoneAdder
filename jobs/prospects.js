@@ -250,9 +250,12 @@ const tagRecord = (pipType, data, ctx = {}) => {
   setMailingAddressData(record.data);
   setPremiseAddressData(record.data);
 
+  const exceedsTotalBalanceThreshold = data.TOTBALAMT >= 1.5 * data.NEWTOTAL;
+
   record.tags.ownerType = isEntity(record.data['Owner Name 1'], ctx.entityNameTriggers) ? 'Entity' : 'Individual';
   const {hasOwnerName, marNumUnitsMatch, saleDateMatch, classMatch, entityExcluded} = record.tags;
-  record.tags.isEligible = hasOwnerName && marNumUnitsMatch && saleDateMatch && classMatch && !entityExcluded;
+  record.tags.isEligible =
+    hasOwnerName && marNumUnitsMatch && saleDateMatch && classMatch && !entityExcluded && !exceedsTotalBalanceThreshold;
 
   record.tags.groupId = 'failed';
   record.tags.filename = 'Failed.csv';
