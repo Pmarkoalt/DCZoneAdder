@@ -6,6 +6,7 @@ const JOB_TYPES = {
   ZONE: 'zone',
   BELLES: 'belles',
   OPEN_DATA_DC: 'open-data-dc',
+  OPEN_DATA_FC: 'open-data-fc',
 };
 
 const CSVJobTaskSchema = new Schema({

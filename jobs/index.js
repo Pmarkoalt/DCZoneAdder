@@ -1,7 +1,7 @@
 const {Parser} = require('json2csv');
-const {groupBy} = require('lodash');
+const {groupBy, flatten} = require('lodash');
 const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
-const {generateId, createCSVZipFolder} = require('./utils');
+const {generateId, createCSVZipFolder, forceCollection} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
 const {goodpropsFilter} = require('../api/open-data-dc/filters.js');
 const {prospectIdentificationProcess, isEntity, fetchEntityNameTriggers, fetchEntityIndex} = require('./prospects');
@@ -13,6 +13,7 @@ const JOB_CONFIGS = {
   [JOB_TYPES.TPSC]: require('./tpsc').jobConfig,
   [JOB_TYPES.BELLES]: require('./belles').jobConfig,
   [JOB_TYPES.OPEN_DATA_DC]: require('./open-data-dc').jobConfig,
+  [JOB_TYPES.OPEN_DATA_FC]: require('./franklin-county').jobConfig,
 };
 
 const TASK_HANDLERS = {
@@ -20,6 +21,7 @@ const TASK_HANDLERS = {
   [JOB_TYPES.TPSC]: require('./tpsc').process,
   [JOB_TYPES.BELLES]: require('./belles').process,
   [JOB_TYPES.OPEN_DATA_DC]: require('./open-data-dc').process,
+  [JOB_TYPES.OPEN_DATA_FC]: require('./franklin-county').process,
 };
 
 const JOB_INPUT_PARSERS = {
@@ -27,6 +29,7 @@ const JOB_INPUT_PARSERS = {
   [JOB_TYPES.TPSC]: require('./tpsc').parse,
   [JOB_TYPES.BELLES]: require('./belles').parse,
   [JOB_TYPES.OPEN_DATA_DC]: require('./open-data-dc').parse,
+  [JOB_TYPES.OPEN_DATA_FC]: require('./franklin-county').parse,
 };
 
 const JOB_RESULTS_PARSERS = {
@@ -34,6 +37,7 @@ const JOB_RESULTS_PARSERS = {
   [JOB_TYPES.TPSC]: require('./tpsc').parseResults,
   [JOB_TYPES.BELLES]: require('./belles').parseResults,
   [JOB_TYPES.OPEN_DATA_DC]: require('./open-data-dc').parseResults,
+  [JOB_TYPES.OPEN_DATA_FC]: require('./franklin-county').parseResults,
 };
 
 // const JOB_TASK_CONTEXT = {
@@ -150,17 +154,21 @@ const getSuccessfulJobResults = async (jobId, useFilter) => {
     const jobConfig = JOB_CONFIGS[job.type] || {};
     const tasks = useFilter ? goodpropsFilter(job.tasks) : job.tasks;
     let results = tasks.map((t) => {
-      if (jobConfig.includeInputDataInExport && t.result) {
-        const combinedResult = {...t.data};
-        Object.entries(t.result).forEach(([key, val]) => {
-          if ((val !== undefined && val !== null) || t[key] == undefined || t[key] == null) {
-            combinedResult[key] = val;
-          }
-        });
-        return combinedResult;
-      }
-      return t.result;
+      const _results = forceCollection(t.result);
+      return _results.map((result) => {
+        if (jobConfig.includeInputDataInExport && result) {
+          const combinedResult = {...t.data};
+          Object.entries(result).forEach(([key, val]) => {
+            if ((val !== undefined && val !== null) || t[key] == undefined || t[key] == null) {
+              combinedResult[key] = val;
+            }
+          });
+          return combinedResult;
+        }
+        return result;
+      });
     });
+    results = flatten(results);
     const resultParser = JOB_RESULTS_PARSERS[job.type];
     if (resultParser) {
       results = resultParser(results, job);

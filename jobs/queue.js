@@ -26,6 +26,7 @@ module.exports.initQueues = (processFunction, {onSuccess, onError}) => {
     require('./tpsc').queueConfig,
     require('./belles').queueConfig,
     require('./open-data-dc').queueConfig,
+    require('./franklin-county').queueConfig,
   ];
   configs.forEach((config) => {
     const queue = getQueue(config.name);
