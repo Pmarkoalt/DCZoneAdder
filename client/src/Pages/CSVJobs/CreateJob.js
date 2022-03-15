@@ -12,15 +12,23 @@ import {Tabs} from '../../Components/tabs/';
 import './styles.scss';
 import {useParams} from 'react-router-dom';
 
-const validateCSV = (csvData) => {
+const validateCSV = (jobType, csvData) => {
   if (!csvData.length) return;
-  const hasAddress = 'Address' in csvData[0];
-  const hasSSL = 'SSL' in csvData[0];
-  const hasSquareLot = 'Square' in csvData[0] && 'Lot' in csvData[0];
-  if (!hasAddress && !hasSSL && !hasSquareLot) {
-    return "CSV file(s) must include an 'Address', 'SSL', or 'Square' and 'Lot' column.";
+  if (jobType === 'open-data-dc') {
+    const hasAddress = 'Address' in csvData[0];
+    const hasSSL = 'SSL' in csvData[0];
+    const hasSquareLot = 'Square' in csvData[0] && 'Lot' in csvData[0];
+    if (!hasAddress && !hasSSL && !hasSquareLot) {
+      return "CSV file(s) must include an 'Address', 'SSL', or 'Square' and 'Lot' column.";
+    }
+  } else if (jobType === 'open-data-fc') {
+    const hasAddress = 'Address' in csvData[0];
+    const hasParcelID = 'Parcel ID' in csvData[0];
+    if (!hasAddress && !hasParcelID) {
+      return "CSV file(s) must include an 'Address' or 'Parcel ID'.";
+    }
   }
-}
+};
 
 const CreateJob = () => {
   const {jobType} = useParams();
@@ -118,11 +126,11 @@ const CreateJob = () => {
               let data;
               if (files && files.length > 0) {
                 data = files.reduce((acc, file) => {
-                  const sanitizedData = file.data.replaceAll("=\"", "\"");
+                  const sanitizedData = file.data.replaceAll('="', '"');
                   const parsed = csvparse(sanitizedData, {columns: true});
                   return [...acc, ...parsed];
                 }, []);
-                const validationError = validateCSV(data);
+                const validationError = validateCSV(jobType, data);
                 if (validationError) {
                   setError(validationError);
                   setFiles([]);
