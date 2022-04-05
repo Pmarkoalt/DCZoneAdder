@@ -196,6 +196,7 @@ const JobDetails = ({match}) => {
 
   const completion = (job ? data / job.total_tasks : 0) * 100;
   const tooltip = job ? `${data} / ${job.total_tasks}` : '-/-';
+  const showProspectDropdown = job.type === 'open-data-dc';
 
   return (
     <DetailsContainer>
@@ -249,32 +250,36 @@ const JobDetails = ({match}) => {
         </div>
         <div>
           <FormControl variant="outlined" style={{width: '100%'}}>
-            <InputLabel id="prospect-filter-label">Prospect Indentification Process</InputLabel>
-            <Select
-              labelId="prospect-filter-label"
-              id="prospect-filter-select"
-              value={pipType}
-              onChange={(event) => {
-                setPipType(event.target.value);
-              }}
-              label="Prospect Identification Process">
-              <MenuItem value={PIP_TYPE.ROD}>Recorder of Deeds</MenuItem>
-              <MenuItem value={PIP_TYPE.DCSC}>Landlord & Tenant</MenuItem>
-              <MenuItem value={PIP_TYPE.ODDC}>Open Data DC</MenuItem>
-            </Select>
-            {pipType === PIP_TYPE.ODDC ? (
-              <TextField
-                style={{marginTop: '0.5em'}}
-                labelId="tax-ratio-label"
-                id="tax-ratio-input"
-                variant="filled"
-                value={pipContext.taxRatio}
-                onChange={(event) => {
-                  setPipContext((ctx) => ({...ctx, taxRatio: event.target.value}));
-                }}
-                label="Tax Ratio Threshold"
-              />
-            ) : null}
+            {showProspectDropdown && (
+              <>
+                <InputLabel id="prospect-filter-label">Prospect Indentification Process</InputLabel>
+                <Select
+                  labelId="prospect-filter-label"
+                  id="prospect-filter-select"
+                  value={pipType}
+                  onChange={(event) => {
+                    setPipType(event.target.value);
+                  }}
+                  label="Prospect Identification Process">
+                  <MenuItem value={PIP_TYPE.ROD}>Recorder of Deeds</MenuItem>
+                  <MenuItem value={PIP_TYPE.DCSC}>Landlord & Tenant</MenuItem>
+                  <MenuItem value={PIP_TYPE.ODDC}>Open Data DC</MenuItem>
+                </Select>
+                {pipType === PIP_TYPE.ODDC ? (
+                  <TextField
+                    style={{marginTop: '0.5em'}}
+                    labelId="tax-ratio-label"
+                    id="tax-ratio-input"
+                    variant="filled"
+                    value={pipContext.taxRatio}
+                    onChange={(event) => {
+                      setPipContext((ctx) => ({...ctx, taxRatio: event.target.value}));
+                    }}
+                    label="Tax Ratio Threshold"
+                  />
+                ) : null}
+              </>
+            )}
             <Button
               id="prospects-download"
               variant="contained"
