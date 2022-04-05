@@ -4,7 +4,7 @@ const {CSVJob, CSVJobTask, JOB_TYPES} = require('./models.js');
 const {generateId, createCSVZipFolder, forceCollection} = require('./utils');
 const {getQueue, initQueues} = require('./queue');
 const {goodpropsFilter} = require('../api/open-data-dc/filters.js');
-const {prospectIdentificationProcess, isEntity, fetchEntityNameTriggers, fetchEntityIndex} = require('./prospects');
+const {getProspectIdentificationProcess, isEntity, fetchEntityNameTriggers, fetchEntityIndex} = require('./prospects');
 
 module.exports.JOB_TYPES = JOB_TYPES;
 
@@ -249,7 +249,7 @@ module.exports.getJobInputCSVString = async (jobId) => {
   }
 };
 
-module.exports.createJob = (jobData) => {
+module.exports.createJob = async (jobData) => {
   return new Promise((resolve, reject) => {
     try {
       const {type, data, context, meta} = jobData;
@@ -330,24 +330,28 @@ module.exports.deleteJob = async (jobId) => {
 
 module.exports.getJobProspectResultsZip = async (jobId, prospectType, ctx) => {
   try {
+    const job = await this.findJob(jobId);
     const results = await getJobResults(jobId);
     const resultData = results.reduce((acc, r) => {
-      const data = {
-        ...r.data,
-        ...r.result,
-      };
-      acc.push(data);
-      if (data['Owner Name 2']) {
-        const other = {...data};
-        other['Owner Name 1'] = other['Owner Name 2'];
-        other['Owner Name 2'] = undefined;
-        acc.push(other);
-      }
+      forceCollection(r.result).forEach((_result) => {
+        const data = {
+          ...r.data,
+          ..._result,
+        };
+        acc.push(data);
+        if (data['Owner Name 2']) {
+          const other = {...data};
+          other['Owner Name 1'] = other['Owner Name 2'];
+          other['Owner Name 2'] = undefined;
+          acc.push(other);
+        }
+      });
       return acc;
     }, []);
     ctx.entityNameTriggers = await fetchEntityNameTriggers();
-    ctx.entityIndex = await fetchEntityIndex();
-    return prospectIdentificationProcess(prospectType, resultData, ctx);
+    ctx.entityIndex = await fetchEntityIndex(job.type);
+    const process = getProspectIdentificationProcess(job.type);
+    return process(prospectType, resultData, ctx);
   } catch (err) {
     console.log(err);
     return Promise.reject(err);

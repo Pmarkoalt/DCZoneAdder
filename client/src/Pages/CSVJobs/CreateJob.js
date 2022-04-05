@@ -12,6 +12,11 @@ import {Tabs} from '../../Components/tabs/';
 import './styles.scss';
 import {useParams} from 'react-router-dom';
 
+const hasFields = (data, fields) => {
+  const keys = Object.keys(data);
+  return fields.some((f) => keys.includes(f));
+};
+
 const validateCSV = (jobType, csvData) => {
   if (!csvData.length) return;
   if (jobType === 'open-data-dc') {
@@ -22,10 +27,10 @@ const validateCSV = (jobType, csvData) => {
       return "CSV file(s) must include an 'Address', 'SSL', or 'Square' and 'Lot' column.";
     }
   } else if (jobType === 'open-data-fc') {
-    const hasAddress = 'Address' in csvData[0];
-    const hasParcelID = 'Parcel ID' in csvData[0];
+    const hasAddress = hasFields(csvData[0], ['Address', 'Street Address']);
+    const hasParcelID = hasFields(csvData[0], ['Parcel ID', 'Parcel', 'PARCELID']);
     if (!hasAddress && !hasParcelID) {
-      return "CSV file(s) must include an 'Address' or 'Parcel ID'.";
+      return "CSV file(s) must include an ('Address', 'Street Address') or ('Parcel ID', 'Parcel', 'PARCELID').";
     }
   }
 };

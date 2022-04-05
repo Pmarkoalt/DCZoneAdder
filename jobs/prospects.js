@@ -1,4 +1,5 @@
 const lodash = require('lodash');
+const {JOB_TYPES} = require('./models');
 const {createCSVZipFolder, monthDiff, parseAddress, readGoogleSheet} = require('./utils');
 const classMap = require('./open-data-dc/prop-use-class-map');
 const tierMap = require('./open-data-dc/neighborhood-tiers');
@@ -42,7 +43,21 @@ const defaultEntityNameTriggers = [
   'WMATA',
 ];
 
-async function fetchEntityIndex() {
+async function fetchEntityIndex(jobType) {
+  if (jobType === JOB_TYPES.OPEN_DATA_FC) {
+    const sheetId = '14sz8ePxr6uCnfTYPtro7WDE4gmAngD6sCAtU6OfZVbk';
+    const resp = await readGoogleSheet(sheetId, 'Sheet1!A2:F');
+    return resp.map((item) => {
+      const [entity, exclude, firstName, middleInitial, lastName] = item;
+      return {
+        entity,
+        exclude: exclude === 'TRUE',
+        firstName,
+        middleInitial,
+        lastName,
+      };
+    });
+  }
   const sheetId = '197eIRy19EOayd4BvhKpfxVwq_4vgxFh8uqKVYmnf8Sk';
   const resp = await readGoogleSheet(sheetId, 'Index!A2:J');
   return resp.map((item) => {
@@ -89,7 +104,15 @@ async function fetchEntityNameTriggers() {
 module.exports.fetchEntityNameTriggers = fetchEntityNameTriggers;
 
 const isEntity = (name, entityNameTriggers = defaultEntityNameTriggers) => {
-  return Boolean(name && entityNameTriggers.some((check) => name.toUpperCase().includes(check.toUpperCase())));
+  return Boolean(
+    name &&
+      entityNameTriggers.some((check) => {
+        return name
+          .toUpperCase()
+          .split(' ')
+          .some((part) => check.toUpperCase() == part);
+      }),
+  );
 };
 module.exports.isEntity = isEntity;
 
@@ -269,7 +292,7 @@ const tagRecord = (pipType, data, ctx = {}) => {
   return record;
 };
 
-const processRecords = (pipType, records, ctx = {}) => {
+const processOpenDataDC = (pipType, records, ctx = {}) => {
   const taggedRecords = records.map((r) => tagRecord(pipType, r, ctx));
   let groups = lodash.groupBy(taggedRecords, 'tags.filename');
   groups = Object.entries(groups).reduce((acc, [filename, records]) => {
@@ -278,4 +301,48 @@ const processRecords = (pipType, records, ctx = {}) => {
   }, {});
   return createCSVZipFolder(groups);
 };
-module.exports.prospectIdentificationProcess = processRecords;
+
+const processOpenDataFC = (pipType, records, ctx = {}) => {
+  const taggedRecords = records.map((data) => {
+    const record = {
+      data,
+      tags: {},
+    };
+    const code = Number(data['Property Class Code']);
+    record.tags.codeMatch = [401, 404, 431].includes(code) || (code >= 500 && code <= 555);
+
+    let result = getFirstAndLastName(data['Owner Name 1'], ctx);
+    record.tags.entityExcluded = !result;
+    result = result || [undefined, undefined];
+    const [firstName, lastName] = result;
+    record.data['First Name'] = firstName;
+    record.data['Last Name'] = lastName;
+
+    record.tags.ownerType = isEntity(record.data['Owner Name 1'], ctx.entityNameTriggers) ? 'Entity' : 'Individual';
+    const {codeMatch, entityExcluded} = record.tags;
+    record.tags.isEligible = !entityExcluded && codeMatch;
+
+    record.tags.groupId = 'failed';
+    record.tags.filename = 'Failed.csv';
+    if (record.tags.isEligible) {
+      const {ownerType} = record.tags;
+      record.tags.groupId = ownerType;
+      record.tags.filename = `${ownerType}.csv`;
+    }
+
+    return record;
+  });
+  let groups = lodash.groupBy(taggedRecords, 'tags.filename');
+  groups = Object.entries(groups).reduce((acc, [filename, records]) => {
+    acc[filename] = records.map((r) => r.data);
+    return acc;
+  }, {});
+  return createCSVZipFolder(groups);
+};
+
+module.exports.getProspectIdentificationProcess = (jobType) => {
+  return {
+    [JOB_TYPES.OPEN_DATA_DC]: processOpenDataDC,
+    [JOB_TYPES.OPEN_DATA_FC]: processOpenDataFC,
+  }[jobType];
+};
