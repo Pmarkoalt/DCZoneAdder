@@ -20,7 +20,7 @@ const getField = (data, fields) => {
   }
 };
 
-const PARCEL_ID_FIELDS = ['Parcel ID', 'PARCELID', 'Parcel'];
+const PARCEL_ID_FIELDS = ['Parcel ID', 'PARCELID', 'Parcel', 'PARCEL'];
 const ADDRESS_FIELDS = ['Address', 'Street Address'];
 
 function parseIndividualName(name) {
@@ -44,9 +44,17 @@ module.exports.process = async (context, task) => {
     entityNameTriggers = await fetchEntityNameTriggers();
   }
   const parcelId = getField(context.data, PARCEL_ID_FIELDS);
+  const hasParcelId = parcelId && parcelId.trim().length > 0;
   const address = getField(context.data, ADDRESS_FIELDS);
+  const hasAddress = address && address.trim().length > 0;
+  if (!hasParcelId && !hasAddress) {
+    throw new Error('Missing parcel id and address');
+  }
   const query = parcelId ? `parcelId=${parcelId}` : `address=${address}`;
   const resp = await axios.get(`${FRANKLIN_COUNTY_API_URL}/open-data?${query}`);
+  if (resp.data.length === 0) {
+    throw new Error('No results');
+  }
   return resp.data.map((data) => {
     let {ownerName1} = data;
     const _isEntity = isEntity(ownerName1, context.entityNameTriggers);

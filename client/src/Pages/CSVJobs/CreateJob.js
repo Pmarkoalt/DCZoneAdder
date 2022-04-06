@@ -28,9 +28,9 @@ const validateCSV = (jobType, csvData) => {
     }
   } else if (jobType === 'open-data-fc') {
     const hasAddress = hasFields(csvData[0], ['Address', 'Street Address']);
-    const hasParcelID = hasFields(csvData[0], ['Parcel ID', 'Parcel', 'PARCELID']);
+    const hasParcelID = hasFields(csvData[0], ['Parcel ID', 'Parcel', 'PARCELID', 'PARCEL']);
     if (!hasAddress && !hasParcelID) {
-      return "CSV file(s) must include an ('Address', 'Street Address') or ('Parcel ID', 'Parcel', 'PARCELID').";
+      return "CSV file(s) must include an ('Address', 'Street Address') or ('Parcel ID', 'Parcel', 'PARCELID', 'PARCEL').";
     }
   }
 };
