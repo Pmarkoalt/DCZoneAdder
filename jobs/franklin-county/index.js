@@ -1,5 +1,6 @@
 const axios = require('axios');
 const {isEntity, fetchEntityNameTriggers} = require('../prospects');
+const {trimBySuffix} = require('../../utils/address');
 require('dotenv').config();
 
 module.exports.queueConfig = {
@@ -50,7 +51,7 @@ module.exports.process = async (context, task) => {
   if (!hasParcelId && !hasAddress) {
     throw new Error('Missing parcel id and address');
   }
-  const query = parcelId ? `parcelId=${parcelId}` : `address=${address}`;
+  const query = parcelId ? `parcelId=${parcelId}` : `address=${trimBySuffix(address)}`;
   const resp = await axios.get(`${FRANKLIN_COUNTY_API_URL}/open-data?${query}`);
   if (resp.data.length === 0) {
     throw new Error('No results');
