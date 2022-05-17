@@ -126,7 +126,7 @@ const getFirstAndLastName = (name, ctx) => {
 
 const getEntityFirstLastName = (name, ctx) => {
   const found = ctx.entityIndex.find(({entity}) => entity === name);
-  if (!found) return [undefined, undefined];
+  if (!found) return ['Unknown', 'Unknown'];
   if (found.exclude) return false;
   return [found.firstName, found.lastName];
 };

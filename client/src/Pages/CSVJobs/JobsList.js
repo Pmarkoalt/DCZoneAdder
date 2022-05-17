@@ -149,7 +149,7 @@ const JobList = () => {
         </Select>
       </JobTypeSelect>
       <div id="list">
-        <List style={{width: '800px'}}>
+        <List style={{width: '1000px'}}>
           {!loading ? (
             jobs.length === 0 ? (
               <h3>No Results</h3>

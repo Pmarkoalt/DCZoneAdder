@@ -750,4 +750,6 @@ function trimBySuffix(streetAddress) {
   return streetAddress;
 }
 
+// console.log(trimBySuffix('642 GROVE CR'));
+
 module.exports.trimBySuffix = trimBySuffix;
