@@ -48,6 +48,9 @@ const JOB_RESULTS_PARSERS = {
 module.exports.listJobs = (jobType) => {
   const query = jobType ? {type: jobType} : {};
   return new Promise((resolve, reject) => {
+    // CSVJob.find(query, '-tasks', async (err, jobs) => {
+    //   resolve(jobs);
+    // }).sort('-created_timestamp');
     CSVJob.find(query, '-tasks', async (err, jobs) => {
       if (err) return reject(err);
       // return resolve(jobs);
@@ -75,7 +78,7 @@ module.exports.listJobs = (jobType) => {
     })
       .lean()
       .sort('-created_timestamp')
-      .limit(50);
+      .limit(10);
   });
 };
 
