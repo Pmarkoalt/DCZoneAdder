@@ -45,7 +45,7 @@ const JOB_RESULTS_PARSERS = {
 //   [JOB_TYPES.TPSC]: require('./tpsc').onTaskCreate,
 // };
 
-module.exports.listJobs = (jobType) => {
+module.exports.listJobs = (jobType, skip = 0) => {
   const query = jobType ? {type: jobType} : {};
   return new Promise((resolve, reject) => {
     // CSVJob.find(query, '-tasks', async (err, jobs) => {
@@ -78,6 +78,7 @@ module.exports.listJobs = (jobType) => {
     })
       .lean()
       .sort('-created_timestamp')
+      .skip(skip)
       .limit(10);
   });
 };

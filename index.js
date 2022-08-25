@@ -65,13 +65,17 @@ app.use(cors());
 // End Points
 app.get('/api/csv-jobs', async (req, res) => {
   try {
-    const {jobType} = req.query;
+    const {jobType, skip} = req.query;
     if (jobType) {
       if (!Object.values(JOB_TYPES).includes(jobType)) {
         return res.status(400).json({message: `${jobType} is not a valid job type.`});
       }
     }
-    const jobs = await listJobs(req.query.jobType);
+    const numSkip = parseInt(skip || 0);
+    if (isNaN(numSkip)) {
+      return res.status(400).json({message: `${skip} is not a valid number.`});
+    }
+    const jobs = await listJobs(req.query.jobType, numSkip);
     return res.json(jobs);
   } catch (err) {
     return res.status(500).json({message: 'Problem with Mongo DB'});

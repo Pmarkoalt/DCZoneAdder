@@ -41,10 +41,10 @@ export async function createJobFromSocket(socket, jobType, data, meta, context) 
   });
 }
 
-export async function listJobs(_jobType) {
+export async function listJobs(_jobType, skip) {
   const jobType = _jobType === 'All' ? undefined : _jobType;
   const resp = await axios.get('/api/csv-jobs', {
-    params: {jobType},
+    params: {jobType, skip},
   });
   return resp.data;
 }

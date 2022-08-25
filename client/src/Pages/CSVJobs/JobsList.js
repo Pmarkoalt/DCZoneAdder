@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import styled from 'styled-components';
 import Tooltip from '@material-ui/core/Tooltip';
 import List from '@material-ui/core/List';
@@ -119,7 +119,9 @@ const Job = ({job, disableDownload, disableDelete, onDownload, onDownloadFailed,
 
 const JobList = () => {
   const [jobs, setJobs] = useState([]);
+  const [skip, setSkip] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [downloading, setDownloading] = useState({});
   const [deleting, setDeleting] = useState({});
   const [jobType, setJobType] = useState('All');
@@ -132,6 +134,16 @@ const JobList = () => {
     });
   }, [jobType]);
 
+  const loadMoreJobs = useCallback(() => {
+    setSkip((s) => s + 10);
+    setLoadingMore(true);
+    listJobs(jobType, skip + 10)
+      .then((jobs) => {
+        setJobs((j) => [...j, ...jobs]);
+      })
+      .finally(() => setLoadingMore(false));
+  }, [jobType, skip, setSkip]);
+
   return (
     <>
       <JobTypeSelect variant="filled">
@@ -140,7 +152,10 @@ const JobList = () => {
           labelId="demo-simple-select-filled-label"
           id="demo-simple-select-filled"
           value={jobType}
-          onChange={(event) => setJobType(event.target.value)}>
+          onChange={(event) => {
+            setJobType(event.target.value);
+            setSkip(0);
+          }}>
           <MenuItem value="All">All</MenuItem>
           <MenuItem value="zone">Zone</MenuItem>
           <MenuItem value="tpsc">SSL</MenuItem>
@@ -148,7 +163,7 @@ const JobList = () => {
           <MenuItem value="open-data-dc">Open Data DC</MenuItem>
         </Select>
       </JobTypeSelect>
-      <div id="list">
+      <div id="list" style={{display: 'flex', flexDirection: 'column'}}>
         <List style={{width: '1000px'}}>
           {!loading ? (
             jobs.length === 0 ? (
@@ -199,6 +214,11 @@ const JobList = () => {
             </ListItem>
           )}
         </List>
+        {!loading && (
+          <button disabled={loadingMore} style={{marginTop: '1rem'}} onClick={loadMoreJobs}>
+            Load More
+          </button>
+        )}
       </div>
     </>
   );
