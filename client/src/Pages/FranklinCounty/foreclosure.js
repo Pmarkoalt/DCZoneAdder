@@ -69,6 +69,9 @@ const Dashboard = () => {
         <div>
           2022: <span>{meta['lastCaseNumberProcessed:22']}</span>
         </div>
+        <div>
+          2023: <span>{meta['lastCaseNumberProcessed:23']}</span>
+        </div>
       </div>
       <div className="buttons">
         <button onClick={() => start(20)} disabled={isRunning}>
@@ -79,6 +82,9 @@ const Dashboard = () => {
         </button>
         <button onClick={() => start(22)} disabled={isRunning}>
           Start 2022
+        </button>
+        <button onClick={() => start(23)} disabled={isRunning}>
+          Start 2023
         </button>
         <button onClick={stop} disabled={!isRunning}>
           Stop
